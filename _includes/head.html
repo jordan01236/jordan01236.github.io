@@ -13,13 +13,10 @@
   <!-- highlight.js support -->
   <link rel="stylesheet" href="/js/highlightjs/styles/github.css">
   <link rel="stylesheet" href="/js/highlightjs/styles/ssms.css" />
-
   <script type="text/javascript" src="/js/highlightjs/highlight.min.js"></script>
-
   <script type="text/javascript" src="/js/highlightjs/languages/plaintext.min.js"></script>
   <script type="text/javascript" src="/js/highlightjs/languages/powershell.min.js"></script>
   <script type="text/javascript" src="/js/highlightjs/languages/tsql.min.js"></script>
-
   <script type="text/javascript"> hljs.highlightAll(); </script>
   <!-- end highlight.js support -->
 
@@ -27,15 +24,38 @@
     .rss-subscribe {
         display: none;
     }
-    </style>
-
-<style>
-  .footer-heading,
-  .footer-col-wrapper {
-    display: none;
-  }
-</style>
-
-
-   
+    .footer-heading,
+    .footer-col-wrapper {
+      display: none;
+    }
+  </style>
 </head>
+<body>
+  <!-- Your HTML body content goes here -->
+
+  <!-- JavaScript code for social media links -->
+  <script>
+    // Define your social media links
+    const socialMediaLinks = [
+      { name: "GitHub", url: "https://github.com/jordan01236" },
+      { name: "LinkedIn", url: "https://www.linkedin.com/in/jordan01236/" },
+      // Add more social media links as needed
+    ];
+
+    // Function to create list items with social media links
+    function createSocialMediaListItems() {
+      const socialMediaList = document.querySelector('.social-media-list');
+      socialMediaLinks.forEach(link => {
+        const listItem = document.createElement('li');
+        const anchor = document.createElement('a');
+        anchor.href = link.url;
+        anchor.textContent = link.name;
+        listItem.appendChild(anchor);
+        socialMediaList.appendChild(listItem);
+      });
+    }
+
+    // Call the function to create social media list items
+    createSocialMediaListItems();
+  </script>
+</body>

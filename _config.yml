@@ -2,18 +2,10 @@ title: "Jordan's Blog"
 author: "Jordan"
 
 
-# Email / Social media user names used by the minima theme:
-# All of these are optional and can be removed or commented out
-#email: "example@mail.com"
 HackTheBox: "https://app.hackthebox.com/profile/1283370"
 Github: "https://github.com/jordan01236"
 LinkedIn: "https://www.linkedin.com/in/jordan01236/"
-#facebook_username: username
-#flickr_username: username
-#instagram_username: username
-#pinterest_username: username
-#youtube_username: username
-#googleplus_username: +username
+
 
 #########################################################################################
 ######### Nothing below needs to be changed (unless you know what you're doing) #########
@@ -25,8 +17,9 @@ theme: "minima"
 kramdown:
   syntax_highlighter_opts:
     disable: true
-    
+
 plugins:
+  - jekyll-feed
   - jekyll-sitemap
 
 titles_from_headings:

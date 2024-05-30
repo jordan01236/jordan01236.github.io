@@ -18,8 +18,6 @@ LinkedIn: "https://www.linkedin.com/in/jordan01236/"
 #########################################################################################
 theme: "minima"
 
-#rss: rss
-
 kramdown:
   syntax_highlighter_opts:
     disable: true

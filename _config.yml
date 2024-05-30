@@ -5,9 +5,9 @@ description: "This website/blog is going to mainly cover machines on HackTheBox 
 # Email / Social media user names used by the minima theme:
 # All of these are optional and can be removed or commented out
 #email: "example@mail.com"
-hackthebox_username: "jordan01236"
-github_username: "jordan01236"
-linkedin: "https://www.linkedin.com/in/jordan01236/"
+HackTheBox: "https://app.hackthebox.com/profile/1283370"
+Github: "https://github.com/jordan01236"
+LinkedIn: "https://www.linkedin.com/in/jordan01236/"
 #facebook_username: username
 #flickr_username: username
 #instagram_username: username

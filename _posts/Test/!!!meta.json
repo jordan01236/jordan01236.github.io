@@ -1,0 +1,193 @@
+{
+	"formatVersion": 2,
+	"appVersion": "0.63.5",
+	"files": [
+		{
+			"noteId": "3yiUI6cTbmse",
+			"notePath": [
+				"3yiUI6cTbmse"
+			],
+			"isClone": false,
+			"title": "enumeration",
+			"notePosition": 30,
+			"prefix": null,
+			"isExpanded": false,
+			"type": "text",
+			"mime": "text/html",
+			"format": "markdown",
+			"dataFileName": "enumeration.md",
+			"noImport": false,
+			"attributes": [],
+			"attachments": [
+				{
+					"attachmentId": "HU0UD9YXjIJI",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "enumeration_image.png"
+				},
+				{
+					"attachmentId": "t1ssSIgHE6xV",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "1_enumeration_image.png"
+				},
+				{
+					"attachmentId": "z1EqZcyMENHt",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "2_enumeration_image.png"
+				},
+				{
+					"attachmentId": "7ilE1Oe2DcGQ",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "3_enumeration_image.png"
+				},
+				{
+					"attachmentId": "LRBQhVbJNmdV",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "4_enumeration_image.png"
+				},
+				{
+					"attachmentId": "dYTgO8piAhtU",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "5_enumeration_image.png"
+				},
+				{
+					"attachmentId": "ZcRfuxOjy1Ie",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "6_enumeration_image.png"
+				},
+				{
+					"attachmentId": "FC9tscPfp6ff",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "7_enumeration_image.png"
+				},
+				{
+					"attachmentId": "ySQB0lLTy3g3",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "8_enumeration_image.png"
+				},
+				{
+					"attachmentId": "uqjtPDdJOOzG",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "9_enumeration_image.png"
+				},
+				{
+					"attachmentId": "zlpL2WKSE3r8",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "10_enumeration_image.png"
+				},
+				{
+					"attachmentId": "iXNazfi0Wm4K",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "11_enumeration_image.png"
+				},
+				{
+					"attachmentId": "mzvuJQZHZuTL",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "12_enumeration_image.png"
+				},
+				{
+					"attachmentId": "qRp1bWvX1iOn",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "13_enumeration_image.png"
+				},
+				{
+					"attachmentId": "UPCjo80kAyBm",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "14_enumeration_image.png"
+				},
+				{
+					"attachmentId": "7GcVXonBgi3n",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "15_enumeration_image.png"
+				},
+				{
+					"attachmentId": "UTtguAVmBqhL",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "16_enumeration_image.png"
+				},
+				{
+					"attachmentId": "gMIjs8uKj1Ae",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "17_enumeration_image.png"
+				},
+				{
+					"attachmentId": "J4j7P07FXFLp",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "18_enumeration_image.png"
+				},
+				{
+					"attachmentId": "VvYS362n06Ye",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "19_enumeration_image.png"
+				},
+				{
+					"attachmentId": "Kx8GuHydIofw",
+					"title": "image.png",
+					"role": "image",
+					"mime": "image/png",
+					"position": 10,
+					"dataFileName": "20_enumeration_image.png"
+				}
+			]
+		}
+	]
+}

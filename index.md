@@ -5,6 +5,7 @@
 <br>
 <p>This website/blog is going to mainly cover machines on HackTheBox and TryHackMe.</p>
 <br>
+<hr>
 <big><big><big>Socials</big></big></big>
 <br>
 <a href="https://github.com/jordan01236">GitHub</a>

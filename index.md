@@ -8,7 +8,9 @@
 <big><big><big>Socials</big></big></big>
 <br>
 <a href="https://github.com/jordan01236">GitHub</a>
+<br>
 <a href="https://www.linkedin.com/in/jordan01236/">LinkedIn</a>
+<br>
 <a href="https://app.hackthebox.com/profile/1283370">HackTheBox</a>
 <hr>
 <br>

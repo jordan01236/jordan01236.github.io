@@ -47,3 +47,8 @@ hr {
 .feed-subscribe {
   display: none !important;
 }
+
+body {
+  background-color: black;
+  color: white;
+}

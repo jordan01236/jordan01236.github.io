@@ -1,4 +1,4 @@
-<big>About Me<big>
+<big><big><big>About Me<big><big><big>
 <hr>
 <br>
 <p>Hello! I'm Jordan, a cybersecurity enthusiast focused on hacking platforms like HackTheBox and TryHackMe. I love solving challenges, learning new techniques. I am currently working towards my OSCP certification.</p>

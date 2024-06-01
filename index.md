@@ -1,4 +1,4 @@
-<link rel="icon" href="favicon.ico" type="image/x-icon">
+<link rel="icon" href="favicon.jpg" type="image/x-icon">
 <big><big><big>About Me</big></big></big>
 <hr>
 <br>

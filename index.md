@@ -1,3 +1,4 @@
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
 <big><big><big>About Me</big></big></big>
 <hr>
 <br>

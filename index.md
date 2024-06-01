@@ -2,7 +2,7 @@
 <big><big><big>About Me</big></big></big>
 <hr>
 <br>
-<p>Hello! I'm Jordan, a cybersecurity enthusiast focused on hacking platforms like HackTheBox and TryHackMe. I love solving challenges, learning new techniques. I am currently working towards my OSCP certification.</p>
+<p>Hello! I'm Jordan, a cybersecurity enthusiast focused on hacking platforms like HackTheBox and TryHackMe. I love solving challenges and learning new techniques.</p>
 <br>
 <p>This website/blog is going to mainly cover machines on HackTheBox and TryHackMe.</p>
 <br>

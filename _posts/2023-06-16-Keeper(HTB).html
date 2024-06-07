@@ -1,0 +1,54 @@
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+  </head>
+  
+  <body>
+    <p>The main webpage shows us a link to tickets.keeper.htb</p>
+    <p>Their ticketing system is best practical requests</p>
+    <p>google shows us the default creds are</p>
+    <p>root:password</p>
+    <p>We can see all active users since we are the admin and we find a profile
+      with a username and password so we can SSH in.</p>
+    <p>lnorgaard:Welcome2023!</p>
+    <p>After hours we find a python script which we can use to try and grab a
+      password from our dmp file</p>
+    <p>and we find a dessert called rodgrod med flode</p>
+    <p>we install a gui for keepass and provide the passcodes.kdbx file and input
+      the found password rødgrød med fløde and we get access to keepass</p>
+    <p>IN Keepass we find an putty SSH key which we convert to an id_rsa key
+      to ssh in without a password</p>
+    <p>PuTTY-User-Key-File-3: ssh-rsa</p>
+    <p>Encryption: none</p>
+    <p>Comment: rsa-key-20230519</p>
+    <p>Public-Lines: 6</p>
+    <p>AAAAB3NzaC1yc2EAAAADAQABAAABAQCnVqse/hMswGBRQsPsC/EwyxJvc8Wpul/D</p>
+    <p>8riCZV30ZbfEF09z0PNUn4DisesKB4x1KtqH0l8vPtRRiEzsBbn+mCpBLHBQ+81T</p>
+    <p>EHTc3ChyRYxk899PKSSqKDxUTZeFJ4FBAXqIxoJdpLHIMvh7ZyJNAy34lfcFC+LM</p>
+    <p>Cj/c6tQa2IaFfqcVJ+2bnR6UrUVRB4thmJca29JAq2p9BkdDGsiH8F8eanIBA1Tu</p>
+    <p>FVbUt2CenSUPDUAw7wIL56qC28w6q/qhm2LGOxXup6+LOjxGNNtA2zJ38P1FTfZQ</p>
+    <p>LxFVTWUKT8u8junnLk0kfnM4+bJ8g7MXLqbrtsgr5ywF6Ccxs0Et</p>
+    <p>Private-Lines: 14</p>
+    <p>AAABAQCB0dgBvETt8/UFNdG/X2hnXTPZKSzQxxkicDw6VR+1ye/t/dOS2yjbnr6j</p>
+    <p>oDni1wZdo7hTpJ5ZjdmzwxVCChNIc45cb3hXK3IYHe07psTuGgyYCSZWSGn8ZCih</p>
+    <p>kmyZTZOV9eq1D6P1uB6AXSKuwc03h97zOoyf6p+xgcYXwkp44/otK4ScF2hEputY</p>
+    <p>f7n24kvL0WlBQThsiLkKcz3/Cz7BdCkn+Lvf8iyA6VF0p14cFTM9Lsd7t/plLJzT</p>
+    <p>VkCew1DZuYnYOGQxHYW6WQ4V6rCwpsMSMLD450XJ4zfGLN8aw5KO1/TccbTgWivz</p>
+    <p>UXjcCAviPpmSXB19UG8JlTpgORyhAAAAgQD2kfhSA+/ASrc04ZIVagCge1Qq8iWs</p>
+    <p>OxG8eoCMW8DhhbvL6YKAfEvj3xeahXexlVwUOcDXO7Ti0QSV2sUw7E71cvl/ExGz</p>
+    <p>in6qyp3R4yAaV7PiMtLTgBkqs4AA3rcJZpJb01AZB8TBK91QIZGOswi3/uYrIZ1r</p>
+    <p>SsGN1FbK/meH9QAAAIEArbz8aWansqPtE+6Ye8Nq3G2R1PYhp5yXpxiE89L87NIV</p>
+    <p>09ygQ7Aec+C24TOykiwyPaOBlmMe+Nyaxss/gc7o9TnHNPFJ5iRyiXagT4E2WEEa</p>
+    <p>xHhv1PDdSrE8tB9V8ox1kxBrxAvYIZgceHRFrwPrF823PeNWLC2BNwEId0G76VkA</p>
+    <p>AACAVWJoksugJOovtA27Bamd7NRPvIa4dsMaQeXckVh19/TF8oZMDuJoiGyq6faD</p>
+    <p>AF9Z7Oehlo1Qt7oqGr8cVLbOT8aLqqbcax9nSKE67n7I5zrfoGynLzYkd3cETnGy</p>
+    <p>NNkjMjrocfmxfkvuJ7smEFMg7ZywW7CBWKGozgz67tKz9Is=</p>
+    <p>Private-MAC: b0a0fd2edf4f0e557200121aa673732c9e76750739db05adc3ab65ec34c55cb0</p>
+    <p>puttygen test.ppk -O private-openssh -o id_rsa</p>
+    <p>chmod 600 id_rsa</p>
+    <p>ssh -i id_rsa root@10.129.208.18</p>
+    <p>we are root</p>
+  </body>
+
+</html>

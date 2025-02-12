@@ -4,7 +4,7 @@
 <br>
 <p>Hello! I'm Jordan, a cybersecurity enthusiast focused on hacking platforms like HackTheBox and TryHackMe.</p>
 <br>
-<p>This website/blog is going to mainly cover machines on HackTheBox and TryHackMe.</p>
+<p>This website/blog is going to mainly cover machines on HackTheBox/TryHackMe and Offsec Proving Grounds.</p>
 <br>
 <hr>
 <big><big><big>Socials</big></big></big>

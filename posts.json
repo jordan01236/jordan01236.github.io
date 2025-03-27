@@ -11,6 +11,489 @@
       "date": "2025-03-17",
       "excerpt": "Sweep is a medium rated machine which teaches the importance of strong passwords as our initial access involves password bruteforcing.",
       "filename": "posts/2025-03-17-Sweep(VulnLab).html"
+    },
+    {
+      "title": "MonitorsTwo",
+      "date": "2023-04-30",
+      "excerpt": "",
+      "filename": "posts/2023-04-30-MonitorsTwo(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Analytic",
+      "date": "2023-05-01",
+      "excerpt": "",
+      "filename": "posts/2023-05-01-Analytic(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Armageddon",
+      "date": "2023-05-01",
+      "excerpt": "",
+      "filename": "posts/2023-05-01-Armageddon(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Bounty Hunter",
+      "date": "2023-05-01",
+      "excerpt": "",
+      "filename": "posts/2023-05-01-Bounty Hunter(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Buff",
+      "date": "2023-05-01",
+      "excerpt": "",
+      "filename": "posts/2023-05-01-Buff(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Cap",
+      "date": "2023-05-01",
+      "excerpt": "",
+      "filename": "posts/2023-05-01-Cap(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Grandma",
+      "date": "2023-05-01",
+      "excerpt": "",
+      "filename": "posts/2023-05-01-Grandma(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Sau",
+      "date": "2023-05-01",
+      "excerpt": "",
+      "filename": "posts/2023-05-01-Sau(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Sauna",
+      "date": "2023-05-01",
+      "excerpt": "",
+      "filename": "posts/2023-05-01-Sauna(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "TwoMillion",
+      "date": "2023-05-01",
+      "excerpt": "",
+      "filename": "posts/2023-05-01-TwoMillion(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Active",
+      "date": "2023-05-30",
+      "excerpt": "",
+      "filename": "posts/2023-05-30-Active(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Keeper",
+      "date": "2023-06-16",
+      "excerpt": "",
+      "filename": "posts/2023-06-16-Keeper(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Netmon",
+      "date": "2024-01-01",
+      "excerpt": "",
+      "filename": "posts/2024-01-01-Netmon(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Access",
+      "date": "2024-01-05",
+      "excerpt": "",
+      "filename": "posts/2024-01-05-Access(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Return",
+      "date": "2024-02-01",
+      "excerpt": "",
+      "filename": "posts/2024-02-01-Return(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Cronos",
+      "date": "2024-02-02",
+      "excerpt": "",
+      "filename": "posts/2024-02-02-Cronos(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Inject",
+      "date": "2024-02-10",
+      "excerpt": "",
+      "filename": "posts/2024-02-10-Inject(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Valentine",
+      "date": "2024-02-20",
+      "excerpt": "",
+      "filename": "posts/2024-02-20-Valentine(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Broker",
+      "date": "2024-03-10",
+      "excerpt": "",
+      "filename": "posts/2024-03-10-Broker(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Irked",
+      "date": "2024-03-13",
+      "excerpt": "",
+      "filename": "posts/2024-03-13-Irked(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Devvortex",
+      "date": "2024-04-02",
+      "excerpt": "",
+      "filename": "posts/2024-04-02-Devvortex(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Codify",
+      "date": "2024-04-05",
+      "excerpt": "",
+      "filename": "posts/2024-04-05-Codify(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "MetaTwo",
+      "date": "2024-04-05",
+      "excerpt": "",
+      "filename": "posts/2024-04-05-MetaTwo(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Driver",
+      "date": "2024-04-10",
+      "excerpt": "",
+      "filename": "posts/2024-04-10-Driver(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Love",
+      "date": "2024-04-23",
+      "excerpt": "",
+      "filename": "posts/2024-04-23-Love(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Backdoor",
+      "date": "2024-04-25",
+      "excerpt": "",
+      "filename": "posts/2024-04-25-Backdoor(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Forest",
+      "date": "2024-05-05",
+      "excerpt": "",
+      "filename": "posts/2024-05-05-Forest(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Arctic",
+      "date": "2024-05-10",
+      "excerpt": "",
+      "filename": "posts/2024-05-10-Arctic(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Bounty",
+      "date": "2024-05-10",
+      "excerpt": "",
+      "filename": "posts/2024-05-10-Bounty(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Mailing",
+      "date": "2024-05-10",
+      "excerpt": "",
+      "filename": "posts/2024-05-10-Mailing(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Networked",
+      "date": "2024-05-10",
+      "excerpt": "",
+      "filename": "posts/2024-05-10-Networked(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Remote",
+      "date": "2024-05-10",
+      "excerpt": "",
+      "filename": "posts/2024-05-10-Remote(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Usage",
+      "date": "2024-05-10",
+      "excerpt": "",
+      "filename": "posts/2024-05-10-Usage(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Escape",
+      "date": "2024-05-15",
+      "excerpt": "",
+      "filename": "posts/2024-05-15-Escape(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "cascade",
+      "date": "2024-05-20",
+      "excerpt": "",
+      "filename": "posts/2024-05-20-cascade(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Chatterbox",
+      "date": "2024-05-20",
+      "excerpt": "",
+      "filename": "posts/2024-05-20-Chatterbox(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Crafty",
+      "date": "2024-05-20",
+      "excerpt": "",
+      "filename": "posts/2024-05-20-Crafty(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "SolarLab",
+      "date": "2024-05-20",
+      "excerpt": "",
+      "filename": "posts/2024-05-20-SolarLab(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "SwagShop",
+      "date": "2024-05-20",
+      "excerpt": "",
+      "filename": "posts/2024-05-20-SwagShop(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "BoardLight",
+      "date": "2024-05-24",
+      "excerpt": "",
+      "filename": "posts/2024-05-24-BoardLight(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "ChatterBox",
+      "date": "2024-05-24",
+      "excerpt": "",
+      "filename": "posts/2024-05-24-ChatterBox(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Resolute",
+      "date": "2024-05-24",
+      "excerpt": "",
+      "filename": "posts/2024-05-24-Resolute(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "ServMon",
+      "date": "2024-05-24",
+      "excerpt": "",
+      "filename": "posts/2024-05-24-ServMon(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "FriendZoned",
+      "date": "2024-05-25",
+      "excerpt": "",
+      "filename": "posts/2024-05-25-FriendZoned(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Headless",
+      "date": "2024-05-25",
+      "excerpt": "",
+      "filename": "posts/2024-05-25-Headless(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Jeeves",
+      "date": "2024-05-30",
+      "excerpt": "",
+      "filename": "posts/2024-05-30-Jeeves(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "ToolBox",
+      "date": "2024-06-03",
+      "excerpt": "",
+      "filename": "posts/2024-06-03-ToolBox(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "WifineticTwo",
+      "date": "2024-06-08",
+      "excerpt": "",
+      "filename": "posts/2024-06-08-WifineticTwo(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Blurry",
+      "date": "2024-06-09",
+      "excerpt": "",
+      "filename": "posts/2024-06-09-Blurry(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Runner",
+      "date": "2024-06-10",
+      "excerpt": "",
+      "filename": "posts/2024-06-10-Runner(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Editorial",
+      "date": "2024-06-17",
+      "excerpt": "",
+      "filename": "posts/2024-06-17-Editorial(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "PermX",
+      "date": "2024-08-01",
+      "excerpt": "",
+      "filename": "posts/2024-08-01-PermX(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Bart",
+      "date": "2024-09-25",
+      "excerpt": "",
+      "filename": "posts/2024-09-25-Bart(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Blackfield",
+      "date": "2024-09-29",
+      "excerpt": "",
+      "filename": "posts/2024-09-29-Blackfield(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Outdated",
+      "date": "2024-10-04",
+      "excerpt": "",
+      "filename": "posts/2024-10-04-Outdated(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Sniper",
+      "date": "2024-10-05",
+      "excerpt": "",
+      "filename": "posts/2024-10-05-Sniper(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Sightless",
+      "date": "2024-10-13",
+      "excerpt": "",
+      "filename": "posts/2024-10-13-Sightless(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Hospital",
+      "date": "2024-10-20",
+      "excerpt": "",
+      "filename": "posts/2024-10-20-Hospital(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Support",
+      "date": "2024-11-25",
+      "excerpt": "",
+      "filename": "posts/2024-11-25-Support(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "MonitorsThree",
+      "date": "2025-01-31",
+      "excerpt": "",
+      "filename": "posts/2025-01-31-MonitorsThree(HTB).html",
+      "platform": "HTB"
+    },
+    {
+      "title": "Algernon",
+      "date": "2025-02-10",
+      "excerpt": "",
+      "filename": "posts/2025-02-10-Algernon(PG).html",
+      "platform": "PG"
+    },
+    {
+      "title": "Kevin",
+      "date": "2025-02-12",
+      "excerpt": "",
+      "filename": "posts/2025-02-12-Kevin(PG).html",
+      "platform": "PG"
+    },
+    {
+      "title": "Access",
+      "date": "2025-02-25",
+      "excerpt": "",
+      "filename": "posts/2025-02-25-Access(PG).html",
+      "platform": "PG"
+    },
+    {
+      "title": "Craft",
+      "date": "2025-03-01",
+      "excerpt": "",
+      "filename": "posts/2025-03-01-Craft(PG).html",
+      "platform": "PG"
+    },
+    {
+      "title": "Hutch",
+      "date": "2025-03-03",
+      "excerpt": "",
+      "filename": "posts/2025-03-03-Hutch(PG).html",
+      "platform": "PG"
+    },
+    {
+      "title": "Vault",
+      "date": "2025-03-04",
+      "excerpt": "",
+      "filename": "posts/2025-03-04-Vault(PG).html",
+      "platform": "PG"
+    },
+    {
+      "title": "Baby",
+      "date": "2025-03-08",
+      "excerpt": "",
+      "filename": "posts/2025-03-08-Baby(VulnLab).html",
+      "platform": "VulnLab"
+    },
+    {
+      "title": "Baby2",
+      "date": "2025-03-10",
+      "excerpt": "",
+      "filename": "posts/2025-03-10-Baby2(VulnLab).html",
+      "platform": "VulnLab"
+    },
+    {
+      "title": "Breach",
+      "date": "2025-03-14",
+      "excerpt": "",
+      "filename": "posts/2025-03-10-Breach(VulnLab).html",
+      "platform": "VulnLab"
     }
 
   ]

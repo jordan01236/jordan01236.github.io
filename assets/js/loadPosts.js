@@ -1,13 +1,14 @@
 document.addEventListener("DOMContentLoaded", function () {
-    fetch('/posts.json')  // Added leading slash for absolute path
+    fetch('/posts.json')
         .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return response.json();
         })
         .then(data => {
             const container = document.getElementById('post-container');
+
+            // Clear existing content
+            container.innerHTML = '';
 
             data.posts.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(post => {
                 const postHTML = `
@@ -18,7 +19,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     day: 'numeric'
                 })}</span>
                         <h3>
-                            <a class="post-link" href="${encodeURI(post.filename)}">${post.title}</a>
+                            <a class="post-link" href="${encodeURIComponent(post.filename)}">
+                                ${post.title}
+                            </a>
                         </h3>
                         <div class="post-excerpt">
                             <p>${post.excerpt}</p>
@@ -32,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error('Post loading error:', error);
             document.getElementById('post-container').innerHTML = `
                 <li class="error">
-                    Error loading posts: ${error.message}
+                    Error: ${error.message}
                 </li>
             `;
         });

@@ -72,17 +72,7 @@
             <div class="home">
                 <h2 class="post-list-heading">Latest Posts</h2>
 
-                <ul class="post-list">
-                    <!-- Example Post -->
-                    <li class="post-list-li">
-                        <span class="post-meta">Mar 26, 2025</span>
-                        <h3>
-                            <a class="post-link" href="2025/03/26/Sendai(VulnLab).html">VulnLab: Sendai</a>
-                        </h3>
-                        <div class="post-excerpt">
-                            <p>Sendai is a "hard" rated Windows machine showing common misconfigured settings within active directory allowing us to exploit this machine.</p>
-                        </div>
-                    </li>
+                <ul class="post-list" id="post-container">
                 </ul>
             </div>
         </div>
@@ -123,5 +113,8 @@
         gtag('js', new Date());
         gtag('config', 'G-P056MVQVGM');
     </script>
+
+    <script src="assets/js/loadPosts.js"></script>
+
 </body>
 </html>

@@ -450,30 +450,21 @@ iframe {
   padding-top: 30px;
 }
 
-.social-links {
-    display: flex;
-    gap: 2rem;
-    justify-content: center;
-    padding: 2rem 0;
+/* Social Links - Force larger size */
+footer .social-links img {
+    width: 60px !important;
+    height: 60px !important;
+    margin-right: 20px !important;
 }
 
-    .social-links a {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: #333;
-        text-decoration: none;
-        transition: opacity 0.3s ease;
-    }
+footer .social-links a span {
+    font-size: 1.4rem !important;
+}
 
-        .social-links a:hover {
-            opacity: 0.7;
-        }
-
-    .social-links img {
-        width: 32px;
-        height: 32px;
-    }
+footer .social-links a {
+    gap: 25px !important;
+    padding: 15px 0 !important;
+}
 
 .post-list-li {
     margin-bottom: 2rem;
@@ -583,3 +574,4 @@ body {
         color: #33ff33;
         font-weight: bold;
     }
+

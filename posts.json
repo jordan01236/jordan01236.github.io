@@ -6,5 +6,12 @@
       "excerpt": "Sendai is a 'hard' rated Windows machine showing common misconfigured settings within active directory allowing us to exploit this machine.",
       "filename": "posts/2025-03-26-Sendai(VulnLab).html"
     }
+    {
+      "title": "VulnLab: Sweep",
+      "date": "2025-03-17",
+      "excerpt": "Sweep is a medium rated machine which teaches the importance of strong passwords as our initial access involves password bruteforcing.",
+      "filename": "posts/2025-03-17-Sweep(VulnLab).html"
+    }
+
   ]
 }

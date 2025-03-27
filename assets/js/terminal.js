@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function handleCommand(command) {
         if (command === "whoami") {
-            displayOutput(isRoot ? "root" : "Hello! I'm Jordan, a cybersecurity enthusiast focused on hacking/cybersecurity. I have been learning pentesting for just about 4 years now. Vist my about page to learn more.");
+            displayOutput(isRoot ? "root" : "Hello! I'm Jordan, a cybersecurity enthusiast focused on hacking/cybersecurity. I have been learning pentesting for just about 4 years now. Vist my about page to learn more!");
         } else if (command === "help") {
             displayOutput("Available commands:\n- whoami\n- help\n- clear\n- blog\n- about\n- sudo su"); // Added sudo su
         } else if (command === "clear") {

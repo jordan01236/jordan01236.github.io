@@ -6,6 +6,8 @@
 .post-list-h3 {margin-bottom:0px;}
 .post-list-li {line-height:24px;}
 
+
+
 img {
     padding: 5px;
 }
@@ -450,21 +452,6 @@ iframe {
   padding-top: 30px;
 }
 
-/* Social Links - Force larger size */
-footer .social-links img {
-    width: 60px !important;
-    height: 60px !important;
-    margin-right: 20px !important;
-}
-
-footer .social-links a span {
-    font-size: 1.4rem !important;
-}
-
-footer .social-links a {
-    gap: 25px !important;
-    padding: 15px 0 !important;
-}
 
 .post-list-li {
     margin-bottom: 2rem;
@@ -515,13 +502,6 @@ body {
     border-bottom: 1px solid #33ff33;
 }
 
-.social-links a {
-    color: #33ff33 !important;
-}
-
-    .social-links a:hover {
-        color: #00ff00 !important;
-    }
 
 
 
@@ -575,3 +555,110 @@ body {
         font-weight: bold;
     }
 
+/* Reset all footer images */
+footer img {
+    width: auto !important;
+    height: auto !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+
+/* Social Links Styling */
+/* ==================== */
+
+footer[data-darkreader-inline-bgcolor] {
+    padding: 40px 20px !important;
+}
+
+footer h3 {
+    font-size: 1.5rem !important;
+    margin-bottom: 30px !important;
+    letter-spacing: 1px;
+}
+
+/* Target the specific div with inline flex styling */
+footer div[style*="display: flex"] {
+    gap: 50px !important;
+    flex-wrap: wrap !important;
+    padding: 15px 0 !important;
+}
+
+/* Style all external links in footer */
+footer a[target="_blank"] {
+    font-size: 1.3rem !important;
+    padding: 15px 25px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 10px !important;
+    transition: all 0.3s ease !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+}
+
+    footer a[target="_blank"]:hover {
+        transform: translateY(-3px) !important;
+        background: rgba(255, 255, 255, 0.2) !important;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3) !important;
+    }
+
+/* Target specific social icons */
+footer img[src*="hackthebox"],
+footer img[src*="github"],
+footer img[src*="linkedin"] {
+    width: 45px !important;
+    height: 45px !important;
+    margin-right: 0 !important;
+    filter: brightness(0) invert(1) !important;
+    transition: transform 0.3s ease !important;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    footer div[style*="display: flex"] {
+        gap: 30px !important;
+        flex-direction: column !important;
+    }
+
+    footer a[target="_blank"] {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 15px !important;
+    }
+
+    footer img[src*="hackthebox"],
+    footer img[src*="github"],
+    footer img[src*="linkedin"] {
+        width: 25px !important;
+        height: 25px !important;
+    }
+}
+
+/* Social Icons - Uniform Sizing */
+footer a[target="_blank"] img {
+    width: 40px !important; /* Reduced from 60px */
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    object-fit: contain !important;
+    margin-right: 12px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    padding: 8px !important;
+    border-radius: 8px !important;
+    transition: transform 0.3s ease !important;
+}
+
+/* HackTheBox Logo Specific Adjustment */
+footer a[href*="hackthebox"] img {
+    filter: brightness(1.2) contrast(1.2) !important;
+    padding: 6px !important; /* Slightly less padding */
+}
+
+/* Hover Effects */
+footer a[target="_blank"]:hover img {
+    transform: scale(1.1) !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+}

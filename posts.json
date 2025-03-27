@@ -5,7 +5,7 @@
       "date": "2025-03-26",
       "excerpt": "Sendai is a 'hard' rated Windows machine showing common misconfigured settings within active directory allowing us to exploit this machine.",
       "filename": "posts/2025-03-26-Sendai(VulnLab).html"
-    }
+    },
     {
       "title": "VulnLab: Sweep",
       "date": "2025-03-17",

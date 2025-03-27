@@ -1,59 +1,89 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta name="name" content="About">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>About</title>
+    <title>About - HackWithJordan</title>
     <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/custom.css">
+    <link rel="icon" type="image/png" href="assets/icons/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="assets/icons/favicon-16x16.png" sizes="16x16">
+    <style>
+        /* Override terminal colors */
+        body {
+            background-color: #f8f9fa !important;
+            color: #333 !important;
+        }
+
+        main {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px auto;
+            max-width: 800px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
 <body>
     <header class="site-header">
         <div class="wrapper">
             <a class="site-title" rel="author" href="index.html">HackWithJordan</a>
             <nav class="site-nav">
-                <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+                <input type="checkbox" id="nav-trigger" class="nav-trigger">
                 <label for="nav-trigger">
                     <span class="menu-icon">☰</span>
                 </label>
                 <div class="trigger">
-                    <a class="page-link-site" href="index.html">Home</a>
+                    <a class="page-link-site" href="index.html">Terminal</a>
+                    <a class="page-link-site" href="blog.html">Blog</a>
                     <a class="page-link-site" href="about.html">About</a>
                 </div>
             </nav>
         </div>
     </header>
+
     <main>
-        <h1>About</h1>
-        <p>
-            Hello! I'm Jordan, a cybersecurity enthusiast focused on hacking platforms like HackTheBox and TryHackMe.
+        <div class="wrapper">
+            <h1>About Me</h1>
+            <p>
+                Hello! I'm Jordan, a cybersecurity enthusiast focused on hacking/cybersecurity. I have been learning pentesting for just about 4 years now.
+                </br>
+                </br>
+                During this 4 year period I have managed to climb the ranks on Hack The Box and I am currently in the top 800 out of an estimated 1.7 million users.
 
+                <img src="img/htb.png" alt="HTB Rank">
 
-            This website/blog is going to mainly cover machines on HackTheBox/TryHackMe and Offsec Proving Grounds.
-        </p>
+            </p>
+        </div>
     </main>
+
     <footer style="text-align: center; padding: 30px 20px; background-color: #1d1d1d; margin-top: 30px; color: #eee;">
         <h3 style="margin-bottom: 20px; font-size: 1.2em;">My Socials</h3>
         <div style="display: flex; justify-content: center; gap: 30px; align-items: center;">
-            <!-- HackTheBox Link -->
             <a href="https://app.hackthebox.com/profile/1283370" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: #eee;">
                 <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYkrQ6ElBN8pgzZ8YTMK0Wegqju23v3ANClA&s" alt="HTB" width="20" height="20" style="margin-right: 8px;">
                 HackTheBox
             </a>
-
-            <!-- GitHub Link -->
             <a href="https://github.com/jordan01236/" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: #eee;">
                 <img src="https://github.githubassets.com/favicons/favicon.png" alt="GitHub" width="20" height="20" style="margin-right: 8px;">
                 GitHub
             </a>
-
-            <!-- LinkedIn Link -->
             <a href="https://www.linkedin.com/in/jordan01236/" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: #eee;">
                 <img src="https://static.licdn.com/sc/h/akt4ae504epesldzj74dzred8" alt="LinkedIn" width="20" height="20" style="margin-right: 8px;">
                 LinkedIn
             </a>
         </div>
     </footer>
+
+    <script>
+        document.querySelectorAll('.page-link-site').forEach(link => {
+            if (link.href === window.location.href) {
+                link.classList.add('active');
+            }
+        });
+    </script>
 </body>
 </html>

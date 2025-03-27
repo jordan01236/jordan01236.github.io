@@ -449,3 +449,137 @@ iframe {
 .hhc-toc-act {
   padding-top: 30px;
 }
+
+.social-links {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    padding: 2rem 0;
+}
+
+    .social-links a {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #333;
+        text-decoration: none;
+        transition: opacity 0.3s ease;
+    }
+
+        .social-links a:hover {
+            opacity: 0.7;
+        }
+
+    .social-links img {
+        width: 32px;
+        height: 32px;
+    }
+
+.post-list-li {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.post-link {
+    color: #2c3e50;
+}
+
+/* Dark theme for blog posts */
+body {
+    background-color: #000;
+    color: #33ff33;
+}
+
+.post-list-li {
+    background-color: #111 !important;
+    border: 1px solid #33ff33;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.post-link {
+    color: #33ff33 !important;
+    text-decoration: none;
+}
+
+    .post-link:hover {
+        color: #00ff00 !important;
+        text-decoration: underline;
+    }
+
+.post-meta {
+    color: #888;
+}
+
+.footer-heading,
+.site-title,
+.page-link-site {
+    color: #33ff33 !important;
+}
+
+.site-header {
+    border-bottom: 1px solid #33ff33;
+}
+
+.social-links a {
+    color: #33ff33 !important;
+}
+
+    .social-links a:hover {
+        color: #00ff00 !important;
+    }
+
+
+
+/* Global Terminal Consistency */
+.site-header {
+    background-color: #000;
+    border-bottom: 1px solid #33ff33;
+}
+
+.site-title {
+    color: #33ff33 !important;
+}
+
+#terminal-container {
+    padding: 20px;
+    height: 70vh;
+}
+
+.terminal-style {
+    background-color: #000;
+    border: 1px solid #33ff33;
+    border-radius: 5px;
+    margin: 20px auto;
+    max-width: 90%;
+}
+
+
+/* About Page Specific Styles */
+.terminal-output {
+    padding: 20px;
+    border: 1px solid #33ff33;
+    border-radius: 5px;
+    margin: 20px 0;
+}
+
+    .terminal-output p {
+        margin: 15px 0;
+        line-height: 1.6;
+    }
+
+    .terminal-output br {
+        display: block;
+        content: "";
+        margin: 10px 0;
+    }
+
+    /* Simulate terminal input */
+    .terminal-output p:first-child::before {
+        content: "jordan@kali:~$ ";
+        color: #33ff33;
+        font-weight: bold;
+    }

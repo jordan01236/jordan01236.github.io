@@ -499,28 +499,28 @@
       "title": "HTB: Certified",
       "date": "2025-03-14",
       "excerpt": "Ceritified is the first “assume-breach” box to release on HackTheBox. I’m given creds for a low priv user. I’ll find this user has WriteOwner over a group, which I’ll abuse to eventually get access to another user. ",
-      "filename": "2024-11-16-Certified(HTB).html",
+      "filename": "posts/2024-11-16-Certified(HTB).html",
       "platform": "HTB"
     },
     {
       "title": "HTB: Cicada",
       "date": "2025-03-15",
       "excerpt": "Cicada is an easy Windows Active Directory box. I’ll start enumerating SMB shares to find a new hire welcome note with a default password. I’ll RID-cycle to get a list of usernames, and spray that password to find a user still using it.",
-      "filename": "2024-09-29-Cicada(HTB).html",
+      "filename": "posts/2024-09-29-Cicada(HTB).html",
       "platform": "HTB"
     },
     {
       "title": "HTB: Chemistry",
       "date": "2025-03-16",
       "excerpt": "Chemistry starts with a website for handling Crystallographic Information Files (CIF) to display molecules. I’ll exploit a deserialization vulnerability in a Python library used to process these files to get execution on the box",
-      "filename": "2024-11-8-Chemistry(HTB).html",
+      "filename": "posts/2024-11-8-Chemistry(HTB).html",
       "platform": "HTB"
     },
     {
       "title": "HTB: Alert",
       "date": "2025-03-14",
       "excerpt": "Alert starts with a webserver hosting a simple markdown to HTML application. I’ll upload a payload that can inject scripts into the resulting page, and send a link to the admin.",
-      "filename": "2024-11-25-Alert(HTB).html",
+      "filename": "posts/2024-11-25-Alert(HTB).html",
       "platform": "HTB"
     }
 

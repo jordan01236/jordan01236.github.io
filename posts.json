@@ -522,6 +522,13 @@
       "excerpt": "Alert starts with a webserver hosting a simple markdown to HTML application. I’ll upload a payload that can inject scripts into the resulting page, and send a link to the admin.",
       "filename": "posts/2024-11-25-Alert(HTB).html",
       "platform": "HTB"
+    },
+    {
+      "title": "Vulnlab: Forgotten",
+      "date": "2025-04-05",
+      "excerpt": "Forgotten is a very realistic machine that starts off by exploiting LimeSurvey for inital access and privilege escalation is done through a docker misconfiguration",
+      "filename": "posts/2025-04-05-Forgotten(VulnLab).html",
+      "platform": "VulnLab"
     }
 
   ]

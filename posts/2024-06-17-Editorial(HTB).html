@@ -1,1 +1,113 @@
-<html><head><meta charset="utf-8"></head><body><p>We only have port 80 and 22 open.</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as Dev</u></strong></span></p><p>Uploads directory allows us to enter a URL and upload a file.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2256/1152;" src="../img/posts/2024-06-17-Editorial(HTB)/01-d2562e514c.png" width="2256" height="1152"></figure><p>&nbsp;</p><p>&nbsp;</p><p>By entering our own IP and clicking preview we do get a call back to our machine.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:621/137;" src="../img/posts/2024-06-17-Editorial(HTB)/02-64a0b6252c.png" width="621" height="137"></figure><p>&nbsp;</p><p>Trying SSRF with port 5000 we can download a file to an API. I did have to get a hint on this, I try this before with port 80 and port 22 but I guess we were supposed to keep guessing random ports and 5000 would eventually work. We also couldnt script this because theres no indication that an upload works other than a broken image icon(really stupid but it is what it is).</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1417/213;" src="../img/posts/2024-06-17-Editorial(HTB)/03-ecad573dee.png" width="1417" height="213"></figure><p>&nbsp;</p><p>&nbsp;</p><p><span style="color:#cccccc;">{</span><span style="color:#9cdcfe;">"messages"</span><span style="color:#cccccc;">:[{</span><span style="color:#9cdcfe;">"promotions"</span><span style="color:#cccccc;">:{</span><span style="color:#9cdcfe;">"description"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"Retrieve a list of all the promotions in our library."</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"endpoint"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"/api/latest/metadata/messages/promos"</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"methods"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"GET"</span><span style="color:#cccccc;">}},{</span><span style="color:#9cdcfe;">"coupons"</span><span style="color:#cccccc;">:{</span><span style="color:#9cdcfe;">"description"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"Retrieve the list of coupons to use in our library."</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"endpoint"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"/api/latest/metadata/messages/coupons"</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"methods"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"GET"</span><span style="color:#cccccc;">}},{</span><span style="color:#9cdcfe;">"new_authors"</span><span style="color:#cccccc;">:{</span><span style="color:#9cdcfe;">"description"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"Retrieve the welcome message sended to our new authors."</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"endpoint"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"/api/latest/metadata/messages/authors"</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"methods"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"GET"</span><span style="color:#cccccc;">}},{</span><span style="color:#9cdcfe;">"platform_use"</span><span style="color:#cccccc;">:{</span><span style="color:#9cdcfe;">"description"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"Retrieve examples of how to use the platform."</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"endpoint"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"/api/latest/metadata/messages/how_to_use_platform"</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"methods"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"GET"</span><span style="color:#cccccc;">}}],</span><span style="color:#9cdcfe;">"version"</span><span style="color:#cccccc;">:[{</span><span style="color:#9cdcfe;">"changelog"</span><span style="color:#cccccc;">:{</span><span style="color:#9cdcfe;">"description"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"Retrieve a list of all the versions and updates of the api."</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"endpoint"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"/api/latest/metadata/changelog"</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"methods"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"GET"</span><span style="color:#cccccc;">}},{</span><span style="color:#9cdcfe;">"latest"</span><span style="color:#cccccc;">:{</span><span style="color:#9cdcfe;">"description"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"Retrieve the last version of api."</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"endpoint"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"/api/latest/metadata"</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"methods"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"GET"</span><span style="color:#cccccc;">}}]}</span></p><p><br>&nbsp;</p><p>The only endpoint that is interesting here is the new_authors one which is apparently a message sent to new authors.</p><figure class="image"><img style="aspect-ratio:1459/166;" src="../img/posts/2024-06-17-Editorial(HTB)/04-057bb3c568.png" width="1459" height="166"></figure><p>&nbsp;</p><p>The endpoint gives us a password</p><p>&nbsp;</p><p>{"template_mail_message":"Welcome to the team! We are thrilled to have you on board and can't wait to see the incredible content you'll bring to the table.\n\nYour login credentials for our internal forum and authors site are:\nUsername: dev\nPassword: dev080217_devAPI!@\nPlease be sure to change your password as soon as possible for security purposes.\n\nDon't hesitate to reach out if you have any questions or ideas - we're always here to support you.\n\nBest regards, Editorial Tiempo Arriba Team."}<br>&nbsp;</p><p>Username - dev<br>Password - dev080217_devAPI!@</p><p>&nbsp;</p><p>I somehow missed the username in the first time so I went around looking for usernames. Re read the mail message above and saw it included a username. We can ssh in and get the user flag.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:476/118;" src="../img/posts/2024-06-17-Editorial(HTB)/05-a6ccbffbcd.png" width="476" height="118"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We have a cronjob running but its ran by www-data so it isnt really useful</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:959/128;" src="../img/posts/2024-06-17-Editorial(HTB)/06-3b2fb24b72.png" width="959" height="128"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Privilege escalation to root</u></strong></span></p><p>&nbsp;</p><p>This was extremely easy</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:721/137;" src="../img/posts/2024-06-17-Editorial(HTB)/07-af8cdcd845.png" width="721" height="137"></figure><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:496/169;" src="../img/posts/2024-06-17-Editorial(HTB)/08-69651fb8f5.png" width="496" height="169"></figure><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:710/635;" src="../img/posts/2024-06-17-Editorial(HTB)/09-5545de7ddb.png" width="710" height="635"></figure></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTB: Editorial | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2024-06-17-Editorial(HTB)/01-d2562e514c.png" alt="HTB: Editorial cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">HTB: Editorial</h1>
+                <div class="post-meta">June 17, 2024 &bull; HTB</div>
+            </div>
+        </header>
+
+        <p>We only have port 80 and 22 open.</p>
+
+        <h1 style="color:red;">Shell as Dev</h1>
+
+        <p>Uploads directory allows us to enter a URL and upload a file.</p>
+
+        <img alt="Screenshot 1" height="1152" src="../img/posts/2024-06-17-Editorial(HTB)/01-d2562e514c.png" style="aspect-ratio:2256/1152;" width="2256"/>
+
+        <p>By entering our own IP and clicking preview we do get a call back to our machine.</p>
+
+        <img alt="Screenshot 2" height="137" src="../img/posts/2024-06-17-Editorial(HTB)/02-64a0b6252c.png" style="aspect-ratio:621/137;" width="621"/>
+
+        <p>Trying SSRF with port 5000 we can download a file to an API. I did have to get a hint on this, I try this before with port 80 and port 22 but I guess we were supposed to keep guessing random ports and 5000 would eventually work. We also couldnt script this because theres no indication that an upload works other than a broken image icon(really stupid but it is what it is).</p>
+
+        <img alt="Screenshot 3" height="213" src="../img/posts/2024-06-17-Editorial(HTB)/03-ecad573dee.png" style="aspect-ratio:1417/213;" width="1417"/>
+
+        <p><span style="color:#cccccc;">{</span><span style="color:#9cdcfe;">"messages"</span><span style="color:#cccccc;">:[{</span><span style="color:#9cdcfe;">"promotions"</span><span style="color:#cccccc;">:{</span><span style="color:#9cdcfe;">"description"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"Retrieve a list of all the promotions in our library."</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"endpoint"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"/api/latest/metadata/messages/promos"</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"methods"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"GET"</span><span style="color:#cccccc;">}},{</span><span style="color:#9cdcfe;">"coupons"</span><span style="color:#cccccc;">:{</span><span style="color:#9cdcfe;">"description"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"Retrieve the list of coupons to use in our library."</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"endpoint"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"/api/latest/metadata/messages/coupons"</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"methods"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"GET"</span><span style="color:#cccccc;">}},{</span><span style="color:#9cdcfe;">"new_authors"</span><span style="color:#cccccc;">:{</span><span style="color:#9cdcfe;">"description"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"Retrieve the welcome message sended to our new authors."</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"endpoint"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"/api/latest/metadata/messages/authors"</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"methods"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"GET"</span><span style="color:#cccccc;">}},{</span><span style="color:#9cdcfe;">"platform_use"</span><span style="color:#cccccc;">:{</span><span style="color:#9cdcfe;">"description"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"Retrieve examples of how to use the platform."</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"endpoint"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"/api/latest/metadata/messages/how_to_use_platform"</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"methods"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"GET"</span><span style="color:#cccccc;">}}],</span><span style="color:#9cdcfe;">"version"</span><span style="color:#cccccc;">:[{</span><span style="color:#9cdcfe;">"changelog"</span><span style="color:#cccccc;">:{</span><span style="color:#9cdcfe;">"description"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"Retrieve a list of all the versions and updates of the api."</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"endpoint"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"/api/latest/metadata/changelog"</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"methods"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"GET"</span><span style="color:#cccccc;">}},{</span><span style="color:#9cdcfe;">"latest"</span><span style="color:#cccccc;">:{</span><span style="color:#9cdcfe;">"description"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"Retrieve the last version of api."</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"endpoint"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"/api/latest/metadata"</span><span style="color:#cccccc;">,</span><span style="color:#9cdcfe;">"methods"</span><span style="color:#cccccc;">:</span><span style="color:#ce9178;">"GET"</span><span style="color:#cccccc;">}}]}</span></p>
+
+        <p>The only endpoint that is interesting here is the new_authors one which is apparently a message sent to new authors.</p>
+
+        <img alt="Screenshot 4" height="166" src="../img/posts/2024-06-17-Editorial(HTB)/04-057bb3c568.png" style="aspect-ratio:1459/166;" width="1459"/>
+
+        <p>The endpoint gives us a password</p>
+
+        <p>{"template_mail_message":"Welcome to the team! We are thrilled to have you on board and can't wait to see the incredible content you'll bring to the table.\n\nYour login credentials for our internal forum and authors site are:\nUsername: dev\nPassword: dev080217_devAPI!@\nPlease be sure to change your password as soon as possible for security purposes.\n\nDon't hesitate to reach out if you have any questions or ideas - we're always here to support you.\n\nBest regards, Editorial Tiempo Arriba Team."}<br/> </p>
+
+        <p>Username - dev<br/>Password - dev080217_devAPI!@</p>
+
+        <p>I somehow missed the username in the first time so I went around looking for usernames. Re read the mail message above and saw it included a username. We can ssh in and get the user flag.</p>
+
+        <img alt="Screenshot 5" height="118" src="../img/posts/2024-06-17-Editorial(HTB)/05-a6ccbffbcd.png" style="aspect-ratio:476/118;" width="476"/>
+
+        <p>We have a cronjob running but its ran by www-data so it isnt really useful</p>
+
+        <img alt="Screenshot 6" height="128" src="../img/posts/2024-06-17-Editorial(HTB)/06-3b2fb24b72.png" style="aspect-ratio:959/128;" width="959"/>
+
+        <h1 style="color:red;">Privilege escalation to root</h1>
+
+        <p>This was extremely easy</p>
+
+        <img alt="Screenshot 7" height="137" src="../img/posts/2024-06-17-Editorial(HTB)/07-af8cdcd845.png" style="aspect-ratio:721/137;" width="721"/>
+
+        <img alt="Screenshot 8" height="169" src="../img/posts/2024-06-17-Editorial(HTB)/08-69651fb8f5.png" style="aspect-ratio:496/169;" width="496"/>
+
+        <img alt="Screenshot 9" height="635" src="../img/posts/2024-06-17-Editorial(HTB)/09-5545de7ddb.png" style="aspect-ratio:710/635;" width="710"/>
+    </article>
+
+</body>
+</html>

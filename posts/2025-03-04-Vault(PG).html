@@ -1,1 +1,125 @@
-<html><head><meta charset="utf-8"></head><body><p>Nothing too interesting from the port scan, just typical AD ports open.</p><p>&nbsp;</p><p>We do not have anonymous SMB login either.</p><p>&nbsp;</p><p>&nbsp;</p><p>Doing a username brute force we see that guest is a valid user, which typically shows up as disabled.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1109/354;" src="../img/posts/2025-03-04-Vault(PG)/01-9bcd35940d.png" width="1109" height="354"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Trying to access SMB with guest guest fails but again it doesnt show disabled which is interesting.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1291/90;" src="../img/posts/2025-03-04-Vault(PG)/02-8d660a66c3.png" width="1291" height="90"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Trying guest and no password we see its valid and we can see shares.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1284/241;" src="../img/posts/2025-03-04-Vault(PG)/03-c89cf487f8.png" width="1284" height="241"></figure><p>&nbsp;</p><p>Nothing interesting in the shares above I tried ntlm theft but it failed.</p><p>https://github.com/Greenwolf/ntlm_theft</p><p>&nbsp;</p><p>We can bruteforce SIDs with impacket and find one user named anirudh</p><p><code>impacket-lookupsid 'guest@192.168.248.172'</code></p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:611/592;" src="../img/posts/2025-03-04-Vault(PG)/04-192e19a9b3.png" width="611" height="592"></figure><p>&nbsp;</p><p>&nbsp;</p><p><br>Used a hint and it looks like NTLM theft is the right path….</p><p>&nbsp;</p><p>After resetting the machine and following the same NTLM theft steps from earlier it worked this time. Typical buggy offsec machines.</p><figure class="image"><img style="aspect-ratio:1765/134;" src="../img/posts/2025-03-04-Vault(PG)/05-58220cd79b.png" width="1765" height="134"></figure><p>&nbsp;</p><p>Password cracks to SecureHM</p><p>&nbsp;</p><p>anirudh:SecureHM</p><p>&nbsp;</p><p>Grab the user flag</p><p><code>evil-winrm -i vault.offsec -u anirudh -p SecureHM&nbsp;</code></p><figure class="image"><img style="aspect-ratio:1171/479;" src="../img/posts/2025-03-04-Vault(PG)/06-a3afdaa224.png" width="1171" height="479"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>We have SeBackup so we can copy any files over once we import the SeBackup dlls</p><p>https://github.com/giuliano108/SeBackupPrivilege?tab=readme-ov-file</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:661/211;" src="../img/posts/2025-03-04-Vault(PG)/07-d93005a042.png" width="661" height="211"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Grab the admin flag</p><figure class="image"><img style="aspect-ratio:1277/520;" src="../img/posts/2025-03-04-Vault(PG)/08-51342daa8f.png" width="1277" height="520"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>If we want a shell as system we can get it using SeRestoreAbuse.exe</p><p><a href="https://github.com/dxnboy/redteam/tree/master">https://github.com/dxnboy/redteam/tree/master</a></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:679/47;" src="../img/posts/2025-03-04-Vault(PG)/09-9f2c7dbc9a.png" width="679" height="47"></figure><p>&nbsp;</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>PG: Vault | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2025-03-04-Vault(PG)/01-9bcd35940d.png" alt="PG: Vault cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">PG: Vault</h1>
+                <div class="post-meta">March 4, 2025 &bull; PG</div>
+            </div>
+        </header>
+
+        <p>Nothing too interesting from the port scan, just typical AD ports open.</p>
+
+        <p>We do not have anonymous SMB login either.</p>
+
+        <p>Doing a username brute force we see that guest is a valid user, which typically shows up as disabled.</p>
+
+        <img alt="Screenshot 1" height="354" src="../img/posts/2025-03-04-Vault(PG)/01-9bcd35940d.png" style="aspect-ratio:1109/354;" width="1109"/>
+
+        <p>Trying to access SMB with guest guest fails but again it doesnt show disabled which is interesting.</p>
+
+        <img alt="Screenshot 2" height="90" src="../img/posts/2025-03-04-Vault(PG)/02-8d660a66c3.png" style="aspect-ratio:1291/90;" width="1291"/>
+
+        <p>Trying guest and no password we see its valid and we can see shares.</p>
+
+        <img alt="Screenshot 3" height="241" src="../img/posts/2025-03-04-Vault(PG)/03-c89cf487f8.png" style="aspect-ratio:1284/241;" width="1284"/>
+
+        <p>Nothing interesting in the shares above I tried ntlm theft but it failed.</p>
+
+        <p>https://github.com/Greenwolf/ntlm_theft</p>
+
+        <p>We can bruteforce SIDs with impacket and find one user named anirudh</p>
+
+        <pre class="terminal"><code>impacket-lookupsid 'guest@192.168.248.172'</code></pre>
+
+        <img alt="Screenshot 4" height="592" src="../img/posts/2025-03-04-Vault(PG)/04-192e19a9b3.png" style="aspect-ratio:611/592;" width="611"/>
+
+        <p><br/>Used a hint and it looks like NTLM theft is the right path….</p>
+
+        <p>After resetting the machine and following the same NTLM theft steps from earlier it worked this time. Typical buggy offsec machines.</p>
+
+        <img alt="Screenshot 5" height="134" src="../img/posts/2025-03-04-Vault(PG)/05-58220cd79b.png" style="aspect-ratio:1765/134;" width="1765"/>
+
+        <p>Password cracks to SecureHM</p>
+
+        <p>anirudh:SecureHM</p>
+
+        <p>Grab the user flag</p>
+
+        <pre class="terminal"><code>evil-winrm -i vault.offsec -u anirudh -p SecureHM</code></pre>
+
+        <img alt="Screenshot 6" height="479" src="../img/posts/2025-03-04-Vault(PG)/06-a3afdaa224.png" style="aspect-ratio:1171/479;" width="1171"/>
+
+        <p>We have SeBackup so we can copy any files over once we import the SeBackup dlls</p>
+
+        <p>https://github.com/giuliano108/SeBackupPrivilege?tab=readme-ov-file</p>
+
+        <img alt="Screenshot 7" height="211" src="../img/posts/2025-03-04-Vault(PG)/07-d93005a042.png" style="aspect-ratio:661/211;" width="661"/>
+
+        <p>Grab the admin flag</p>
+
+        <img alt="Screenshot 8" height="520" src="../img/posts/2025-03-04-Vault(PG)/08-51342daa8f.png" style="aspect-ratio:1277/520;" width="1277"/>
+
+        <p>If we want a shell as system we can get it using SeRestoreAbuse.exe</p>
+
+        <p><a href="https://github.com/dxnboy/redteam/tree/master">https://github.com/dxnboy/redteam/tree/master</a></p>
+
+        <img alt="Screenshot 9" height="47" src="../img/posts/2025-03-04-Vault(PG)/09-9f2c7dbc9a.png" style="aspect-ratio:679/47;" width="679"/>
+    </article>
+
+</body>
+</html>

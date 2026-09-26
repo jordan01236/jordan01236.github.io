@@ -1,1 +1,161 @@
-<html><head><meta charset="utf-8"></head><body><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Access to intern</u></strong></span></p><p>&nbsp;</p><p>Webpage on port 81 and 82</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:545/924;" src="../img/posts/2025-03-17-Sweep(VulnLab)/01-f356b0c948.png" width="545" height="924"></figure><p>&nbsp;</p><p>Port 81,82 and 9524 is running lansweeper</p><p>lansweeper-server-communication<br>| Subject Alternative Name: DNS:localhost, DNS:INVENTORY, DNS:inventory.sweep.vl, IP Address:192.168.115.145<br>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Guest access gives us access to one share but it has nothing interesting</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1213/289;" src="../img/posts/2025-03-17-Sweep(VulnLab)/02-358e3f0f6d.png" width="1213" height="289"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Username bruteforce</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1019/381;" src="../img/posts/2025-03-17-Sweep(VulnLab)/03-37b1b68187.png" width="1019" height="381"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Randomly guessing the password is intern, initially this login did not work for the web page. After restarting the machine it works now.</p><p>intern:intern</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1209/326;" src="../img/posts/2025-03-17-Sweep(VulnLab)/04-471100f730.png" width="1209" height="326"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Logging into the webpage</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2445/1015;" src="../img/posts/2025-03-17-Sweep(VulnLab)/05-dbd86d0d39.png" width="2445" height="1015"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>I managed to steal the machine hash by creating a fake server. Sadly we are unable to crack this.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:996/468;" src="../img/posts/2025-03-17-Sweep(VulnLab)/06-3d35449c77.png" width="996" height="468"></figure><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1196/154;" src="../img/posts/2025-03-17-Sweep(VulnLab)/07-5c7bf0cd1b.png" width="1196" height="154"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Access as svc_inventory_lnx</u></strong></span></p><p>&nbsp;</p><p>Under scanning targets we can setup our ip for the ip range</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1257/306;" src="../img/posts/2025-03-17-Sweep(VulnLab)/08-f404dabf86.png" width="1257" height="306"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Under scanning credentials we add our ip range again and select credentials to use to scan our ip. We then setup a fake ssh server to capture creds.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1074/687;" src="../img/posts/2025-03-17-Sweep(VulnLab)/09-ae83ff29c2.png" width="1074" height="687"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Fake ssh server tool can be downloaded here</p><p><a href="https://github.com/fffaraz/fakessh">https://github.com/fffaraz/fakessh</a></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:891/149;" src="../img/posts/2025-03-17-Sweep(VulnLab)/10-eed21cddf6.png" width="891" height="149"></figure><p>&nbsp;</p><p>svc_inventory_lnx:0|5m-U6?/uAX</p><p>&nbsp;</p><p>&nbsp;</p><p>This new user has generic all over lansweeper admins</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:876/171;" src="../img/posts/2025-03-17-Sweep(VulnLab)/11-ae77679ecd.png" width="876" height="171"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Add our user to the group</p><p><code>net rpc group addmem "LANSWEEPER ADMINS" "svc_inventory_lnx" -U "sweep.vl"/"svc_inventory_lnx"%"0|5m-U6?/uAX" -S "inventory.sweep.vl"</code></p><p>&nbsp;</p><p>&nbsp;</p><p>Verify it worked with this command</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:961/90;" src="../img/posts/2025-03-17-Sweep(VulnLab)/12-886e476123.png" width="961" height="90"></figure><p><code>net rpc group members "LANSWEEPER ADMINS" -U "sweep.vl"/"svc_inventory_lnx"%"0|5m-U6?/uAX" -S "inventory.sweep.vl"</code></p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Once added to this group we can remote in with winrm</p><p><code>evil-winrm -i 10.10.73.56 -u svc_inventory_lnx -p '0|5m-U6?/uAX'</code><br>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Access as nt system</u></strong></span></p><p>&nbsp;</p><p>Logging back into lansweeper with this new account we have more privileges.</p><p>&nbsp;</p><p>We can map a credential for the domain controller</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:839/204;" src="../img/posts/2025-03-17-Sweep(VulnLab)/13-998568172e.png" width="839" height="204"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We can now create a new package and deploy it to the machine.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1193/650;" src="../img/posts/2025-03-17-Sweep(VulnLab)/14-2adb9745ec.png" width="1193" height="650"></figure><figure class="image image-style-block-align-left"><img style="aspect-ratio:574/476;" src="../img/posts/2025-03-17-Sweep(VulnLab)/15-ec27b8e310.png" width="574" height="476"></figure><p>&nbsp;</p><p>Start our listener and click deploy now and deploy to all</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:601/440;" src="../img/posts/2025-03-17-Sweep(VulnLab)/16-b463f5e0ca.png" width="601" height="440"></figure><p>&nbsp;</p><p>We get a call back and finish the machine</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:535/198;" src="../img/posts/2025-03-17-Sweep(VulnLab)/17-b6eaa55d27.png" width="535" height="198"></figure><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:548/615;" src="../img/posts/2025-03-17-Sweep(VulnLab)/18-381ec8bf1a.png" width="548" height="615"></figure></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>VulnLab: Sweep | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2025-03-17-Sweep(VulnLab)/01-f356b0c948.png" alt="VulnLab: Sweep cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">VulnLab: Sweep</h1>
+                <div class="post-meta">March 17, 2025 &bull; VulnLab</div>
+            </div>
+        </header>
+
+        <h1 style="color:red;">Access to intern</h1>
+
+        <p>Webpage on port 81 and 82</p>
+
+        <img alt="Screenshot 1" height="924" src="../img/posts/2025-03-17-Sweep(VulnLab)/01-f356b0c948.png" style="aspect-ratio:545/924;" width="545"/>
+
+        <p>Port 81,82 and 9524 is running lansweeper</p>
+
+        <p>lansweeper-server-communication<br/>| Subject Alternative Name: DNS:localhost, DNS:INVENTORY, DNS:inventory.sweep.vl, IP Address:192.168.115.145<br/> </p>
+
+        <p>Guest access gives us access to one share but it has nothing interesting</p>
+
+        <img alt="Screenshot 2" height="289" src="../img/posts/2025-03-17-Sweep(VulnLab)/02-358e3f0f6d.png" style="aspect-ratio:1213/289;" width="1213"/>
+
+        <p>Username bruteforce</p>
+
+        <img alt="Screenshot 3" height="381" src="../img/posts/2025-03-17-Sweep(VulnLab)/03-37b1b68187.png" style="aspect-ratio:1019/381;" width="1019"/>
+
+        <p>Randomly guessing the password is intern, initially this login did not work for the web page. After restarting the machine it works now.</p>
+
+        <p>intern:intern</p>
+
+        <img alt="Screenshot 4" height="326" src="../img/posts/2025-03-17-Sweep(VulnLab)/04-471100f730.png" style="aspect-ratio:1209/326;" width="1209"/>
+
+        <p>Logging into the webpage</p>
+
+        <img alt="Screenshot 5" height="1015" src="../img/posts/2025-03-17-Sweep(VulnLab)/05-dbd86d0d39.png" style="aspect-ratio:2445/1015;" width="2445"/>
+
+        <p>I managed to steal the machine hash by creating a fake server. Sadly we are unable to crack this.</p>
+
+        <img alt="Screenshot 6" height="468" src="../img/posts/2025-03-17-Sweep(VulnLab)/06-3d35449c77.png" style="aspect-ratio:996/468;" width="996"/>
+
+        <img alt="Screenshot 7" height="154" src="../img/posts/2025-03-17-Sweep(VulnLab)/07-5c7bf0cd1b.png" style="aspect-ratio:1196/154;" width="1196"/>
+
+        <h1 style="color:red;">Access as svc_inventory_lnx</h1>
+
+        <p>Under scanning targets we can setup our ip for the ip range</p>
+
+        <img alt="Screenshot 8" height="306" src="../img/posts/2025-03-17-Sweep(VulnLab)/08-f404dabf86.png" style="aspect-ratio:1257/306;" width="1257"/>
+
+        <p>Under scanning credentials we add our ip range again and select credentials to use to scan our ip. We then setup a fake ssh server to capture creds.</p>
+
+        <img alt="Screenshot 9" height="687" src="../img/posts/2025-03-17-Sweep(VulnLab)/09-ae83ff29c2.png" style="aspect-ratio:1074/687;" width="1074"/>
+
+        <p>Fake ssh server tool can be downloaded here</p>
+
+        <p><a href="https://github.com/fffaraz/fakessh">https://github.com/fffaraz/fakessh</a></p>
+
+        <img alt="Screenshot 10" height="149" src="../img/posts/2025-03-17-Sweep(VulnLab)/10-eed21cddf6.png" style="aspect-ratio:891/149;" width="891"/>
+
+        <p>svc_inventory_lnx:0|5m-U6?/uAX</p>
+
+        <p>This new user has generic all over lansweeper admins</p>
+
+        <img alt="Screenshot 11" height="171" src="../img/posts/2025-03-17-Sweep(VulnLab)/11-ae77679ecd.png" style="aspect-ratio:876/171;" width="876"/>
+
+        <p>Add our user to the group</p>
+
+        <pre class="terminal"><code>net rpc group addmem "LANSWEEPER ADMINS" "svc_inventory_lnx" -U "sweep.vl"/"svc_inventory_lnx"%"0|5m-U6?/uAX" -S "inventory.sweep.vl"</code></pre>
+
+        <p>Verify it worked with this command</p>
+
+        <img alt="Screenshot 12" height="90" src="../img/posts/2025-03-17-Sweep(VulnLab)/12-886e476123.png" style="aspect-ratio:961/90;" width="961"/>
+
+        <pre class="terminal"><code>net rpc group members "LANSWEEPER ADMINS" -U "sweep.vl"/"svc_inventory_lnx"%"0|5m-U6?/uAX" -S "inventory.sweep.vl"</code></pre>
+
+        <p>Once added to this group we can remote in with winrm</p>
+
+        <pre class="terminal"><code>evil-winrm -i 10.10.73.56 -u svc_inventory_lnx -p '0|5m-U6?/uAX'</code></pre>
+
+        <h1 style="color:red;">Access as nt system</h1>
+
+        <p>Logging back into lansweeper with this new account we have more privileges.</p>
+
+        <p>We can map a credential for the domain controller</p>
+
+        <img alt="Screenshot 13" height="204" src="../img/posts/2025-03-17-Sweep(VulnLab)/13-998568172e.png" style="aspect-ratio:839/204;" width="839"/>
+
+        <p>We can now create a new package and deploy it to the machine.</p>
+
+        <img alt="Screenshot 14" height="650" src="../img/posts/2025-03-17-Sweep(VulnLab)/14-2adb9745ec.png" style="aspect-ratio:1193/650;" width="1193"/>
+
+        <img alt="Screenshot 15" height="476" src="../img/posts/2025-03-17-Sweep(VulnLab)/15-ec27b8e310.png" style="aspect-ratio:574/476;" width="574"/>
+
+        <p>Start our listener and click deploy now and deploy to all</p>
+
+        <img alt="Screenshot 16" height="440" src="../img/posts/2025-03-17-Sweep(VulnLab)/16-b463f5e0ca.png" style="aspect-ratio:601/440;" width="601"/>
+
+        <p>We get a call back and finish the machine</p>
+
+        <img alt="Screenshot 17" height="198" src="../img/posts/2025-03-17-Sweep(VulnLab)/17-b6eaa55d27.png" style="aspect-ratio:535/198;" width="535"/>
+
+        <img alt="Screenshot 18" height="615" src="../img/posts/2025-03-17-Sweep(VulnLab)/18-381ec8bf1a.png" style="aspect-ratio:548/615;" width="548"/>
+    </article>
+
+</body>
+</html>

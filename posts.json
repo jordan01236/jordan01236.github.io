@@ -293,13 +293,6 @@
       "platform": "HTB"
     },
     {
-      "title": "HTB: ChatterBox",
-      "date": "2024-05-24",
-      "excerpt": "",
-      "filename": "posts/2024-05-24-ChatterBox(HTB).html",
-      "platform": "HTB"
-    },
-    {
       "title": "HTB: Resolute",
       "date": "2024-05-24",
       "excerpt": "",
@@ -492,7 +485,7 @@
       "title": "VulnLab: Breach",
       "date": "2025-03-12",
       "excerpt": "",
-      "filename": "posts/2025-03-10-Breach(VulnLab).html",
+      "filename": "posts/2025-03-14-Breach(VulnLab).html",
       "platform": "VulnLab"
     },
     {

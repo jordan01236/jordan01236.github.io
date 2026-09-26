@@ -1,1 +1,215 @@
-<html><head><meta charset="utf-8"></head><body><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as www-data</u></strong></span></p><p>&nbsp;</p><p>We have port 22 and 80 open</p><p>&nbsp;</p><p><span class="text-big"><strong><u>Webpage</u></strong></span></p><p>Forgot password page, if we enter something random we get unable to process. If we enter admin we get success. SO we have username enumeration</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:350/408;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/01-f21ab8b309.png" width="350" height="408"></figure><figure class="image image-style-block-align-left"><img style="aspect-ratio:325/380;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/02-369b0f61c0.png" width="325" height="380"></figure><p>&nbsp;</p><p>This page also has a sql injection vulnerability. We can confirm this by entering a single ' and we get a sql error(I cant get the error to come up again but it was there the first time I tried it)</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:325/398;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/03-0878578e90.png" width="325" height="398"></figure><p>&nbsp;</p><p>Copy the request to a file and send it to sql map</p><p>POST /forgot_password.php HTTP/1.1<br>Host: monitorsthree.htb<br>User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0<br>Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/png,image/svg+xml,*/*;q=0.8<br>Accept-Language: en-US,en;q=0.5<br>Accept-Encoding: gzip, deflate, br<br>Content-Type: application/x-www-form-urlencoded<br>Content-Length: 15<br>Origin: http://monitorsthree.htb<br>Connection: keep-alive<br>Referer: http://monitorsthree.htb/forgot_password.php<br>Cookie: PHPSESSID=cont06q4tpjc9u1f3phjq7oata<br>Upgrade-Insecure-Requests: 1<br>Priority: u=0, i</p><p>username=*</p><p>&nbsp;</p><p><br><code>sqlmap -r req.txt --batch --dump -T users</code><br>&nbsp;</p><p>The hash is a little broken as I stopped and restarted it half way through.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:641/134;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/04-56edb8ad59.png" width="641" height="134"></figure><p>Full hash - 31a181c8372e3afc59dab863430610e8</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1045/292;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/05-8410ca49b7.png" width="1045" height="292"></figure><p>&nbsp;</p><p>Admin:greencacti2001</p><p>&nbsp;</p><p>I missed a subdomain at the start because we had to use autofiltering or filter by something other than size as this domain shows up with 0 size.</p><p><code>ffuf -u http://10.10.11.30 -H "Host:FUZZ.monitorsthree.htb" -w /usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-20000.txt -ac</code></p><p>&nbsp;</p><figure class="image"><img style="aspect-ratio:1258/509;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/06-c31ad0d59b.png" width="1258" height="509"></figure><p>&nbsp;</p><p>On this page we can login, also note the version at the bottom 1.2.26</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:677/519;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/07-33c69fdaf0.png" width="677" height="519"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Shell using meterpreter</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:848/369;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/08-7dbe561f3e.png" width="848" height="369"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as Marcus</u></strong></span></p><p>&nbsp;</p><p>After running linpeas we see the database username and pass</p><p>$database_username = 'cactiuser';<br>$database_password = 'cactiuser';</p><p>&nbsp;</p><p>&nbsp;</p><p>We can get the hash for marcus and crack it</p><figure class="image"><img style="aspect-ratio:1375/414;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/09-6015d5be37.png" width="1375" height="414"></figure><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:787/199;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/10-a5a2fe710b.png" width="787" height="199"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Then we switch user to marcus and get user flag</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:471/203;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/11-a8d099b9c4.png" width="471" height="203"></figure><p>marcus:12345678910</p><p>&nbsp;</p><p>We can also grab the id_rsa key for marcus so we have ssh access.</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Root</u></strong></span></p><p>&nbsp;</p><p>This docker compose file shows something running on port 8200, we can forward it to our machine</p><p><code>ssh -L 8200:localhost:8200 marcus@10.10.11.30 -i id_rsa</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:452/338;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/12-db164e5063.png" width="452" height="338"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We have a Duplicati login page</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2789/470;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/13-89a44dd0c5.png" width="2789" height="470"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We have a login bypass for Duplicati, this article walks us through it.</p><p><a href="https://read.martiandefense.llc/duplicati-bypassing-login-authentication-with-server-passphrase-024d6991e9ee">https://read.martiandefense.llc/duplicati-bypassing-login-authentication-with-server-passphrase-024d6991e9ee</a></p><p>&nbsp;</p><p>&nbsp;</p><p>First we need to recover the server-passphrase for duplicati which we find here</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:630/182;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/14-8ef3573fa2.png" width="630" height="182"></figure><p>&nbsp;</p><p>Copy the database files locally</p><p>&nbsp;</p><p><code>sqlite3 Duplicati-server.sqlite</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:669/348;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/15-ae5ad9843d.png" width="669" height="348"></figure><p>&nbsp;</p><p>-2||server-passphrase|Wb6e855L3sN9LTaCuwPXuautswTIQbekmMAr7BrK2Ho=<br>-2||server-passphrase-salt|xTfykWV1dATpFZvPhClEJLJzYA5A4L74hX7FK8XmY0I=<br>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Next step is to base64 decode the passphrase and turn it into hex which we can do with cyberchef</p><figure class="image"><img style="aspect-ratio:1508/736;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/16-9ebab9b36b.png" width="1508" height="736"></figure><p>&nbsp;</p><p>hex - 59be9ef39e4bdec37d2d3682bb03d7b9abadb304c841b7a498c02bec1acad87a</p><p>&nbsp;</p><p><br>Next we need to get the nonce so we will login and capture the request then we need to select “Do intercept response to this request”</p><p>&nbsp;</p><p>&nbsp;</p><figure class="image"><img style="aspect-ratio:1247/461;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/17-583f4e3ac1.png" width="1247" height="461"></figure><p>&nbsp;</p><p>&nbsp;</p><p>The response will have the nonce that we need</p><p>&nbsp;</p><figure class="image"><img style="aspect-ratio:2207/486;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/18-9b433f84c4.png" width="2207" height="486"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Then following the guide again we can get teh nonced pwd with the javascript code below</p><figure class="image"><img style="aspect-ratio:1274/160;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/19-1cfab1d53e.png" width="1274" height="160"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>With the password we forward the burp request one more time and it will prompt us for a password, we change the password to the noncedpwd output above and urlencode it. Then once we forward it for the last time we will get a login</p><figure class="image"><img style="aspect-ratio:1286/478;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/20-6ebefcca7d.png" width="1286" height="478"></figure><p>&nbsp;</p><p>&nbsp;</p><p>And we are presented with the duplicati landing page</p><figure class="image"><img style="aspect-ratio:1154/435;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/21-81c62c37fa.png" width="1154" height="435"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Exploit duplicati to get root flag</p><p>&nbsp;</p><p>&nbsp;</p><p>Add new backup &gt; Configure a new backup</p><p>No encrpytion and give it any name</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:747/490;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/22-ad60b0eac3.png" width="747" height="490"></figure><p>&nbsp;</p><p>Select a destination and we need to make sure we select the folder under “source” in order for it to show up on the machine(took me a while to realize there are multiple folders and the source folders are on the actual machine itself)</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:797/696;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/23-801bbb2810.png" width="797" height="696"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Then select the source data</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1997/936;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/24-f34945ccee.png" width="1997" height="936"></figure><p>&nbsp;</p><p>When we run the first time we will get an error and have to repair it</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:505/121;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/25-dcea144fe1.png" width="505" height="121"></figure><p>&nbsp;</p><p>&nbsp;</p><p>After we click repair and run again we will get the flag</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:645/204;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/26-f261d954e2.png" width="645" height="204"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:505/371;" src="../img/posts/2025-01-31-MonitorsThree(HTB)/27-413b9efb77.png" width="505" height="371"></figure><p>&nbsp;</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTB: MonitorsThree | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2025-01-31-MonitorsThree(HTB)/01-f21ab8b309.png" alt="HTB: MonitorsThree cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">HTB: MonitorsThree</h1>
+                <div class="post-meta">January 31, 2025 &bull; HTB</div>
+            </div>
+        </header>
+
+        <h1 style="color:red;">Shell as www-data</h1>
+
+        <p>We have port 22 and 80 open</p>
+
+        <p><span class="text-big"><strong><u>Webpage</u></strong></span></p>
+
+        <p>Forgot password page, if we enter something random we get unable to process. If we enter admin we get success. SO we have username enumeration</p>
+
+        <img alt="Screenshot 1" height="408" src="../img/posts/2025-01-31-MonitorsThree(HTB)/01-f21ab8b309.png" style="aspect-ratio:350/408;" width="350"/>
+
+        <img alt="Screenshot 2" height="380" src="../img/posts/2025-01-31-MonitorsThree(HTB)/02-369b0f61c0.png" style="aspect-ratio:325/380;" width="325"/>
+
+        <p>This page also has a sql injection vulnerability. We can confirm this by entering a single ' and we get a sql error(I cant get the error to come up again but it was there the first time I tried it)</p>
+
+        <img alt="Screenshot 3" height="398" src="../img/posts/2025-01-31-MonitorsThree(HTB)/03-0878578e90.png" style="aspect-ratio:325/398;" width="325"/>
+
+        <p>Copy the request to a file and send it to sql map</p>
+
+        <p>POST /forgot_password.php HTTP/1.1<br/>Host: monitorsthree.htb<br/>User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0<br/>Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/png,image/svg+xml,*/*;q=0.8<br/>Accept-Language: en-US,en;q=0.5<br/>Accept-Encoding: gzip, deflate, br<br/>Content-Type: application/x-www-form-urlencoded<br/>Content-Length: 15<br/>Origin: http://monitorsthree.htb<br/>Connection: keep-alive<br/>Referer: http://monitorsthree.htb/forgot_password.php<br/>Cookie: PHPSESSID=cont06q4tpjc9u1f3phjq7oata<br/>Upgrade-Insecure-Requests: 1<br/>Priority: u=0, i</p>
+
+        <p>username=*</p>
+
+        <pre class="terminal"><code>sqlmap -r req.txt --batch --dump -T users</code></pre>
+
+        <p>The hash is a little broken as I stopped and restarted it half way through.</p>
+
+        <img alt="Screenshot 4" height="134" src="../img/posts/2025-01-31-MonitorsThree(HTB)/04-56edb8ad59.png" style="aspect-ratio:641/134;" width="641"/>
+
+        <p>Full hash - 31a181c8372e3afc59dab863430610e8</p>
+
+        <img alt="Screenshot 5" height="292" src="../img/posts/2025-01-31-MonitorsThree(HTB)/05-8410ca49b7.png" style="aspect-ratio:1045/292;" width="1045"/>
+
+        <p>Admin:greencacti2001</p>
+
+        <p>I missed a subdomain at the start because we had to use autofiltering or filter by something other than size as this domain shows up with 0 size.</p>
+
+        <pre class="terminal"><code>ffuf -u http://10.10.11.30 -H "Host:FUZZ.monitorsthree.htb" -w /usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-20000.txt -ac</code></pre>
+
+        <img alt="Screenshot 6" height="509" src="../img/posts/2025-01-31-MonitorsThree(HTB)/06-c31ad0d59b.png" style="aspect-ratio:1258/509;" width="1258"/>
+
+        <p>On this page we can login, also note the version at the bottom 1.2.26</p>
+
+        <img alt="Screenshot 7" height="519" src="../img/posts/2025-01-31-MonitorsThree(HTB)/07-33c69fdaf0.png" style="aspect-ratio:677/519;" width="677"/>
+
+        <p>Shell using meterpreter</p>
+
+        <img alt="Screenshot 8" height="369" src="../img/posts/2025-01-31-MonitorsThree(HTB)/08-7dbe561f3e.png" style="aspect-ratio:848/369;" width="848"/>
+
+        <h1 style="color:red;">Shell as Marcus</h1>
+
+        <p>After running linpeas we see the database username and pass</p>
+
+        <p>$database_username = 'cactiuser';<br/>$database_password = 'cactiuser';</p>
+
+        <p>We can get the hash for marcus and crack it</p>
+
+        <img alt="Screenshot 9" height="414" src="../img/posts/2025-01-31-MonitorsThree(HTB)/09-6015d5be37.png" style="aspect-ratio:1375/414;" width="1375"/>
+
+        <img alt="Screenshot 10" height="199" src="../img/posts/2025-01-31-MonitorsThree(HTB)/10-a5a2fe710b.png" style="aspect-ratio:787/199;" width="787"/>
+
+        <p>Then we switch user to marcus and get user flag</p>
+
+        <img alt="Screenshot 11" height="203" src="../img/posts/2025-01-31-MonitorsThree(HTB)/11-a8d099b9c4.png" style="aspect-ratio:471/203;" width="471"/>
+
+        <p>marcus:12345678910</p>
+
+        <p>We can also grab the id_rsa key for marcus so we have ssh access.</p>
+
+        <h1 style="color:red;">Root</h1>
+
+        <p>This docker compose file shows something running on port 8200, we can forward it to our machine</p>
+
+        <pre class="terminal"><code>ssh -L 8200:localhost:8200 marcus@10.10.11.30 -i id_rsa</code></pre>
+
+        <img alt="Screenshot 12" height="338" src="../img/posts/2025-01-31-MonitorsThree(HTB)/12-db164e5063.png" style="aspect-ratio:452/338;" width="452"/>
+
+        <p>We have a Duplicati login page</p>
+
+        <img alt="Screenshot 13" height="470" src="../img/posts/2025-01-31-MonitorsThree(HTB)/13-89a44dd0c5.png" style="aspect-ratio:2789/470;" width="2789"/>
+
+        <p>We have a login bypass for Duplicati, this article walks us through it.</p>
+
+        <p><a href="https://read.martiandefense.llc/duplicati-bypassing-login-authentication-with-server-passphrase-024d6991e9ee">https://read.martiandefense.llc/duplicati-bypassing-login-authentication-with-server-passphrase-024d6991e9ee</a></p>
+
+        <p>First we need to recover the server-passphrase for duplicati which we find here</p>
+
+        <img alt="Screenshot 14" height="182" src="../img/posts/2025-01-31-MonitorsThree(HTB)/14-8ef3573fa2.png" style="aspect-ratio:630/182;" width="630"/>
+
+        <p>Copy the database files locally</p>
+
+        <pre class="terminal"><code>sqlite3 Duplicati-server.sqlite</code></pre>
+
+        <img alt="Screenshot 15" height="348" src="../img/posts/2025-01-31-MonitorsThree(HTB)/15-ae5ad9843d.png" style="aspect-ratio:669/348;" width="669"/>
+
+        <p>-2||server-passphrase|Wb6e855L3sN9LTaCuwPXuautswTIQbekmMAr7BrK2Ho=<br/>-2||server-passphrase-salt|xTfykWV1dATpFZvPhClEJLJzYA5A4L74hX7FK8XmY0I=<br/> </p>
+
+        <p>Next step is to base64 decode the passphrase and turn it into hex which we can do with cyberchef</p>
+
+        <img alt="Screenshot 16" height="736" src="../img/posts/2025-01-31-MonitorsThree(HTB)/16-9ebab9b36b.png" style="aspect-ratio:1508/736;" width="1508"/>
+
+        <p>hex - 59be9ef39e4bdec37d2d3682bb03d7b9abadb304c841b7a498c02bec1acad87a</p>
+
+        <p><br/>Next we need to get the nonce so we will login and capture the request then we need to select “Do intercept response to this request”</p>
+
+        <img alt="Screenshot 17" height="461" src="../img/posts/2025-01-31-MonitorsThree(HTB)/17-583f4e3ac1.png" style="aspect-ratio:1247/461;" width="1247"/>
+
+        <p>The response will have the nonce that we need</p>
+
+        <img alt="Screenshot 18" height="486" src="../img/posts/2025-01-31-MonitorsThree(HTB)/18-9b433f84c4.png" style="aspect-ratio:2207/486;" width="2207"/>
+
+        <p>Then following the guide again we can get teh nonced pwd with the javascript code below</p>
+
+        <img alt="Screenshot 19" height="160" src="../img/posts/2025-01-31-MonitorsThree(HTB)/19-1cfab1d53e.png" style="aspect-ratio:1274/160;" width="1274"/>
+
+        <p>With the password we forward the burp request one more time and it will prompt us for a password, we change the password to the noncedpwd output above and urlencode it. Then once we forward it for the last time we will get a login</p>
+
+        <img alt="Screenshot 20" height="478" src="../img/posts/2025-01-31-MonitorsThree(HTB)/20-6ebefcca7d.png" style="aspect-ratio:1286/478;" width="1286"/>
+
+        <p>And we are presented with the duplicati landing page</p>
+
+        <img alt="Screenshot 21" height="435" src="../img/posts/2025-01-31-MonitorsThree(HTB)/21-81c62c37fa.png" style="aspect-ratio:1154/435;" width="1154"/>
+
+        <p>Exploit duplicati to get root flag</p>
+
+        <p>Add new backup &gt; Configure a new backup</p>
+
+        <p>No encrpytion and give it any name</p>
+
+        <img alt="Screenshot 22" height="490" src="../img/posts/2025-01-31-MonitorsThree(HTB)/22-ad60b0eac3.png" style="aspect-ratio:747/490;" width="747"/>
+
+        <p>Select a destination and we need to make sure we select the folder under “source” in order for it to show up on the machine(took me a while to realize there are multiple folders and the source folders are on the actual machine itself)</p>
+
+        <img alt="Screenshot 23" height="696" src="../img/posts/2025-01-31-MonitorsThree(HTB)/23-801bbb2810.png" style="aspect-ratio:797/696;" width="797"/>
+
+        <p>Then select the source data</p>
+
+        <img alt="Screenshot 24" height="936" src="../img/posts/2025-01-31-MonitorsThree(HTB)/24-f34945ccee.png" style="aspect-ratio:1997/936;" width="1997"/>
+
+        <p>When we run the first time we will get an error and have to repair it</p>
+
+        <img alt="Screenshot 25" height="121" src="../img/posts/2025-01-31-MonitorsThree(HTB)/25-dcea144fe1.png" style="aspect-ratio:505/121;" width="505"/>
+
+        <p>After we click repair and run again we will get the flag</p>
+
+        <img alt="Screenshot 26" height="204" src="../img/posts/2025-01-31-MonitorsThree(HTB)/26-f261d954e2.png" style="aspect-ratio:645/204;" width="645"/>
+
+        <img alt="Screenshot 27" height="371" src="../img/posts/2025-01-31-MonitorsThree(HTB)/27-413b9efb77.png" style="aspect-ratio:505/371;" width="505"/>
+    </article>
+
+</body>
+</html>

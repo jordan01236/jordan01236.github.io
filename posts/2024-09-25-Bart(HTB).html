@@ -49,17 +49,32 @@
         code {
             overflow-wrap: anywhere;
         }
+    
+        .post-header {
+            border-bottom: 3px solid #DB2C17;
+            padding-bottom: 16px;
+            margin-bottom: 28px;
+        }
+
+        .post-header h1 {
+            margin: 0 0 8px 0;
+            font-size: 2.1rem;
+            line-height: 1.2;
+        }
+
+        .post-header .post-meta {
+            color: #666;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+        }
     </style>
 </head>
 <body>
 
     <article class="post">
-        <header style="display: flex; align-items: center; gap: 20px;">
-            <img src="../img/posts/2024-09-25-Bart(HTB)/01-b4eaf39bd8.png" alt="HTB: Bart cover" style="height: 80px; border-radius: 4px;">
-            <div>
-                <h1 style="margin: 0;">HTB: Bart</h1>
-                <div class="post-meta">September 25, 2024 &bull; HTB</div>
-            </div>
+        <header class="post-header">
+            <h1>HTB: Bart</h1>
+            <div class="post-meta">September 25, 2024 &bull; HTB</div>
         </header>
 
         <p>Sub domains found</p>

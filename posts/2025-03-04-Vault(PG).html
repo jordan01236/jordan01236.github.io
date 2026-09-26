@@ -49,17 +49,32 @@
         code {
             overflow-wrap: anywhere;
         }
+    
+        .post-header {
+            border-bottom: 3px solid #DB2C17;
+            padding-bottom: 16px;
+            margin-bottom: 28px;
+        }
+
+        .post-header h1 {
+            margin: 0 0 8px 0;
+            font-size: 2.1rem;
+            line-height: 1.2;
+        }
+
+        .post-header .post-meta {
+            color: #666;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+        }
     </style>
 </head>
 <body>
 
     <article class="post">
-        <header style="display: flex; align-items: center; gap: 20px;">
-            <img src="../img/posts/2025-03-04-Vault(PG)/01-9bcd35940d.png" alt="PG: Vault cover" style="height: 80px; border-radius: 4px;">
-            <div>
-                <h1 style="margin: 0;">PG: Vault</h1>
-                <div class="post-meta">March 4, 2025 &bull; PG</div>
-            </div>
+        <header class="post-header">
+            <h1>PG: Vault</h1>
+            <div class="post-meta">March 4, 2025 &bull; PG</div>
         </header>
 
         <p>Nothing too interesting from the port scan, just typical AD ports open.</p>

@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (isRoot) outputDiv.style.color = "#ff4444";
         outputDiv.textContent = output;
         terminalContainer.appendChild(outputDiv);
+        terminalContainer.scrollTop = terminalContainer.scrollHeight;
     }
 
     // Function to display available commands
@@ -33,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Handle the entered command
     function handleCommand(command) {
         if (command === "whoami") {
-            displayOutput(isRoot ? "root" : "Hello! I'm Jordan, a cybersecurity enthusiast focused on hacking/cybersecurity. I have been learning pentesting for just about 4 years now. Visit my about page to learn more!");
+            displayOutput(isRoot ? "root" : "Hello! I'm Jordan, a cybersecurity enthusiast focused on hacking/cybersecurity. I have been learning pentesting for just about 4 years now. Visit my home page to learn more!");
         } else if (command === "help") {
             let helpText = "Available commands:\n- whoami\n- help\n- clear\n- blog\n- about\n- sudo su";
             if (isRoot) {
@@ -47,7 +48,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } else if (command === "blog") {
             window.location.href = "blog.html";
         } else if (command === "about") {
-            window.location.href = "about.html";
+            window.location.href = "index.html";
         } else if (command === "sudo su") {
             if (!isRoot) {
                 isRoot = true;
@@ -82,13 +83,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const promptDiv = document.createElement("span");
         promptDiv.className = "prompt";
         promptDiv.textContent = isRoot ? "root@kali:~# " : "jordan@kali:~$ ";
-        promptDiv.style.color = isRoot ? "#ff4444" : "#33ff33";
+        promptDiv.style.color = isRoot ? "#ff4444" : "#5eead4";
         promptLine.appendChild(promptDiv);
 
         const inputField = document.createElement("input");
         inputField.type = "text";
         inputField.className = "command-input";
-        inputField.style.color = isRoot ? "#ff4444" : "#33ff33";
+        inputField.style.color = isRoot ? "#ff4444" : "#5eead4";
         inputField.autofocus = true;
         promptLine.appendChild(inputField);
 
@@ -103,7 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     const commandDisplay = document.createElement("div");
                     commandDisplay.className = "command-display";
                     commandDisplay.textContent = (isRoot ? "root@kali:~# " : "jordan@kali:~$ ") + command;
-                    commandDisplay.style.color = isRoot ? "#ff4444" : "#33ff33";
+                    commandDisplay.style.color = isRoot ? "#ff4444" : "#5eead4";
                     terminalContainer.insertBefore(commandDisplay, promptLine);
 
                     handleCommand(command);
@@ -118,6 +119,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         inputField.addEventListener("keydown", handleInput);
     }
+
+    // Clicking anywhere in the terminal refocuses the input
+    terminalContainer.addEventListener("click", function () {
+        const input = terminalContainer.querySelector(".command-input");
+        if (input) input.focus();
+    });
 
     // Display initial terminal content
     displayCommands();

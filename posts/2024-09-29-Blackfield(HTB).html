@@ -113,7 +113,7 @@
         }
 
         .post-header {
-            border-bottom: 2px solid var(--violet);
+            border-bottom: 2px solid var(--accent);
             padding-bottom: 18px;
             margin-bottom: 36px;
         }
@@ -121,7 +121,7 @@
         .post-header h1 {
             font-size: 2.1rem;
             line-height: 1.2;
-            color: var(--violet);
+            color: var(--accent);
             font-weight: 700;
             letter-spacing: -0.01em;
         }
@@ -135,21 +135,21 @@
         }
 
         .post h1 {
-            color: var(--violet);
+            color: var(--accent);
             font-size: 1.5rem;
             font-weight: 700;
             margin: 44px 0 14px;
         }
 
         .post h2 {
-            color: var(--violet);
+            color: var(--accent);
             font-size: 1.25rem;
             font-weight: 700;
             margin: 36px 0 12px;
         }
 
         .post h3 {
-            color: var(--violet);
+            color: var(--accent);
             font-size: 1.1rem;
             font-weight: 600;
             margin: 28px 0 10px;
@@ -241,7 +241,7 @@
 
         .post th {
             background: var(--surface);
-            color: var(--violet);
+            color: var(--accent);
         }
 
         .post { overflow-wrap: anywhere; }
@@ -326,7 +326,7 @@
 
         <img alt="Screenshot 5" height="269" src="../img/posts/2024-09-29-Blackfield(HTB)/05-1d013d0c19.png" style="aspect-ratio:912/269;" width="912"/>
 
-        <h1 style="color:#7c8cf8;">Shell as svc_backup</h1>
+        <h1 style="color:#5eead4;">Shell as svc_backup</h1>
 
         <p>With these creds we cannot remote into the machine just yet. We can use rpc client and dump the users though.</p>
 
@@ -342,7 +342,7 @@
 
         <p>The profiles smb share gives us a bunch of new usernames that didnt show up in rpcclient. But they are all invalid.</p>
 
-        <h1 style="color:#7c8cf8;">Bloodhound</h1>
+        <h1 style="color:#5eead4;">Bloodhound</h1>
 
         <p>Using the creds we can download bloodhound data with bloodhound-python.</p>
 
@@ -378,7 +378,7 @@
 
         <img alt="Screenshot 9" height="506" src="../img/posts/2024-09-29-Blackfield(HTB)/09-bfe4a1c173.png" style="aspect-ratio:717/506;" width="717"/>
 
-        <h1 style="color:#7c8cf8;">Shell as Administrator</h1>
+        <h1 style="color:#5eead4;">Shell as Administrator</h1>
 
         <p>We are svc_backup and have SeBackup enabled which we can use to access files we normally wouldnt be able to access.</p>
 

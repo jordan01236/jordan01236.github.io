@@ -113,7 +113,7 @@
         }
 
         .post-header {
-            border-bottom: 2px solid var(--violet);
+            border-bottom: 2px solid var(--accent);
             padding-bottom: 18px;
             margin-bottom: 36px;
         }
@@ -121,7 +121,7 @@
         .post-header h1 {
             font-size: 2.1rem;
             line-height: 1.2;
-            color: var(--violet);
+            color: var(--accent);
             font-weight: 700;
             letter-spacing: -0.01em;
         }
@@ -135,21 +135,21 @@
         }
 
         .post h1 {
-            color: var(--violet);
+            color: var(--accent);
             font-size: 1.5rem;
             font-weight: 700;
             margin: 44px 0 14px;
         }
 
         .post h2 {
-            color: var(--violet);
+            color: var(--accent);
             font-size: 1.25rem;
             font-weight: 700;
             margin: 36px 0 12px;
         }
 
         .post h3 {
-            color: var(--violet);
+            color: var(--accent);
             font-size: 1.1rem;
             font-weight: 600;
             margin: 28px 0 10px;
@@ -241,7 +241,7 @@
 
         .post th {
             background: var(--surface);
-            color: var(--violet);
+            color: var(--accent);
         }
 
         .post { overflow-wrap: anywhere; }
@@ -304,7 +304,7 @@
 
         <p><code>PORT   STATE SERVICE VERSION</code><br/><code>21/tcp open  ftp</code><br/><code>| fingerprint-strings: </code><br/><code>|   GenericLines: </code><br/><code>|     220 ProFTPD Server (sightless.htb FTP Server) [::ffff:10.10.11.32]</code><br/><code>|     Invalid command: try being more creative</code><br/><code>|_    Invalid command: try being more creative</code><br/><code>22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.10 (Ubuntu Linux; protocol 2.0)</code><br/><code>| ssh-hostkey: </code><br/><code>|   256 c9:6e:3b:8f:c6:03:29:05:e5:a0:ca:00:90:c9:5c:52 (ECDSA)</code><br/><code>|_  256 9b:de:3a:27:77:3b:1b:e1:19:5f:16:11:be:70:e0:56 (ED25519)</code><br/><code>80/tcp open  http    nginx 1.18.0 (Ubuntu)</code><br/><code>|_http-title: Did not follow redirect to http://sightless.htb/</code><br/><code>| http-methods: </code><br/><code>|_  Supported Methods: GET HEAD POST OPTIONS</code><br/><code>|_http-server-header: nginx/1.18.0 (Ubuntu)</code><br/><code>1 service unrecognized despite returning data. If you know the service/ve</code></p>
 
-        <h1 style="color:#7c8cf8;">Shell as root(inside of docker)</h1>
+        <h1 style="color:#5eead4;">Shell as root(inside of docker)</h1>
 
         <p>FFUF finds no subdomains and we have no interesting directories</p>
 
@@ -352,7 +352,7 @@
 
         <p>No obvious ways to breakout of the container so im going to try other things.</p>
 
-        <h1 style="color:#7c8cf8;">Shell as Michael</h1>
+        <h1 style="color:#5eead4;">Shell as Michael</h1>
 
         <p>The /home directory has a user named michael</p>
 
@@ -374,7 +374,7 @@
 
         <img alt="Screenshot 11" height="227" src="../img/posts/2024-10-13-Sightless(HTB)/11-8685c51075.png" style="aspect-ratio:708/227;" width="708"/>
 
-        <h1 style="color:#7c8cf8;">Shell as Root</h1>
+        <h1 style="color:#5eead4;">Shell as Root</h1>
 
         <p>Root took me a very long time and I had to get hints. I was familiar with this exploit but never used it before. During linpeas we can see chrome is open with remote debugging port but the port was set to 0 so I didnt think we could use it. Looks like we were supposed to forward random open ports on the machine and hope one happened to be chrome. I was able to portforward 8080 and get to the login page which has authenticated RCE but I had no creds to login. We also had to add localhost to our /etc/hosts file. 127.0.0.1 admin.sightless.htb</p>
 

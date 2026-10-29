@@ -1,3 +1,413 @@
-<html><head><meta charset="utf-8"></head><body><p>Users found with RPC Client</p><p>&nbsp;</p><p>CascGuest<br>arksvc<br>s.smith<br>r.thompson<br>util - has 1 logon<br>j.wakefield<br>s.hickson<br>j.goodhand<br>a.turnbull<br>e.crowe<br>b.hanson<br>d.burman<br>BackupSvc<br>j.allen<br>i.croft<br>&nbsp;</p><p>&nbsp;</p><p>I did a ton of enumeration but found nothing interesting at all which was really annoying. When you query a user with ldap search you find nothing interesting at all. If you were to query r.thompson you would see an extra field containing the legacy password. Which is really annoying because every other user doesnt have this field so you would have to query all users manually and read all the output for every single user.</p><p>&nbsp;</p><p>ldapsearch -H ldap://10.10.10.182 -x -b 'DC=cascade,DC=local' '(sAMAccountName=r.thompson)' -LLL</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:896/627;" src="../img/posts/2024-05-20-cascade(HTB)/01-0c633a8ab7.png" width="896" height="627"></figure><p>&nbsp;</p><p>&nbsp;</p><p>clk0bjVldmE=</p><p>&nbsp;</p><p>base64 decoded is rY4n5eva</p><p>r.thompson:rY4n5eva<br>&nbsp;</p><p>&nbsp;</p><p>Connecting to the SMB server and navigating to IT and s.smith folder we find a VNC reg key that has an encrypted password.</p><p>encrypted pass - hex:6b,cf,2a,4b,6e,5a,ca,0f</p><p>Using this script found on github we can decode the password</p><p>https://github.com/frizb/PasswordDecrypts</p><pre><code class="language-text-plain">key = "\x17\x52\x6b\x06\x23\x4e\x58\x07"
+<html><head><meta charset="utf-8">
+    <title>HTB: Cascade | HackWithJordan</title><style>
+        :root {
+            --bg: #0b0e14;
+            --accent: #5eead4;
+            --violet: #7c8cf8;
+            --text: #e8edf2;
+            --muted: #8b97a6;
+            --surface: rgba(255, 255, 255, .04);
+            --border: rgba(255, 255, 255, .09);
+            --accent-dim: rgba(94, 234, 212, .14);
+            --border-hover: rgba(94, 234, 212, .45);
+            --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --mono: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            line-height: 1.65;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: var(--accent-dim);
+            color: var(--accent);
+        }
+
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(110px);
+            opacity: .5;
+            z-index: 0;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        .blob-1 {
+            width: 55vw;
+            height: 55vw;
+            top: -20vw;
+            left: -15vw;
+            background: radial-gradient(circle, rgba(94, 234, 212, .16), transparent 70%);
+            animation: drift1 26s ease-in-out infinite alternate;
+        }
+
+        .blob-2 {
+            width: 48vw;
+            height: 48vw;
+            bottom: -18vw;
+            right: -12vw;
+            background: radial-gradient(circle, rgba(124, 140, 248, .16), transparent 70%);
+            animation: drift2 32s ease-in-out infinite alternate;
+        }
+
+        .blob-3 {
+            width: 34vw;
+            height: 34vw;
+            top: 40%;
+            left: 55%;
+            background: radial-gradient(circle, rgba(94, 234, 212, .10), transparent 70%);
+            animation: drift3 22s ease-in-out infinite alternate;
+        }
+
+        @keyframes drift1 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(6vw, 4vw) scale(1.15); }
+        }
+
+        @keyframes drift2 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(-5vw, -6vw) scale(1.1); }
+        }
+
+        @keyframes drift3 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(-4vw, 5vw) scale(.9); }
+        }
+
+        article.post {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 96px 28px 80px;
+        }
+
+        .post-header {
+            border-bottom: 2px solid var(--violet);
+            padding-bottom: 18px;
+            margin-bottom: 36px;
+        }
+
+        .post-header h1 {
+            font-size: 2.1rem;
+            line-height: 1.2;
+            color: var(--violet);
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .post-header .post-meta {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-top: 8px;
+            font-family: var(--mono);
+            letter-spacing: 0.3px;
+        }
+
+        .post h1 {
+            color: var(--violet);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 44px 0 14px;
+        }
+
+        .post h2 {
+            color: var(--violet);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 36px 0 12px;
+        }
+
+        .post h3 {
+            color: var(--violet);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 28px 0 10px;
+        }
+
+        .post p {
+            margin: 15px 0;
+        }
+
+        .post a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .post a:hover {
+            text-decoration: underline;
+        }
+
+        .post img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .post figure {
+            margin: 20px 0;
+        }
+
+        .post pre.terminal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: var(--mono);
+            font-size: 0.88rem;
+            line-height: 1.55;
+            margin: 18px 0;
+            color: var(--text);
+        }
+
+        .post code {
+            font-family: var(--mono);
+            font-size: 0.9em;
+            background: var(--surface);
+            padding: 2px 6px;
+            border-radius: 4px;
+            overflow-wrap: anywhere;
+        }
+
+        .post pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .post ul,
+        .post ol {
+            margin: 15px 0 15px 24px;
+        }
+
+        .post li {
+            margin: 6px 0;
+        }
+
+        .post hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 32px 0;
+        }
+
+        .post table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0;
+            font-size: 0.95rem;
+        }
+
+        .post th,
+        .post td {
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .post th {
+            background: var(--surface);
+            color: var(--violet);
+        }
+
+        @media (max-width: 640px) {
+            article.post {
+                padding: 72px 20px 60px;
+            }
+
+            .post-header h1 {
+                font-size: 1.7rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .blob {
+                animation: none;
+            }
+        }
+    
+        .home-btn {
+            position: fixed;
+            top: 24px;
+            right: 28px;
+            z-index: 5;
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            color: var(--muted);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 7px 14px;
+            text-decoration: none;
+            transition: color 0.2s ease, border-color 0.2s ease;
+        }
+        .home-btn:hover {
+            color: var(--accent);
+            border-color: var(--border-hover);
+        }
+</style>
+</head><body>
+    <a class="home-btn" href="../" title="Back to home">~$ cd ~</a>
+    <canvas id="bg-canvas"></canvas>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <article class="post">
+        <header class="post-header">
+            <h1>HTB: Cascade</h1>
+            <div class="post-meta">May 20, 2024 &bull; HTB</div>
+        </header>
+
+<p>Users found with RPC Client</p><p>&nbsp;</p><p>CascGuest<br>arksvc<br>s.smith<br>r.thompson<br>util - has 1 logon<br>j.wakefield<br>s.hickson<br>j.goodhand<br>a.turnbull<br>e.crowe<br>b.hanson<br>d.burman<br>BackupSvc<br>j.allen<br>i.croft<br>&nbsp;</p><p>&nbsp;</p><p>I did a ton of enumeration but found nothing interesting at all which was really annoying. When you query a user with ldap search you find nothing interesting at all. If you were to query r.thompson you would see an extra field containing the legacy password. Which is really annoying because every other user doesnt have this field so you would have to query all users manually and read all the output for every single user.</p><p>&nbsp;</p><p>ldapsearch -H ldap://10.10.10.182 -x -b 'DC=cascade,DC=local' '(sAMAccountName=r.thompson)' -LLL</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:896/627;" src="../img/posts/2024-05-20-cascade(HTB)/01-0c633a8ab7.png" width="896" height="627"></figure><p>&nbsp;</p><p>&nbsp;</p><p>clk0bjVldmE=</p><p>&nbsp;</p><p>base64 decoded is rY4n5eva</p><p>r.thompson:rY4n5eva<br>&nbsp;</p><p>&nbsp;</p><p>Connecting to the SMB server and navigating to IT and s.smith folder we find a VNC reg key that has an encrypted password.</p><p>encrypted pass - hex:6b,cf,2a,4b,6e,5a,ca,0f</p><p>Using this script found on github we can decode the password</p><p>https://github.com/frizb/PasswordDecrypts</p><pre><code class="language-text-plain">key = "\x17\x52\x6b\x06\x23\x4e\x58\x07"
 require 'rex/proto/rfb'
-Rex::Proto::RFB::Cipher.decrypt ["6bcf2a4b6e5aca0f"].pack('H*'), key</code></pre><figure class="image image-style-block-align-left"><img style="aspect-ratio:727/133;" src="../img/posts/2024-05-20-cascade(HTB)/02-9edc800f24.png" width="727" height="133"></figure><p>&nbsp;</p><p>&nbsp;</p><figure class="image"><img style="aspect-ratio:1230/282;" src="../img/posts/2024-05-20-cascade(HTB)/03-95d58fb545.png" width="1230" height="282"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We can now remote in</p><p>evil-winrm -i 10.10.10.182 -u s.smith -p sT333ve2</p><p>&nbsp;</p><p>We have another user, Arksvc we probably need to compromise their account to move to admin.</p><p>&nbsp;</p><p>I used a hint on this part as I couldnt find anything. There is a share we can access with sql lite and some exe files.</p><p>\\CASC-DC1\Audit$</p><p>&nbsp;</p><p>If we try to start the db with the batch script(RunAudit.bat) we get an error with CascAudit.exe</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:755/214;" src="../img/posts/2024-05-20-cascade(HTB)/04-f2161ff904.png" width="755" height="214"></figure><p>&nbsp;</p><p>So we download the entire SMB directory to our machine and move it to a windows VM for analyzing it.</p><p>&nbsp;</p><p>On the windows machine we install DnSpy and we can look at what its doing.</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:984/388;" src="../img/posts/2024-05-20-cascade(HTB)/05-b79161c6b1.png" width="984" height="388"></figure><p>&nbsp;</p><p>Here we can see how the string is encrypted/decrypted. We can add a breakpoint on line 53 to have it decrypt our audit.db file which has the encrypted password of arksvc which I found by running strings on the audit.db file.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:375/36;" src="../img/posts/2024-05-20-cascade(HTB)/06-2560361507.png" width="375" height="36"></figure><p>&nbsp;</p><p>In DnSpy we setup an argument to add the audit db file and this will run at the breakpoint above.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:496/210;" src="../img/posts/2024-05-20-cascade(HTB)/07-8f0d37476a.png" width="496" height="210"></figure><p>&nbsp;</p><p>If it runs successfully we get the decrypted password</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1019/259;" src="../img/posts/2024-05-20-cascade(HTB)/08-217e9e5970.png" width="1019" height="259"></figure><p>&nbsp;</p><p>I did have to use 0xdfs guide for this entire part but I did it as it helped me learn how to do this. I also had to do my own troubleshooting to get it working.</p><p>&nbsp;</p><p>&nbsp;</p><p>arksvc:w3lc0meFr31nd</p><p>&nbsp;</p><p>now we can remote in as arksvc</p><p>evil-winrm -i 10.10.10.182 -u arksvc -p w3lc0meFr31nd<br>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Priv esc to Admin</u></strong></span></p><p>&nbsp;</p><p>Looking a new groups our user has one that stands out was CASCADE\AD Recycle Bin. This allows us to see all things deleted from AD.</p><p>&nbsp;</p><p>I googled how to use this and we can view it with this powershell command</p><p>&nbsp;</p><p><code>Get-ADObject -filter 'isDeleted -eq $true' -includeDeletedObjects -Properties *</code></p><p>&nbsp;</p><p>I noticed a temp admin user which was deleted with a legacy pwd that was different from s.smiths password</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:644/246;" src="../img/posts/2024-05-20-cascade(HTB)/09-61236937b9.png" width="644" height="246"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Just like the last one its base64 and gives us the admin password</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:465/81;" src="../img/posts/2024-05-20-cascade(HTB)/10-f78e4f2c08.png" width="465" height="81"></figure><p>&nbsp;</p><p>We can remote in as admin now</p><p><code>evil-winrm -i 10.10.10.182 -u Administrator -p baCT3r1aN00dles&nbsp;</code></p></body></html>
+Rex::Proto::RFB::Cipher.decrypt ["6bcf2a4b6e5aca0f"].pack('H*'), key</code></pre><figure class="image image-style-block-align-left"><img style="aspect-ratio:727/133;" src="../img/posts/2024-05-20-cascade(HTB)/02-9edc800f24.png" width="727" height="133"></figure><p>&nbsp;</p><p>&nbsp;</p><figure class="image"><img style="aspect-ratio:1230/282;" src="../img/posts/2024-05-20-cascade(HTB)/03-95d58fb545.png" width="1230" height="282"></figure><p>&nbsp;</p><p>&nbsp;</p><p>We can now remote in</p><p>evil-winrm -i 10.10.10.182 -u s.smith -p sT333ve2</p><p>&nbsp;</p><p>We have another user, Arksvc we probably need to compromise their account to move to admin.</p><p>&nbsp;</p><p>I used a hint on this part as I couldnt find anything. There is a share we can access with sql lite and some exe files.</p><p>\\CASC-DC1\Audit$</p><p>&nbsp;</p><p>If we try to start the db with the batch script(RunAudit.bat) we get an error with CascAudit.exe</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:755/214;" src="../img/posts/2024-05-20-cascade(HTB)/04-f2161ff904.png" width="755" height="214"></figure><p>&nbsp;</p><p>So we download the entire SMB directory to our machine and move it to a windows VM for analyzing it.</p><p>&nbsp;</p><p>On the windows machine we install DnSpy and we can look at what its doing.</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:984/388;" src="../img/posts/2024-05-20-cascade(HTB)/05-b79161c6b1.png" width="984" height="388"></figure><p>&nbsp;</p><p>Here we can see how the string is encrypted/decrypted. We can add a breakpoint on line 53 to have it decrypt our audit.db file which has the encrypted password of arksvc which I found by running strings on the audit.db file.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:375/36;" src="../img/posts/2024-05-20-cascade(HTB)/06-2560361507.png" width="375" height="36"></figure><p>&nbsp;</p><p>In DnSpy we setup an argument to add the audit db file and this will run at the breakpoint above.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:496/210;" src="../img/posts/2024-05-20-cascade(HTB)/07-8f0d37476a.png" width="496" height="210"></figure><p>&nbsp;</p><p>If it runs successfully we get the decrypted password</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1019/259;" src="../img/posts/2024-05-20-cascade(HTB)/08-217e9e5970.png" width="1019" height="259"></figure><p>&nbsp;</p><p>I did have to use 0xdfs guide for this entire part but I did it as it helped me learn how to do this. I also had to do my own troubleshooting to get it working.</p><p>&nbsp;</p><p>&nbsp;</p><p>arksvc:w3lc0meFr31nd</p><p>&nbsp;</p><p>now we can remote in as arksvc</p><p>evil-winrm -i 10.10.10.182 -u arksvc -p w3lc0meFr31nd<br>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Priv esc to Admin</u></strong></span></p><p>&nbsp;</p><p>Looking a new groups our user has one that stands out was CASCADE\AD Recycle Bin. This allows us to see all things deleted from AD.</p><p>&nbsp;</p><p>I googled how to use this and we can view it with this powershell command</p><p>&nbsp;</p><p><code>Get-ADObject -filter 'isDeleted -eq $true' -includeDeletedObjects -Properties *</code></p><p>&nbsp;</p><p>I noticed a temp admin user which was deleted with a legacy pwd that was different from s.smiths password</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:644/246;" src="../img/posts/2024-05-20-cascade(HTB)/09-61236937b9.png" width="644" height="246"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Just like the last one its base64 and gives us the admin password</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:465/81;" src="../img/posts/2024-05-20-cascade(HTB)/10-f78e4f2c08.png" width="465" height="81"></figure><p>&nbsp;</p><p>We can remote in as admin now</p><p><code>evil-winrm -i 10.10.10.182 -u Administrator -p baCT3r1aN00dles&nbsp;</code></p>
+    </article>
+
+<script>
+        // ---------- Particle background ----------
+        (function () {
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const mouse = { x: null, y: null };
+            let particles = [];
+            let w = 0, h = 0;
+
+            function resize() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                w = window.innerWidth;
+                h = window.innerHeight;
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                canvas.style.width = w + 'px';
+                canvas.style.height = h + 'px';
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                seed();
+            }
+
+            function seed() {
+                const count = Math.min(90, Math.floor((w * h) / 16000));
+                particles = [];
+                for (let i = 0; i < count; i++) {
+                    particles.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        vx: (Math.random() - 0.5) * 0.35,
+                        vy: (Math.random() - 0.5) * 0.35,
+                        r: Math.random() * 1.5 + 0.7
+                    });
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+
+                for (const p of particles) {
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    if (p.x < -20) p.x = w + 20;
+                    if (p.x > w + 20) p.x = -20;
+                    if (p.y < -20) p.y = h + 20;
+                    if (p.y > h + 20) p.y = -20;
+
+                    if (mouse.x !== null) {
+                        const dx = p.x - mouse.x;
+                        const dy = p.y - mouse.y;
+                        const d = Math.hypot(dx, dy);
+                        if (d < 120 && d > 0.001) {
+                            const f = (1 - d / 120) * 0.5;
+                            p.x += (dx / d) * f;
+                            p.y += (dy / d) * f;
+                        }
+                    }
+                }
+
+                for (let i = 0; i < particles.length; i++) {
+                    const a = particles[i];
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const b = particles[j];
+                        const d = Math.hypot(a.x - b.x, a.y - b.y);
+                        if (d < 110) {
+                            ctx.strokeStyle = 'rgba(94, 234, 212, ' + (0.14 * (1 - d / 110)).toFixed(3) + ')';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(b.x, b.y);
+                            ctx.stroke();
+                        }
+                    }
+                    if (mouse.x !== null) {
+                        const d = Math.hypot(a.x - mouse.x, a.y - mouse.y);
+                        if (d < 140) {
+                            ctx.strokeStyle = 'rgba(124, 140, 248, ' + (0.18 * (1 - d / 140)).toFixed(3) + ')';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(mouse.x, mouse.y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                for (const p of particles) {
+                    ctx.fillStyle = 'rgba(232, 237, 242, 0.5)';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            function loop() {
+                if (!document.hidden) draw();
+                requestAnimationFrame(loop);
+            }
+
+            window.addEventListener('resize', resize);
+            window.addEventListener('mousemove', function (e) {
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+            });
+            window.addEventListener('mouseleave', function () {
+                mouse.x = null;
+                mouse.y = null;
+            });
+
+            resize();
+            if (reduced) {
+                draw();
+            } else {
+                requestAnimationFrame(loop);
+            }
+        })();
+    </script>
+</body></html>

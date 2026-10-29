@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="name" content="Terminal">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Terminal - HackWithJordan</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/terminal.css">
+    <link rel="stylesheet" href="assets/css/custom.css">
+    <script defer src="assets/js/terminal.js"></script>
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" href="assets/icons/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="assets/icons/favicon-16x16.png" sizes="16x16" />
+</head>
+<body>
+    <header class="site-header">
+        <div class="wrapper">
+            <a class="site-title" rel="author" href="index.html">HackWithJordan</a>
+            <nav class="site-nav">
+                <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+                <label for="nav-trigger">
+                    <span class="menu-icon">☰</span>
+                </label>
+                <div class="trigger">
+                    <a class="page-link-site" href="index.html">Home</a>
+                    <a class="page-link-site" href="blog.html">Blog</a>
+                    <a class="page-link-site" href="terminal.html">Terminal</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div id="terminal-container" class="terminal-style"></div>
+    </main>
+
+    <!-- Active Link Script -->
+    <script>
+        document.querySelectorAll('.page-link-site').forEach(link => {
+            if (link.href === window.location.href) {
+                link.classList.add('active');
+            }
+        });
+    </script>
+
+    <!-- Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-P056MVQVGM"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-P056MVQVGM');
+    </script>
+</body>
+</html>

@@ -2,10 +2,298 @@
   
   <head>
     <meta charset="utf-8">
-  </head>
+    <title>HTB: Armageddon | HackWithJordan</title>
+  <style>
+        :root {
+            --bg: #0b0e14;
+            --accent: #5eead4;
+            --violet: #7c8cf8;
+            --text: #e8edf2;
+            --muted: #8b97a6;
+            --surface: rgba(255, 255, 255, .04);
+            --border: rgba(255, 255, 255, .09);
+            --accent-dim: rgba(94, 234, 212, .14);
+            --border-hover: rgba(94, 234, 212, .45);
+            --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --mono: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            line-height: 1.65;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: var(--accent-dim);
+            color: var(--accent);
+        }
+
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(110px);
+            opacity: .5;
+            z-index: 0;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        .blob-1 {
+            width: 55vw;
+            height: 55vw;
+            top: -20vw;
+            left: -15vw;
+            background: radial-gradient(circle, rgba(94, 234, 212, .16), transparent 70%);
+            animation: drift1 26s ease-in-out infinite alternate;
+        }
+
+        .blob-2 {
+            width: 48vw;
+            height: 48vw;
+            bottom: -18vw;
+            right: -12vw;
+            background: radial-gradient(circle, rgba(124, 140, 248, .16), transparent 70%);
+            animation: drift2 32s ease-in-out infinite alternate;
+        }
+
+        .blob-3 {
+            width: 34vw;
+            height: 34vw;
+            top: 40%;
+            left: 55%;
+            background: radial-gradient(circle, rgba(94, 234, 212, .10), transparent 70%);
+            animation: drift3 22s ease-in-out infinite alternate;
+        }
+
+        @keyframes drift1 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(6vw, 4vw) scale(1.15); }
+        }
+
+        @keyframes drift2 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(-5vw, -6vw) scale(1.1); }
+        }
+
+        @keyframes drift3 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(-4vw, 5vw) scale(.9); }
+        }
+
+        article.post {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 96px 28px 80px;
+        }
+
+        .post-header {
+            border-bottom: 2px solid var(--violet);
+            padding-bottom: 18px;
+            margin-bottom: 36px;
+        }
+
+        .post-header h1 {
+            font-size: 2.1rem;
+            line-height: 1.2;
+            color: var(--violet);
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .post-header .post-meta {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-top: 8px;
+            font-family: var(--mono);
+            letter-spacing: 0.3px;
+        }
+
+        .post h1 {
+            color: var(--violet);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 44px 0 14px;
+        }
+
+        .post h2 {
+            color: var(--violet);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 36px 0 12px;
+        }
+
+        .post h3 {
+            color: var(--violet);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 28px 0 10px;
+        }
+
+        .post p {
+            margin: 15px 0;
+        }
+
+        .post a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .post a:hover {
+            text-decoration: underline;
+        }
+
+        .post img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .post figure {
+            margin: 20px 0;
+        }
+
+        .post pre.terminal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: var(--mono);
+            font-size: 0.88rem;
+            line-height: 1.55;
+            margin: 18px 0;
+            color: var(--text);
+        }
+
+        .post code {
+            font-family: var(--mono);
+            font-size: 0.9em;
+            background: var(--surface);
+            padding: 2px 6px;
+            border-radius: 4px;
+            overflow-wrap: anywhere;
+        }
+
+        .post pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .post ul,
+        .post ol {
+            margin: 15px 0 15px 24px;
+        }
+
+        .post li {
+            margin: 6px 0;
+        }
+
+        .post hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 32px 0;
+        }
+
+        .post table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0;
+            font-size: 0.95rem;
+        }
+
+        .post th,
+        .post td {
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .post th {
+            background: var(--surface);
+            color: var(--violet);
+        }
+
+        @media (max-width: 640px) {
+            article.post {
+                padding: 72px 20px 60px;
+            }
+
+            .post-header h1 {
+                font-size: 1.7rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .blob {
+                animation: none;
+            }
+        }
+    
+        .home-btn {
+            position: fixed;
+            top: 24px;
+            right: 28px;
+            z-index: 5;
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            color: var(--muted);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 7px 14px;
+            text-decoration: none;
+            transition: color 0.2s ease, border-color 0.2s ease;
+        }
+        .home-btn:hover {
+            color: var(--accent);
+            border-color: var(--border-hover);
+        }
+</style>
+</head>
   
   <body>
-    <p>Initial page is just a login page
+    <a class="home-btn" href="../" title="Back to home">~$ cd ~</a>
+    <canvas id="bg-canvas"></canvas>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <article class="post">
+        <header class="post-header">
+            <h1>HTB: Armageddon</h1>
+            <div class="post-meta">May 1, 2023 &bull; HTB</div>
+        </header>
+
+<p>Initial page is just a login page
       <br>Machine is running
       <br>php - 5.4.16, im not seeing any quick exploits.
       <br>Drupal 7 - quick google search looks like we have CVE-2018-7600.
@@ -42,6 +330,126 @@
       <br>sudo -i and we are root</p>
     <p>
       <br>I actually hated this box, one of the worst ive done.</p>
-  </body>
+    </article>
+
+<script>
+        // ---------- Particle background ----------
+        (function () {
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const mouse = { x: null, y: null };
+            let particles = [];
+            let w = 0, h = 0;
+
+            function resize() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                w = window.innerWidth;
+                h = window.innerHeight;
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                canvas.style.width = w + 'px';
+                canvas.style.height = h + 'px';
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                seed();
+            }
+
+            function seed() {
+                const count = Math.min(90, Math.floor((w * h) / 16000));
+                particles = [];
+                for (let i = 0; i < count; i++) {
+                    particles.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        vx: (Math.random() - 0.5) * 0.35,
+                        vy: (Math.random() - 0.5) * 0.35,
+                        r: Math.random() * 1.5 + 0.7
+                    });
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+
+                for (const p of particles) {
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    if (p.x < -20) p.x = w + 20;
+                    if (p.x > w + 20) p.x = -20;
+                    if (p.y < -20) p.y = h + 20;
+                    if (p.y > h + 20) p.y = -20;
+
+                    if (mouse.x !== null) {
+                        const dx = p.x - mouse.x;
+                        const dy = p.y - mouse.y;
+                        const d = Math.hypot(dx, dy);
+                        if (d < 120 && d > 0.001) {
+                            const f = (1 - d / 120) * 0.5;
+                            p.x += (dx / d) * f;
+                            p.y += (dy / d) * f;
+                        }
+                    }
+                }
+
+                for (let i = 0; i < particles.length; i++) {
+                    const a = particles[i];
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const b = particles[j];
+                        const d = Math.hypot(a.x - b.x, a.y - b.y);
+                        if (d < 110) {
+                            ctx.strokeStyle = 'rgba(94, 234, 212, ' + (0.14 * (1 - d / 110)).toFixed(3) + ')';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(b.x, b.y);
+                            ctx.stroke();
+                        }
+                    }
+                    if (mouse.x !== null) {
+                        const d = Math.hypot(a.x - mouse.x, a.y - mouse.y);
+                        if (d < 140) {
+                            ctx.strokeStyle = 'rgba(124, 140, 248, ' + (0.18 * (1 - d / 140)).toFixed(3) + ')';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(mouse.x, mouse.y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                for (const p of particles) {
+                    ctx.fillStyle = 'rgba(232, 237, 242, 0.5)';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            function loop() {
+                if (!document.hidden) draw();
+                requestAnimationFrame(loop);
+            }
+
+            window.addEventListener('resize', resize);
+            window.addEventListener('mousemove', function (e) {
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+            });
+            window.addEventListener('mouseleave', function () {
+                mouse.x = null;
+                mouse.y = null;
+            });
+
+            resize();
+            if (reduced) {
+                draw();
+            } else {
+                requestAnimationFrame(loop);
+            }
+        })();
+    </script>
+</body>
 
 </html>

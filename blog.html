@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Writeups — HackWithJordan</title>
-    <meta name="description" content="Pentesting writeups from Hack The Box, VulnLab and PortSwigger by Jordan.">
+    <meta name="description" content="Pentesting writeups from Hack The Box, VulnLab and Proving Grounds by Jordan.">
     <link rel="icon" type="image/png" href="assets/icons/favicon-32x32.png" sizes="32x32">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-P056MVQVGM"></script>
     <script>
@@ -256,9 +256,10 @@
 
         /* ---------- Responsive ---------- */
         @media (max-width: 760px) {
-            .nav { padding: 14px 20px; }
-            .nav nav { gap: 16px; }
-            .page-head { padding-top: 120px; }
+            .nav { padding: 12px 20px; flex-wrap: wrap; row-gap: 8px; }
+            .brand { white-space: nowrap; }
+            .nav nav { width: 100%; gap: 18px; overflow-x: auto; scrollbar-width: none; }
+            .page-head { padding-top: 140px; }
         }
     </style>
 </head>
@@ -286,7 +287,7 @@
                 <h1>Writeups</h1>
                 <p class="count-note" id="count-note"></p>
                 <p class="lede">
-                    Walkthroughs of machines I've compromised across Hack The Box, VulnLab and PortSwigger —
+                    Walkthroughs of machines I've compromised across Hack The Box, VulnLab and Proving Grounds —
                     covering my methodology from initial foothold to full compromise. Posts after March 2025
                     follow the Sendai format; earlier ones take a bit more of a rough road.
                 </p>
@@ -298,7 +299,7 @@
 
     <footer>
         <div class="wrap footer-inner">
-            <span class="copy">© 2025 HackWithJordan</span>
+            <span class="copy">© 2026 HackWithJordan</span>
             <div class="socials">
                 <a href="https://app.hackthebox.com/profile/1283370" target="_blank" rel="noopener">Hack The Box</a>
                 <a href="https://github.com/jordan01236" target="_blank" rel="noopener">GitHub</a>

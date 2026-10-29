@@ -39,6 +39,9 @@
             line-height: 1.65;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         ::selection { background: var(--accent-dim); color: var(--accent); }
@@ -124,6 +127,8 @@
 
         /* ---------- Layout ---------- */
         .wrap { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
+        main { flex: 1; display: flex; flex-direction: column; }
+        main .wrap { flex: 1; display: flex; flex-direction: column; }
 
         /* ---------- Hero ---------- */
         .hero {
@@ -135,6 +140,7 @@
         }
         .terminal-hero {
             min-height: auto;
+            flex: 1;
             padding-top: 120px;
             padding-bottom: 20px;
         }

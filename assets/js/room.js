@@ -150,7 +150,7 @@
 
     function upload(unit, img) {
         var src = img;
-        var limit = Math.min(maxTex, small ? 1600 : 4096);
+        var limit = Math.min(maxTex, small ? 2048 : 4096);
         if (img.width > limit) {
             var c = document.createElement("canvas");
             c.width = limit;
@@ -215,14 +215,14 @@
         var sw = s[1][0] - s[0][0], sh = s[3][1] - s[0][1];
         var V = S.vw / S.vh;
         var narrow = S.vw < 720;
-        var fx = narrow ? 0.965 : 0.74;
-        var fy = narrow ? 0.6 : 0.69;
+        var fx = narrow ? 0.965 : 0.68;
+        var fy = narrow ? 0.6 : 0.62;
         var sx = Math.max(sw / fx, (sh / fy) * V / A);
         var sy = sx * A / V;
         // keep the frame inside the image
         if (sy > 1) { sy = 1; sx = V / A; }
         var cx = (s[0][0] + s[1][0]) / 2;
-        var cy = (s[0][1] + s[3][1]) / 2 + sy * (narrow ? 0.02 : 0.035);
+        var cy = (s[0][1] + s[3][1]) / 2 + sy * (narrow ? 0.02 : 0.07);
         return { cx: clamp(cx, sx / 2, 1 - sx / 2), cy: clamp(cy, sy / 2, 1 - sy / 2), sx: sx, sy: sy };
     }
 
@@ -338,7 +338,7 @@
         gl.uniform4f(U.uScreen, meta.screen[0][0], meta.screen[0][1], meta.screen[2][0], meta.screen[2][1]);
         gl.uniform4f(U.uRange, meta.range.base, meta.range.lamp, meta.range.accent, meta.range.screen);
         gl.uniform1f(U.uCloseMix, closeMix);
-        gl.uniform1f(U.uLamp, S.lamp * 0.8 * S.power);
+        gl.uniform1f(U.uLamp, S.lamp * 0.72 * S.power);
         gl.uniform1f(U.uAccentGain, S.accentGain * S.power);
         gl.uniform1f(U.uScreenGain, (S.screenGain + S.screenKick * 0.5) * S.power);
         gl.uniform1f(U.uExposure, 1.0);

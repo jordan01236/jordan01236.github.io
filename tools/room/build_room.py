@@ -607,7 +607,7 @@ neon.rotation_euler = FACE_CAM
 neon.data.materials.append(E_NEON)
 col.objects.link(neon)
 neon.lightgroup = "accent"
-box("neon_back", (1.42, 0.006, 0.24), (MON_X - 0.22, BACK_Y - 0.008, 1.775), mat("acrylic", (0.02, 0.022, 0.026), 0.12, coat=0.5), bevel=0.002)
+box("neon_back", (1.42, 0.006, 0.24), (MON_X - 0.22, BACK_Y - 0.008, 1.775), mat("sign_black", (0.0015, 0.0015, 0.0018), 0.95, spec=0.05), bevel=0.002)
 
 # posters (left part of the back wall, catching the blinds' stripes)
 def poster(name, img, w, h, x, z):

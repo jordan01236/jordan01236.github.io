@@ -182,9 +182,8 @@
         if (old) old.remove();
         var div = document.createElement("div");
         div.className = "command-list";
-        div.textContent = commandListText() + "\n\n…or anything else you'd type on a Linux box. Try ls, cat notes.md, neofetch, nmap, lamp, rgb.";
-        var promptLine = container.querySelector(".prompt-line");
-        if (promptLine) container.insertBefore(div, promptLine); else container.appendChild(div);
+        div.textContent = "Type 'help' for available commands.";
+        container.insertBefore(div, container.firstChild);
     }
 
     function becomeRoot() {
@@ -193,7 +192,6 @@
         container.style.color = ROOT_COLOR;
         container.classList.add("root-mode");
         print("Congratulations on hacking the terminal :)");
-        displayCommands();
         container.querySelectorAll(".prompt").forEach(function (p) { p.style.color = ROOT_COLOR; });
         emit("root", true);
     }
@@ -203,13 +201,27 @@
         container.style.color = "";
         container.classList.remove("root-mode");
         if (state.cwd.indexOf("/root") === 0) state.cwd = HOME;
-        displayCommands();
         emit("root", false);
     }
 
+    // Everything that leaves the terminal opens in a new tab, so the session
+    // (and the room) stays put. Called straight from the Enter keypress, which
+    // is what lets the browser allow the new tab.
     function go(url, label) {
-        print(label || ("Opening " + url + " …"));
-        setTimeout(function () { window.location.href = url; }, 350);
+        var win = null;
+        try { win = window.open(url, "_blank"); } catch (e) { }
+        if (win) { try { win.opener = null; } catch (e) { } }
+        var line = print((label || ("Opening " + url + " …")) + (win ? " (new tab)" : ""));
+        if (!win) {
+            // popup blocked: leave a link to click instead
+            line.appendChild(document.createTextNode("\nYour browser blocked the new tab — "));
+            var a = document.createElement("a");
+            a.href = url;
+            a.target = "_blank";
+            a.rel = "noopener";
+            a.textContent = "open it here";
+            line.appendChild(a);
+        }
     }
 
     // ------------------------------------------------------------------
@@ -243,9 +255,9 @@
         displayCommands();
     });
 
-    def("blog", "go to the writeups", function () { go("blog.html", "Opening writeups …"); return "navigate"; });
-    def("about", "go to the home page", function () { go("index.html", "Opening home page …"); return "navigate"; });
-    def("home", "", function () { go("index.html", "Opening home page …"); return "navigate"; });
+    def("blog", "open the writeups", function () { go("blog.html", "Opening writeups …"); });
+    def("about", "open the home page", function () { go("index.html", "Opening home page …"); });
+    def("home", "", function () { go("index.html", "Opening home page …"); });
 
     def("sudo", "run something as root", function (args, raw) {
         var rest = args.join(" ");
@@ -330,9 +342,7 @@
             // The original easter egg: works from anywhere, root only.
             if (t.split("/").pop() === "credit_card_details") {
                 if (state.isRoot) {
-                    print("Decrypting credit_card_details …");
-                    setTimeout(function () { window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"; }, 500);
-                    result = "navigate";
+                    go("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "Decrypting credit_card_details …");
                 } else {
                     print("cat: credit_card_details: Permission denied");
                 }
@@ -386,13 +396,9 @@
         var p = findPost(q);
         if (!p) { print("open: nothing matches '" + q + "'. Try 'writeups'."); return; }
         go(p.filename.split("/").map(encodeURIComponent).join("/"), "Opening " + p.title + " …");
-        return "navigate";
     });
 
-    function ext(url, label) {
-        print(label);
-        setTimeout(function () { window.open(url, "_blank", "noopener"); }, 250);
-    }
+    function ext(url, label) { go(url, label); }
     def("github", "my GitHub", function () { ext("https://github.com/jordan01236", "Opening github.com/jordan01236 …"); });
     def("linkedin", "my LinkedIn", function () { ext("https://www.linkedin.com/in/jordan01236", "Opening LinkedIn …"); });
     def("htb hackthebox", "my Hack The Box profile", function () { ext("https://app.hackthebox.com/profile/1283370", "Opening Hack The Box profile …"); });

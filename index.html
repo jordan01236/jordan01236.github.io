@@ -329,6 +329,50 @@
         }
         .socials a:hover { color: var(--accent); }
 
+        /* ---------- Desk teaser ---------- */
+        .desk {
+            position: relative;
+            display: block;
+            margin-top: 34px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            text-decoration: none;
+            color: var(--text);
+            background: #05070b;
+            aspect-ratio: 16 / 8;
+            transition: border-color 0.25s ease, transform 0.25s ease;
+        }
+        .desk:hover { border-color: var(--border-hover); transform: translateY(-3px); }
+        .desk img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: 58% 60%;
+            transition: transform 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+        }
+        .desk:hover img { transform: scale(1.045); }
+        .desk::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(5, 7, 11, 0.9) 0%, rgba(5, 7, 11, 0.25) 45%, transparent 70%);
+        }
+        .desk-copy { position: absolute; left: 28px; right: 28px; bottom: 24px; z-index: 1; }
+        .desk-copy h3 { font-size: 1.35rem; font-weight: 600; }
+        .desk-copy p { color: #aab4c0; font-size: 0.95rem; margin-top: 4px; max-width: 520px; }
+        .desk-copy .go { display: inline-block; margin-top: 12px; font-family: var(--mono); font-size: 0.85rem; color: var(--accent); }
+        @media (max-width: 760px) {
+            .desk { aspect-ratio: 4 / 3.4; }
+            .desk-copy { left: 18px; right: 18px; bottom: 18px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .desk, .desk img { transition: none; }
+            .desk:hover, .desk:hover img { transform: none; }
+        }
+
         /* ---------- Reveal on scroll ---------- */
         .reveal {
             opacity: 0;
@@ -432,9 +476,24 @@
                 <a class="link-all" href="blog.html">All writeups →</a>
             </section>
 
+            <!-- Terminal -->
+            <section class="section reveal" id="terminal">
+                <p class="kicker">02 · terminal</p>
+                <h2>Sit down at my desk</h2>
+                <a class="desk" href="terminal.html">
+                    <img src="assets/room/poster.jpg" width="1600" height="900" loading="lazy"
+                         alt="A desk at night: a monitor running a terminal, a lamp, a PC and moonlight through the blinds.">
+                    <div class="desk-copy">
+                        <h3>An interactive terminal, in a room you can poke at</h3>
+                        <p>Pull up a chair, type a few commands, flip the lamp, find root.</p>
+                        <span class="go">~$ ./sit_down →</span>
+                    </div>
+                </a>
+            </section>
+
             <!-- About -->
             <section class="section reveal" id="about">
-                <p class="kicker">02 · about</p>
+                <p class="kicker">03 · about</p>
                 <h2>About me</h2>
                 <div class="about-grid">
                     <div class="about-text">

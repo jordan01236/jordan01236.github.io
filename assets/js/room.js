@@ -133,10 +133,11 @@
     // ------------------------------------------------------------------
     var inline = window.__ROOM__ || null;
     var BASE = "assets/room/";
+    var VERSION = "3";   // bump when the textures are re-rendered, so browsers refetch them
     var meta = null;
     var loaded = { wide: false, close: false };
-    var small = Math.min(window.screen.width, window.screen.height) < 700;
     var maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+    var wideTexW = 2400;
 
     function loadImage(name) {
         return new Promise(function (resolve, reject) {
@@ -144,13 +145,15 @@
             img.decoding = "async";
             img.onload = function () { resolve(img); };
             img.onerror = function () { reject(new Error("failed to load " + name)); };
-            img.src = inline ? inline.images[name] : BASE + name + ".webp";
+            img.src = inline ? inline.images[name] : BASE + name + ".webp?v=" + VERSION;
         });
     }
 
     function upload(unit, img) {
         var src = img;
-        var limit = Math.min(maxTex, small ? 2048 : 4096);
+        // no point holding more texels than this display can ever show
+        var need = Math.max(window.screen.width, window.screen.height) * Math.min(window.devicePixelRatio || 1, 2) * 1.15;
+        var limit = Math.min(maxTex, 4096, Math.max(2048, Math.ceil(need)));
         if (img.width > limit) {
             var c = document.createElement("canvas");
             c.width = limit;
@@ -158,6 +161,7 @@
             c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
             src = c;
         }
+        if (unit === 0) wideTexW = src.width;
         gl.activeTexture(gl.TEXTURE0 + unit);
         gl.bindTexture(gl.TEXTURE_2D, textures[unit]);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -328,7 +332,7 @@
         computeView();
 
         // how many source texels per device pixel does the wide set give us?
-        var density = (meta.size[0] * view.sx) / (S.vw * S.dpr);
+        var density = (wideTexW * view.sx) / (S.vw * S.dpr);
         var closeMix = loaded.close ? smooth(1.45, 0.95, density) : 0;
 
         gl.uniform2f(U.uCenter, view.cx, view.cy);
@@ -587,7 +591,7 @@
     // ------------------------------------------------------------------
     document.body.classList.add("has-room");
     buildMarkers();
-    (inline ? Promise.resolve(inline.meta) : fetch(BASE + "room.json").then(function (r) { return r.json(); }))
+    (inline ? Promise.resolve(inline.meta) : fetch(BASE + "room.json?v=" + VERSION).then(function (r) { return r.json(); }))
         .then(function (m) {
             meta = m;
             resize();

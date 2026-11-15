@@ -780,7 +780,7 @@ cy = (scr[0][1] + scr[3][1]) / 2 + 0.03
 cw = 1.0 / CLOSE_ZOOM
 crop = [cx - cw / 2, cy - cw / 2, cx + cw / 2, cy + cw / 2]  # uv rect (square in uv = same aspect as frame)
 meta = {
-    "size": [W, H],
+    "size": [W, H],  # encode_passes.py replaces this with the real texture size
     "screen": scr,  # tl, tr, br, bl
     "close": [round(c, 5) for c in crop],
     "hotspots": {
@@ -805,7 +805,7 @@ cy_ = scene.cycles
 cy_.device = "CPU"
 cy_.samples = args.samples
 cy_.use_adaptive_sampling = True
-cy_.adaptive_threshold = 0.012
+cy_.adaptive_threshold = 0.008
 cy_.use_denoising = False
 cy_.max_bounces = 7
 cy_.diffuse_bounces = 4

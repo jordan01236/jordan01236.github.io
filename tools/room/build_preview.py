@@ -35,9 +35,9 @@ for src in ("assets/js/terminal.js", "assets/js/room.js"):
         # page links should go to the live site when the file is opened from disk
         js = js.replace('go("blog.html"', f'go("{SITE}blog.html"').replace('go("index.html"', f'go("{SITE}index.html"')
         js = js.replace('go(p.filename.split("/").map(encodeURIComponent).join("/")', f'go("{SITE}" + p.filename.split("/").map(encodeURIComponent).join("/")')
-    tag = f'<script src="{src}"></script>'
-    assert tag in html, src
-    html = html.replace(tag, (inline if src.endswith("terminal.js") else "") + "<script>\n" + js.replace("</script>", "<\\/script>") + "\n</script>")
+    m = re.search(r'<script src="' + re.escape(src) + r'(\?v=\w+)?"></script>', html)
+    assert m, src
+    html = html.replace(m.group(0), (inline if src.endswith("terminal.js") else "") + "<script>\n" + js.replace("</script>", "<\\/script>") + "\n</script>")
 html = re.sub(r'\s*<link rel="preload"[^>]*>', "", html)
 html = re.sub(r'href="(index|blog|terminal)\.html"', lambda m: f'href="{SITE}{m.group(1)}.html"', html)
 # no analytics from a local preview

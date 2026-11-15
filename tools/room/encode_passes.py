@@ -19,7 +19,7 @@ RANGE = {"base": 2.0, "lamp": 6.0, "accent": 6.0, "screen": 3.0}
 ap = argparse.ArgumentParser()
 ap.add_argument("src")
 ap.add_argument("dst")
-ap.add_argument("--quality", type=int, default=88)
+ap.add_argument("--quality", type=int, default=94)
 args = ap.parse_args()
 os.makedirs(args.dst, exist_ok=True)
 
@@ -39,6 +39,7 @@ def aces(x):
 
 
 TEAL = np.array([0.369, 0.918, 0.831]) ** 2.2
+sizes = {}
 for tag in ("wide", "close"):
     lin = {}
     for g, rng in RANGE.items():
@@ -46,6 +47,7 @@ for tag in ("wide", "close"):
         if not hits:
             continue
         lin[g] = np.maximum(load(hits[-1]), 0)
+        sizes[tag] = [lin[g].shape[1], lin[g].shape[0]]
         enc = np.clip(lin[g] / rng, 0, 1) ** (1 / 2.2)
         Image.fromarray((enc * 255 + 0.5).astype(np.uint8)).save(
             os.path.join(args.dst, f"{tag}_{g}.webp"), quality=args.quality, method=6)
@@ -62,4 +64,6 @@ src_meta = os.path.join(args.src, "room.json")
 if os.path.exists(src_meta):
     meta = json.load(open(src_meta))
     meta["range"] = RANGE
+    if "wide" in sizes:
+        meta["size"] = sizes["wide"]
     json.dump(meta, open(os.path.join(args.dst, "room.json"), "w"), indent=1)

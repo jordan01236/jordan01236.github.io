@@ -32,6 +32,7 @@ ap.add_argument("--out", required=True)
 ap.add_argument("--scale", type=float, default=1.0)
 ap.add_argument("--samples", type=int, default=256)
 ap.add_argument("--only", default="")
+ap.add_argument("--border", default="", help="u0,v0,u1,v1 (top-left origin): render only this region")
 ap.add_argument("--tex", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "tex"))
 args = ap.parse_args(argv)
 os.makedirs(args.out, exist_ok=True)
@@ -614,9 +615,18 @@ def poster(name, img, w, h, x, z):
     box(name + "_frame", (w + 0.03, 0.018, h + 0.03), (x, BACK_Y - 0.01, z), M_BLACK, bevel=0.003)
     plane(name, w, h, (x, BACK_Y - 0.0195, z), image_mat(name, os.path.join(args.tex, img), 0.35), rot=FACE_CAM)
 
-poster("poster_a", "poster_a.png", 0.42, 0.594, -1.4, 1.6)
-poster("poster_b", "poster_b.png", 0.3, 0.3, -0.94, 1.745)
-poster("poster_c", "poster_c.png", 0.3, 0.21, -0.94, 1.42)
+PAINTING = os.path.join(args.tex, "painting.png")
+if os.path.exists(PAINTING):
+    # big ~$ poster on the left, the recoloured canvas (make_painting.py) beside it
+    poster("poster_a", "poster_a.png", 0.42, 0.594, -1.5, 1.6)
+    PW_, PX_P, PZ_P = 0.46, -1.0, 1.6
+    box("painting_frame", (PW_ + 0.03, 0.035, PW_ + 0.03), (PX_P, BACK_Y - 0.018, PZ_P), M_SHELF, bevel=0.004)
+    box("painting_canvas", (PW_, 0.03, PW_), (PX_P, BACK_Y - 0.02, PZ_P), mat("canvas_edge", (0.05, 0.07, 0.11), 0.85), bevel=0.002)
+    plane("painting", PW_ - 0.004, PW_ - 0.004, (PX_P, BACK_Y - 0.0352, PZ_P), image_mat("painting", PAINTING, 0.62), rot=FACE_CAM)
+else:
+    poster("poster_a", "poster_a.png", 0.42, 0.594, -1.4, 1.6)
+    poster("poster_b", "poster_b.png", 0.3, 0.3, -0.94, 1.745)
+    poster("poster_c", "poster_c.png", 0.3, 0.21, -0.94, 1.42)
 
 # floating shelves on the right
 def shelf(x, z, w):
@@ -644,23 +654,56 @@ def books(x, z, n, lean_last=True):
 SHX = 1.52
 z1 = shelf(SHX, 1.42, 1.25)
 z2 = shelf(SHX, 1.83, 1.25)
-xb = books(SHX - 0.58, z1, 7)
-# router with antennas + LEDs
-RX = SHX + 0.3
-box("router", (0.22, 0.13, 0.035), (RX, BACK_Y - 0.11, z1 + 0.0175), M_PLASTIC, bevel=0.006)
-for i, sx in enumerate((-0.09, 0.0, 0.09)):
-    cyl(f"ant{i}", 0.005, 0.16, (RX + sx, BACK_Y - 0.055, z1 + 0.11), M_PLASTIC, verts=12, rot=(0, math.radians(sx * 110), 0))
+# lower shelf, left to right: books, Wi-Fi auditing box, stacked books + duck, practice padlock.
+# The camera sits below the shelves, so props stand upright and face the room.
+SY = BACK_Y - 0.11          # shelf depth centre
+SF = BACK_Y - 0.205         # just behind the shelf's front edge
+G = 1.3                     # gadgets are scaled up a little so they read at this distance
+M_WHITE = mat("white_plastic", (0.78, 0.79, 0.8), 0.42)
+M_GLASS = bpy.data.materials.new("clear_acrylic")
+M_GLASS.use_nodes = True
+_gb = M_GLASS.node_tree.nodes["Principled BSDF"]
+_gb.inputs["Base Color"].default_value = (0.85, 0.95, 1.0, 1)
+_gb.inputs["Roughness"].default_value = 0.05
+_gb.inputs["Transmission Weight"].default_value = 1.0
+_gb.inputs["IOR"].default_value = 1.49
+M_BRASS = mat("brass", (0.8, 0.6, 0.25), 0.3, 1.0)
+M_STEEL = mat("steel", (0.7, 0.71, 0.73), 0.25, 1.0)
+E_AMBER = emit_mat("e_amber", (1.0, 0.55, 0.1), 6.0)
+
+books(0.93, z1, 5, lean_last=False)
+
+# Wi-Fi auditing box (pineapple-style): white case, three antennas, status LEDs
+PX_ = 1.24
+box("pineapple", (0.14 * G, 0.095 * G, 0.032 * G), (PX_, SY, z1 + 0.016 * G), M_WHITE, bevel=0.005)
+for i, dx in enumerate((-0.055, 0.0, 0.055)):
+    tilt = (-14, 0, 14)[i]
+    cyl(f"pa_ant{i}", 0.0045 * G, 0.15 * G, (PX_ + dx * G + math.sin(math.radians(tilt)) * 0.075 * G, SY + 0.03, z1 + 0.032 * G + 0.075 * G * math.cos(math.radians(tilt))),
+        M_PLASTIC, verts=12, rot=(0, math.radians(tilt), 0))
+    cyl(f"pa_ant_base{i}", 0.007 * G, 0.012, (PX_ + dx * G, SY + 0.03, z1 + 0.032 * G + 0.004), M_PLASTIC, verts=16)
+for i in range(3):
+    box(f"pa_led{i}", (0.006, 0.002, 0.003), (PX_ - 0.03 + i * 0.016, SY - 0.0475 * G - 0.001, z1 + 0.02 * G), E_LED_GREEN if i else E_AMBER, group="accent" if i else "base")
+
+# stacked books + rubber duck (moved left so narrower screens still see it)
+DUX = 1.45
+box("flat_book1", (0.23, 0.16, 0.03), (DUX, SY, z1 + 0.015), mat("fb1", (0.05, 0.06, 0.1), 0.6), bevel=0.002, rot=(0, 0, 0.1))
+box("flat_book2", (0.2, 0.15, 0.025), (DUX, SY, z1 + 0.0435), mat("fb2", (0.5, 0.48, 0.44), 0.6), bevel=0.002, rot=(0, 0, -0.08))
+DKX, DKZ = DUX, z1 + 0.056
+sphere("duck_body", 0.035, (DKX, SY, DKZ + 0.026), M_DUCK, scale=(1.25, 1.0, 0.8))
+sphere("duck_head", 0.023, (DKX - 0.028, SY, DKZ + 0.062), M_DUCK)
+sphere("duck_beak", 0.01, (DKX - 0.052, SY, DKZ + 0.058), M_DUCK_BEAK, scale=(1.3, 1.0, 0.5))
+sphere("duck_tail", 0.012, (DKX + 0.04, SY, DKZ + 0.04), M_DUCK, scale=(1.2, 0.8, 0.8))
+sphere("duck_eye", 0.0035, (DKX - 0.04, SY - 0.019, DKZ + 0.069), M_PLASTIC)
+
+# clear practice padlock: acrylic body, brass pins, steel shackle
+LKX = 1.62
+box("lock_body", (0.05 * G, 0.022 * G, 0.06 * G), (LKX, SY, z1 + 0.03 * G), M_GLASS, bevel=0.005)
 for i in range(5):
-    box(f"rled{i}", (0.006, 0.002, 0.003), (RX - 0.07 + i * 0.022, BACK_Y - 0.176, z1 + 0.02), E_LED_GREEN, group="accent")
-# small stacked books lying flat + duck
-box("flat_book1", (0.23, 0.16, 0.03), (SHX + 0.02, BACK_Y - 0.11, z1 + 0.015), mat("fb1", (0.05, 0.06, 0.1), 0.6), bevel=0.002, rot=(0, 0, 0.1))
-box("flat_book2", (0.2, 0.15, 0.025), (SHX + 0.02, BACK_Y - 0.11, z1 + 0.0435), mat("fb2", (0.5, 0.48, 0.44), 0.6), bevel=0.002, rot=(0, 0, -0.08))
-DKX, DKZ = SHX + 0.02, z1 + 0.056
-sphere("duck_body", 0.035, (DKX, BACK_Y - 0.11, DKZ + 0.026), M_DUCK, scale=(1.25, 1.0, 0.8))
-sphere("duck_head", 0.023, (DKX - 0.028, BACK_Y - 0.11, DKZ + 0.062), M_DUCK)
-sphere("duck_beak", 0.01, (DKX - 0.052, BACK_Y - 0.11, DKZ + 0.058), M_DUCK_BEAK, scale=(1.3, 1.0, 0.5))
-sphere("duck_tail", 0.012, (DKX + 0.04, BACK_Y - 0.11, DKZ + 0.04), M_DUCK, scale=(1.2, 0.8, 0.8))
-sphere("duck_eye", 0.0035, (DKX - 0.04, BACK_Y - 0.129, DKZ + 0.069), M_PLASTIC)
+    cyl(f"lock_pin{i}", 0.0028 * G, 0.022 * G, (LKX - 0.016 * G + i * 0.008 * G, SY, z1 + 0.037 * G), M_BRASS, verts=10)
+cyl("lock_core", 0.011 * G, 0.023 * G, (LKX, SY, z1 + 0.015 * G), M_BRASS, rot=FACE_CAM)
+torus("lock_shackle", 0.017 * G, 0.0038 * G, (LKX, SY, z1 + 0.06 * G), M_STEEL, rot=(R90, 0, 0), arc=0.5)
+for sx in (-1, 1):
+    cyl(f"lock_leg{sx}", 0.0038 * G, 0.012 * G, (LKX + sx * 0.017 * G, SY, z1 + 0.055 * G), M_STEEL, verts=12)
 
 # upper shelf: plant, books, small speaker
 def snake_plant(x, y, z, n=9, hmin=0.18, hmax=0.34):
@@ -700,8 +743,54 @@ def snake_plant(x, y, z, n=9, hmin=0.18, hmax=0.34):
         link(o, smooth=True)
         s_ = o.modifiers.new("s", "SOLIDIFY"); s_.thickness = 0.002
 
-snake_plant(SHX - 0.42, BACK_Y - 0.11, z2)
-books(SHX - 0.18, z2, 5)
+snake_plant(0.98, BACK_Y - 0.11, z2)
+# soft wash over the top shelf so the gadgets read (tinted with the LEDs)
+_sw = bpy.data.lights.new("shelf_wash", "AREA")
+_sw.energy = 1.6
+_sw.shape = "RECTANGLE"
+_sw.size, _sw.size_y = 0.55, 0.08
+_swo = bpy.data.objects.new("shelf_wash", _sw)
+_swo.location = (1.18, BACK_Y - 0.32, 2.12)
+_swo.rotation_euler = (math.radians(-35), 0, 0)
+col.objects.link(_swo)
+_swo.lightgroup = "accent"
+
+# handheld radio/RFID multitool (Flipper-style) on a small stand, screen facing the room
+FX = 1.14
+fl = [box("flip_body", (0.1 * G, 0.026 * G, 0.042 * G), (0, 0, 0), M_WHITE, bevel=0.009),
+      box("flip_bezel", (0.05 * G, 0.002, 0.03 * G), (-0.014 * G, -0.013 * G, 0.002 * G), M_PLASTIC),
+      plane("flip_screen", 0.044 * G, 0.022 * G, (-0.014 * G, -0.0142 * G, 0.002 * G), image_emit_mat("flip_lcd", os.path.join(args.tex, "multitool_screen.png"), 1.6), rot=FACE_CAM),
+      cyl("flip_dpad", 0.011 * G, 0.004, (0.03 * G, -0.0135 * G, 0.002 * G), M_PLASTIC_SOFT, rot=FACE_CAM),
+      cyl("flip_ok", 0.0045 * G, 0.005, (0.03 * G, -0.0145 * G, 0.002 * G), M_WHITE, rot=FACE_CAM),
+      cyl("flip_back", 0.004 * G, 0.004, (0.043 * G, -0.0135 * G, -0.012 * G), M_PLASTIC_SOFT, rot=FACE_CAM),
+      box("flip_ir", (0.012 * G, 0.004, 0.006 * G), (-0.03 * G, -0.012 * G, 0.019 * G), M_PLASTIC)]
+for o in fl:
+    o.lightgroup = "base"
+fl[2].lightgroup = "base"
+parent(fl, "flipper", (FX, SY - 0.005, z2 + 0.032 * G + 0.012), (math.radians(-12), 0, math.radians(6)))
+box("flip_stand", (0.07 * G, 0.04, 0.012), (FX, SY + 0.008, z2 + 0.006), M_PLASTIC, bevel=0.003)
+
+# USB keystroke-injection stick (Rubber Ducky-style) standing in a little block, with a coiled cable
+UX = 1.255
+box("ducky_block", (0.04, 0.03, 0.022), (UX, SY, z2 + 0.011), M_SHELF, bevel=0.003)
+box("ducky_stick", (0.02 * G, 0.009 * G, 0.05 * G), (UX, SY, z2 + 0.022 + 0.025 * G), M_PLASTIC, bevel=0.003)
+box("ducky_plug", (0.012 * G, 0.0045 * G, 0.013 * G), (UX, SY, z2 + 0.022 + 0.05 * G + 0.0065 * G), M_STEEL, bevel=0.0008)
+box("ducky_led", (0.004, 0.002, 0.004), (UX, SY - 0.0045 * G - 0.001, z2 + 0.022 + 0.012 * G), E_LED_GREEN, group="accent")
+for i in range(4):
+    torus(f"cable_coil{i}", 0.026, 0.0026, (UX + 0.005, SY + 0.03, z2 + 0.004 + i * 0.0052), M_PLASTIC_SOFT, rot=(0, 0, 0), seg=48)
+
+# software-defined radio standing on edge, telescopic antenna up
+RXX = 1.37
+box("sdr_case", (0.12 * G, 0.022 * G, 0.075 * G), (RXX, SY, z2 + 0.0375 * G), mat("sdr_alu", (0.05, 0.055, 0.06), 0.35, 0.8), bevel=0.004)
+box("sdr_panel", (0.112 * G, 0.002, 0.066 * G), (RXX, SY - 0.011 * G - 0.001, z2 + 0.0375 * G), mat("sdr_face", (0.012, 0.013, 0.016), 0.12, coat=0.6))
+for i in range(4):
+    box(f"sdr_led{i}", (0.004, 0.002, 0.004), (RXX - 0.04 * G + i * 0.012 * G, SY - 0.011 * G - 0.003, z2 + 0.012 * G), E_LED_GREEN if i < 3 else E_AMBER, group="accent" if i < 3 else "base")
+cyl("sdr_sma", 0.004 * G, 0.012, (RXX + 0.045 * G, SY, z2 + 0.075 * G + 0.006), M_BRASS, verts=12)
+for i, (r_, L) in enumerate(((0.0035, 0.09), (0.0028, 0.09), (0.0021, 0.08))):
+    z0 = z2 + 0.075 * G + 0.012 + sum((0.09, 0.09, 0.08)[:i]) - i * 0.01
+    cyl(f"sdr_ant{i}", r_ * G, L, (RXX + 0.045 * G + math.sin(0.25) * (z0 - z2 - 0.075 * G + L / 2), SY, z0 + L / 2), M_STEEL, verts=12, rot=(0, 0.25, 0))
+
+books(1.47, z2, 5)
 SPX = SHX + 0.4
 box("speaker", (0.13, 0.14, 0.2), (SPX, BACK_Y - 0.11, z2 + 0.1), M_PLASTIC_SOFT, bevel=0.012)
 cyl("spk_cone", 0.045, 0.006, (SPX, BACK_Y - 0.182, z2 + 0.075), M_PLASTIC, rot=FACE_CAM)
@@ -789,6 +878,12 @@ meta = {
         "pc": bbox_uv([O["pc"]], 0.002),
         "neon": bbox_uv([O["neon_back"]], 0.0),
         "duck": bbox_uv([O["duck_body"], O["duck_head"]], 0.008),
+        "flipper": bbox_uv([O["flipper"]], 0.006),
+        "pineapple": bbox_uv([O["pineapple"]] + [O[f"pa_ant{i}"] for i in range(3)], 0.004),
+        "ducky": bbox_uv([O["ducky_stick"], O["ducky_block"]], 0.006),
+        "sdr": bbox_uv([O["sdr_case"]] + [O[f"sdr_ant{i}"] for i in range(3)], 0.004),
+        "padlock": bbox_uv([O["lock_body"], O["lock_shackle"]], 0.006),
+        **({"painting": bbox_uv([O["painting_frame"]], 0.0)} if "painting_frame" in O else {}),
         "side": bbox_uv([O["side_monitor"]], 0.0),
         "window": bbox_uv([O["blind_head"], O["win_sill"]], 0.0),
         "mug": bbox_uv([O["mug"]], 0.006),
@@ -838,6 +933,14 @@ for g in ("base", "lamp", "accent", "screen"):
     ng.links.new(rl.outputs["Denoising Normal"], dn.inputs["Normal"])
     item = fo_.file_output_items.new("RGBA", g)
     ng.links.new(dn.outputs["Image"], fo_.inputs[g])
+
+
+if args.border:
+    u0, v0, u1, v1 = [float(x) for x in args.border.split(",")]
+    scene.render.use_border = True
+    scene.render.use_crop_to_border = True
+    scene.render.border_min_x, scene.render.border_max_x = u0, u1
+    scene.render.border_min_y, scene.render.border_max_y = 1 - v1, 1 - v0
 
 
 def render(tag, zoom=1.0, center=(0.5, 0.5)):

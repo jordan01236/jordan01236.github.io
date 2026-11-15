@@ -110,3 +110,24 @@ for r in range(11):
     y += 33
 im.save(os.path.join(OUT, "poster_c.png"))
 print("textures written to", OUT)
+
+
+# ---- handheld multitool screen: black pixel UI on an orange LCD (generic, no logos)
+W, H = 256, 128
+im = Image.new("RGB", (W, H), (255, 138, 20))
+d = ImageDraw.Draw(im)
+f = font(15, True)
+d.rectangle((0, 0, W, 18), fill=(20, 10, 0))
+d.text((6, 1), "12:00", font=font(13, True), fill=(255, 138, 20))
+for i in range(4):
+    d.rectangle((W - 50 + i * 10, 14 - i * 3, W - 44 + i * 10, 15), fill=(255, 138, 20))
+items = ["Sub-GHz", "125 kHz RFID", "NFC", "Infrared"]
+for i, t in enumerate(items):
+    y = 26 + i * 25
+    if i == 0:
+        d.rectangle((2, y - 2, W - 3, y + 20), fill=(20, 10, 0))
+        d.text((10, y), "> " + t, font=f, fill=(255, 138, 20))
+    else:
+        d.text((10, y), "  " + t, font=f, fill=(20, 10, 0))
+im.save(os.path.join(OUT, "multitool_screen.png"))
+print("multitool screen written")

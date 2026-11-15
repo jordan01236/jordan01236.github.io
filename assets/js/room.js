@@ -374,6 +374,12 @@
         { id: "pc", label: function () { return "PC: change the RGB"; } },
         { id: "side", label: function () { return "Recon notes"; } },
         { id: "duck", label: function () { return "Rubber duck"; } },
+        { id: "flipper", label: function () { return "Flipper Zero"; } },
+        { id: "ducky", label: function () { return "USB Rubber Ducky"; } },
+        { id: "sdr", label: function () { return "Software-defined radio"; } },
+        { id: "pineapple", label: function () { return "WiFi Pineapple"; } },
+        { id: "padlock", label: function () { return "Practice lock"; } },
+        { id: "painting", label: function () { return "fsociety"; } },
         { id: "mug", label: function () { return "Coffee"; } },
         { id: "neon", label: function () { return "Neon sign"; } }
     ];
@@ -507,6 +513,12 @@
                 if (term && term.isRoot()) { say("root likes it red"); break; }
                 say("RGB: " + cycleAccent()); break;
             case "duck": say("🦆 quack — have you tried explaining the bug out loud?"); break;
+            case "flipper": say("Flipper Zero: sub-GHz, RFID, NFC and infrared in your pocket"); break;
+            case "ducky": say("USB Rubber Ducky: a keyboard that types 1000 wpm. Never plug in a USB you found."); break;
+            case "sdr": say("SDR: listen in on almost any frequency (and only transmit where it's legal)"); break;
+            case "pineapple": say("WiFi Pineapple: rogue APs and Wi-Fi audits. Don't worry, it's unplugged."); break;
+            case "padlock": say("Clear practice lock: lockpicking is just enumeration with a tension wrench"); break;
+            case "painting": S.glitch = 0.5; say("hello, friend."); break;
             case "mug": say("☕ +10 focus"); break;
             case "side": say("nmap, ffuf, notes — the usual"); break;
             case "neon": S.glitch = 0.7; say("~$ hack the planet"); break;

@@ -282,11 +282,19 @@ the Network panel / Playwright request log).
 - [x] Stage 1: desktop shell (panel, wallpaper, icons) + window manager (`assets/js/desktop.js`, `assets/css/desktop.css`)
 - [x] Stage 1: Terminal / Files / Editor / Browser apps
 - [x] Stage 1: fullscreen + Esc contract with room.js (room only stands up when Esc wasn't `defaultPrevented`)
-- [ ] Stage 1: tool look-alikes (Zenmap, Burp, Wireshark, John, CyberChef-lite), Settings app
+- [x] Stage 1: tool look-alikes (Zenmap, Burp, Wireshark, John, CyberChef-lite) in `assets/js/kali-tools.js`, plus gobuster/sqlmap/hydra/searchsploit/msfconsole demos in the shell
+- [ ] Stage 1: Settings app
 - [x] Stage 1: tests run for what exists (desktop 1440×810, iPhone 13, no-WebGL, command sweep, new-tab check); bundler updated
 - [ ] Stage 2 research + image build script
 - [ ] Stage 2 VM app
 - [ ] Stage 3 target
+
+### Site change (user request)
+- The desk page is now the **home page**: `terminal.html` was moved to `index.html`, the old home page
+  is `about.html`, and `terminal.html` is a redirect stub to `./`. Read every `terminal.html` in this
+  plan as `index.html`. Nav is Home · Writeups · About · GitHub · LinkedIn. Shell `about`/`home` open
+  `about.html`.
+- The desktop now boots by default (user request); `startx` was removed. The intro/`help` no longer mention it.
 
 ### Notes from the first build session
 - The intro line was kept exactly as the user asked ("Type 'help' for available commands."); the

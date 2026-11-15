@@ -1,5 +1,5 @@
 /*
- * The room behind terminal.html.
+ * The room on the home page (index.html).
  *
  * The scene is a Blender/Cycles render split into four light passes (moonlight,
  * desk lamp, accent LEDs, monitor glow). A small WebGL shader adds them back

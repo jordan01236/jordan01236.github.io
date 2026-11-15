@@ -1,5 +1,5 @@
 """
-Bundles terminal.html and everything it loads into one self-contained HTML file
+Bundles the home page (index.html) and everything it loads into one self-contained HTML file
 that can be opened straight from disk (double-click), with no web server.
 
     python3 tools/room/build_preview.py <output.html>
@@ -19,7 +19,7 @@ def read(p, mode="r"):
         return f.read()
 
 
-html = read("terminal.html")
+html = read("index.html")
 images = {}
 for tag in ("wide", "close"):
     for g in ("base", "lamp", "accent", "screen"):
@@ -33,7 +33,7 @@ for src in ("assets/js/terminal.js", "assets/js/desktop.js", "assets/js/kali-too
     js = read(src)
     if src.endswith("terminal.js"):
         # page links should go to the live site when the file is opened from disk
-        js = js.replace('go("blog.html"', f'go("{SITE}blog.html"').replace('go("index.html"', f'go("{SITE}index.html"')
+        js = js.replace('go("blog.html"', f'go("{SITE}blog.html"').replace('go("about.html"', f'go("{SITE}about.html"')
         js = js.replace('go(p.filename.split("/").map(encodeURIComponent).join("/")', f'go("{SITE}" + p.filename.split("/").map(encodeURIComponent).join("/")')
     m = re.search(r'<script src="' + re.escape(src) + r'(\?v=\w+)?"></script>', html)
     assert m, src
@@ -41,7 +41,7 @@ for src in ("assets/js/terminal.js", "assets/js/desktop.js", "assets/js/kali-too
 html = re.sub(r'\s*<link rel="preload"[^>]*>', "", html)
 css = read("assets/css/desktop.css")
 html = re.sub(r'<link rel="stylesheet" href="assets/css/desktop\.css(\?v=\w+)?">', lambda m: "<style>\n" + css + "\n</style>", html)
-html = re.sub(r'href="(index|blog|terminal)\.html"', lambda m: f'href="{SITE}{m.group(1)}.html"', html)
+html = re.sub(r'href="(index|blog|about)\.html"', lambda m: f'href="{SITE}{m.group(1)}.html"', html)
 # no analytics from a local preview
 html = re.sub(r"\s*<script async src=\"https://www\.googletagmanager[^<]*</script>\s*<script>.*?</script>", "", html, count=1, flags=re.S)
 out = sys.argv[1]

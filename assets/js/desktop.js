@@ -1,5 +1,5 @@
 /*
- * A small Kali-style desktop that runs on the monitor in terminal.html.
+ * A small Kali-style desktop that runs on the monitor on the home page (index.html).
  *
  * Boots with the page. It lives inside #screen, so the room
  * (assets/js/room.js) keeps positioning and scaling it like the terminal.
@@ -470,7 +470,7 @@
             }
             function nav(u) {
                 u = (u || HOME_URL).trim();
-                if (/^(home|about)$/i.test(u)) u = "index.html";
+                if (/^(home|about)$/i.test(u)) u = "about.html";
                 if (/^(blog|writeups)$/i.test(u)) u = "blog.html";
                 var l = local(u);
                 if (!l && !/^[a-z]+:/i.test(u) && !/^[\w-]+\.[a-z]{2,}(\/|$)/i.test(u)) l = u;   // relative path

@@ -256,8 +256,8 @@
     });
 
     def("blog", "open the writeups", function () { go("blog.html", "Opening writeups …"); });
-    def("about", "open the home page", function () { go("index.html", "Opening home page …"); });
-    def("home", "", function () { go("index.html", "Opening home page …"); });
+    def("about", "about me", function () { go("about.html", "Opening about page …"); });
+    def("home", "", function () { go("about.html", "Opening about page …"); });
 
     def("sudo", "run something as root", function (args, raw) {
         var rest = args.join(" ");

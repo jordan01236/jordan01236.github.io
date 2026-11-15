@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>About — HackWithJordan</title>
+    <meta name="description" content="Jordan — cybersecurity enthusiast. Pentesting writeups from Hack The Box, VulnLab and Proving Grounds. Top 800 on HTB.">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-P056MVQVGM"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-P056MVQVGM');
+    </script>
+    <style>
+        :root {
+            --bg: #0b0e14;
+            --surface: rgba(255, 255, 255, 0.04);
+            --surface-hover: rgba(255, 255, 255, 0.065);
+            --border: rgba(255, 255, 255, 0.09);
+            --border-hover: rgba(94, 234, 212, 0.45);
+            --text: #e8edf2;
+            --muted: #8b97a6;
+            --accent: #5eead4;
+            --accent-dim: rgba(94, 234, 212, 0.14);
+            --violet: #7c8cf8;
+            --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --mono: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, 'SF Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; background: var(--bg); }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            line-height: 1.65;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection { background: var(--accent-dim); color: var(--accent); }
+
+        /* ---------- Interactive background ---------- */
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .blob {
+            position: fixed;
+            z-index: 0;
+            border-radius: 50%;
+            filter: blur(110px);
+            pointer-events: none;
+            will-change: transform;
+        }
+        .blob-1 {
+            width: 55vw; height: 55vw;
+            top: -18vw; left: -12vw;
+            background: radial-gradient(circle, rgba(45, 212, 191, 0.16), transparent 65%);
+            animation: drift1 26s ease-in-out infinite alternate;
+        }
+        .blob-2 {
+            width: 48vw; height: 48vw;
+            bottom: -16vw; right: -10vw;
+            background: radial-gradient(circle, rgba(124, 140, 248, 0.14), transparent 65%);
+            animation: drift2 32s ease-in-out infinite alternate;
+        }
+        .blob-3 {
+            width: 34vw; height: 34vw;
+            top: 40%; left: 55%;
+            background: radial-gradient(circle, rgba(94, 234, 212, 0.08), transparent 65%);
+            animation: drift3 22s ease-in-out infinite alternate;
+        }
+        @keyframes drift1 { to { transform: translate(9vw, 7vw) scale(1.12); } }
+        @keyframes drift2 { to { transform: translate(-8vw, -6vw) scale(1.08); } }
+        @keyframes drift3 { to { transform: translate(-12vw, 9vw) scale(0.9); } }
+
+        main, header, footer { position: relative; z-index: 1; }
+
+        /* ---------- Nav ---------- */
+        .nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 32px;
+            background: rgba(11, 14, 20, 0.6);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+        }
+        .brand {
+            font-family: var(--mono);
+            font-size: 0.95rem;
+            color: var(--text);
+            text-decoration: none;
+            letter-spacing: 0.02em;
+        }
+        .brand .prompt { color: var(--accent); }
+        .cursor {
+            display: inline-block;
+            color: var(--accent);
+            animation: blink 1.1s steps(1) infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+        .nav nav { display: flex; gap: 26px; }
+        .nav nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        .nav nav a:hover { color: var(--accent); }
+        .nav nav a.active { color: var(--accent); }
+
+        /* ---------- Layout ---------- */
+        .wrap { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
+
+        /* ---------- Hero ---------- */
+        .hero {
+            min-height: 92vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-top: 90px;
+        }
+        .eyebrow {
+            font-family: var(--mono);
+            color: var(--accent);
+            font-size: 0.9rem;
+            margin-bottom: 18px;
+        }
+        .hero h1 {
+            font-size: clamp(2.6rem, 6vw, 4.2rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+        .hero h1 .accent { color: var(--accent); }
+        .lede {
+            margin-top: 22px;
+            max-width: 620px;
+            font-size: 1.12rem;
+            color: var(--muted);
+        }
+        .actions {
+            margin-top: 36px;
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 22px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #062019;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(94, 234, 212, 0.28);
+        }
+        .btn-ghost {
+            border: 1px solid var(--border);
+            color: var(--text);
+            background: var(--surface);
+        }
+        .btn-ghost:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-hover);
+            background: var(--surface-hover);
+        }
+        .stats {
+            margin-top: 56px;
+            display: flex;
+            gap: 48px;
+            flex-wrap: wrap;
+        }
+        .stat-num {
+            display: block;
+            font-family: var(--mono);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+        .stat-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        /* ---------- Sections ---------- */
+        .section { padding: 84px 0; }
+        .kicker {
+            font-family: var(--mono);
+            font-size: 0.8rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            margin-bottom: 12px;
+        }
+        .section h2 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            margin-bottom: 34px;
+        }
+
+        /* ---------- Writeup cards ---------- */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+        }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            text-decoration: none;
+            color: var(--text);
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+            display: block;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-hover);
+            background: var(--surface-hover);
+        }
+        .card .badge {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            background: var(--accent-dim);
+            border-radius: 999px;
+            padding: 3px 10px;
+            margin-bottom: 14px;
+        }
+        .card h3 { font-size: 1.08rem; font-weight: 600; }
+        .card .date { font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
+        .card .arrow {
+            display: block;
+            margin-top: 16px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            opacity: 0;
+            transform: translateX(-6px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .card:hover .arrow { opacity: 1; transform: translateX(0); }
+        .link-all {
+            display: inline-block;
+            margin-top: 28px;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .link-all:hover { text-decoration: underline; }
+
+        /* ---------- About ---------- */
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 48px;
+            align-items: start;
+        }
+        .about-text p { color: var(--muted); margin-bottom: 18px; }
+        .about-text p strong { color: var(--text); font-weight: 600; }
+        .rank-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px;
+        }
+        .rank-card img {
+            width: 100%;
+            border-radius: 9px;
+            display: block;
+        }
+        .rank-card figcaption {
+            font-family: var(--mono);
+            font-size: 0.78rem;
+            color: var(--muted);
+            text-align: center;
+            padding-top: 12px;
+        }
+
+        /* ---------- Footer ---------- */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 34px 0;
+            margin-top: 40px;
+        }
+        .footer-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .footer-inner .copy { font-size: 0.85rem; color: var(--muted); }
+        .socials { display: flex; gap: 22px; }
+        .socials a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        .socials a:hover { color: var(--accent); }
+
+        /* ---------- Desk teaser ---------- */
+        .desk {
+            position: relative;
+            display: block;
+            margin-top: 34px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            text-decoration: none;
+            color: var(--text);
+            background: #05070b;
+            aspect-ratio: 16 / 8;
+            transition: border-color 0.25s ease, transform 0.25s ease;
+        }
+        .desk:hover { border-color: var(--border-hover); transform: translateY(-3px); }
+        .desk img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: 58% 60%;
+            transition: transform 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+        }
+        .desk:hover img { transform: scale(1.045); }
+        .desk::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(5, 7, 11, 0.9) 0%, rgba(5, 7, 11, 0.25) 45%, transparent 70%);
+        }
+        .desk-copy { position: absolute; left: 28px; right: 28px; bottom: 24px; z-index: 1; }
+        .desk-copy h3 { font-size: 1.35rem; font-weight: 600; }
+        .desk-copy p { color: #aab4c0; font-size: 0.95rem; margin-top: 4px; max-width: 520px; }
+        .desk-copy .go { display: inline-block; margin-top: 12px; font-family: var(--mono); font-size: 0.85rem; color: var(--accent); }
+        @media (max-width: 760px) {
+            .desk { aspect-ratio: 4 / 3.4; }
+            .desk-copy { left: 18px; right: 18px; bottom: 18px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .desk, .desk img { transition: none; }
+            .desk:hover, .desk:hover img { transform: none; }
+        }
+
+        /* ---------- Reveal on scroll ---------- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(22px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .reveal.in { opacity: 1; transform: translateY(0); }
+
+        /* ---------- Reduced motion ---------- */
+        @media (prefers-reduced-motion: reduce) {
+            .blob { animation: none; }
+            .cursor { animation: none; }
+            .reveal { opacity: 1; transform: none; transition: none; }
+            html { scroll-behavior: auto; }
+        }
+
+        /* ---------- Responsive ---------- */
+        @media (max-width: 760px) {
+            .nav { padding: 12px 20px; flex-wrap: wrap; row-gap: 8px; }
+            .brand { white-space: nowrap; }
+            .nav nav { width: 100%; gap: 18px; overflow-x: auto; scrollbar-width: none; }
+            .hero { padding-top: 130px; }
+            .about-grid { grid-template-columns: 1fr; }
+            .stats { gap: 28px; }
+            .section { padding: 60px 0; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <header class="nav">
+        <a class="brand" href="index.html"><span class="prompt">~$</span> hackwithjordan<span class="cursor">▍</span></a>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="blog.html">Writeups</a>
+            <a class="active" href="about.html">About</a>
+            <a href="https://github.com/jordan01236" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/in/jordan01236" target="_blank" rel="noopener">LinkedIn</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="wrap">
+            <!-- Hero -->
+            <section class="hero">
+                <p class="eyebrow">~$ whoami</p>
+                <h1>Hi, I'm <span class="accent">Jordan</span>.</h1>
+                <p class="lede">
+                    Cybersecurity enthusiast and pentesting tinkerer. Four years of climbing the ranks on
+                    Hack The Box, and 70+ writeups documenting the way in — from initial foothold to
+                    full compromise.
+                </p>
+                <div class="actions">
+                    <a class="btn btn-primary" href="blog.html">Read the writeups</a>
+                    <a class="btn btn-ghost" href="https://app.hackthebox.com/profile/1283370" target="_blank" rel="noopener">Hack The Box profile</a>
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <span class="stat-num">Top 800</span>
+                        <span class="stat-label">HTB rank · ~1.7M users</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-num">70+</span>
+                        <span class="stat-label">Writeups published</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-num">3</span>
+                        <span class="stat-label">Platforms · HTB / VulnLab / PG</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recent writeups -->
+            <section class="section reveal" id="writeups">
+                <p class="kicker">01 · writeups</p>
+                <h2>Recent writeups</h2>
+                <div class="cards">
+                    <a class="card" href="posts/2025-04-05-Forgotten(VulnLab).html">
+                        <span class="badge">VulnLab</span>
+                        <h3>Forgotten</h3>
+                        <p class="date">April 5, 2025</p>
+                        <span class="arrow">Read the writeup →</span>
+                    </a>
+                    <a class="card" href="posts/2025-03-26-Sendai(VulnLab).html">
+                        <span class="badge">VulnLab</span>
+                        <h3>Sendai</h3>
+                        <p class="date">March 26, 2025</p>
+                        <span class="arrow">Read the writeup →</span>
+                    </a>
+                    <a class="card" href="posts/2024-05-20-SolarLab(HTB).html">
+                        <span class="badge">HTB</span>
+                        <h3>SolarLab</h3>
+                        <p class="date">May 20, 2024</p>
+                        <span class="arrow">Read the writeup →</span>
+                    </a>
+                </div>
+                <a class="link-all" href="blog.html">All writeups →</a>
+            </section>
+
+            <!-- Terminal -->
+            <section class="section reveal" id="terminal">
+                <p class="kicker">02 · terminal</p>
+                <h2>Sit down at my desk</h2>
+                <a class="desk" href="index.html">
+                    <img src="assets/room/poster.jpg" width="1600" height="900" loading="lazy"
+                         alt="A desk at night: a monitor running a terminal, a lamp, a PC and moonlight through the blinds.">
+                    <div class="desk-copy">
+                        <h3>An interactive terminal, in a room you can poke at</h3>
+                        <p>Pull up a chair, type a few commands, flip the lamp, find root.</p>
+                        <span class="go">~$ ./sit_down →</span>
+                    </div>
+                </a>
+            </section>
+
+            <!-- About -->
+            <section class="section reveal" id="about">
+                <p class="kicker">03 · about</p>
+                <h2>About me</h2>
+                <div class="about-grid">
+                    <div class="about-text">
+                        <p>
+                            Hello! I'm Jordan, a cybersecurity enthusiast focused on hacking. I've been
+                            learning penetration testing for just about <strong>four years</strong> now.
+                        </p>
+                        <p>
+                            During that time I've climbed the ranks on <strong>Hack The Box</strong> and am
+                            currently in the <strong>top 800</strong> out of an estimated 1.7 million users.
+                        </p>
+                        <p>
+                            This site is where I document the process — writeups from <strong>Hack The Box</strong>,
+                            <strong>VulnLab</strong> and <strong>Proving Grounds</strong>, with the thinking behind
+                            each compromise, not just the final shell.
+                        </p>
+                    </div>
+                    <figure class="rank-card">
+                        <img src="img/htb.png" loading="lazy" alt="Hack The Box rank screenshot — top 800">
+                        <figcaption>~$ htb rank --top 800</figcaption>
+                    </figure>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <div class="wrap footer-inner">
+            <span class="copy">© 2026 HackWithJordan</span>
+            <div class="socials">
+                <a href="https://app.hackthebox.com/profile/1283370" target="_blank" rel="noopener">Hack The Box</a>
+                <a href="https://github.com/jordan01236" target="_blank" rel="noopener">GitHub</a>
+                <a href="https://www.linkedin.com/in/jordan01236" target="_blank" rel="noopener">LinkedIn</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ---------- Particle background ----------
+        (function () {
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const mouse = { x: null, y: null };
+            let particles = [];
+            let w = 0, h = 0;
+
+            function resize() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                w = window.innerWidth;
+                h = window.innerHeight;
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                canvas.style.width = w + 'px';
+                canvas.style.height = h + 'px';
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                seed();
+            }
+
+            function seed() {
+                const count = Math.min(90, Math.floor((w * h) / 16000));
+                particles = [];
+                for (let i = 0; i < count; i++) {
+                    particles.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        vx: (Math.random() - 0.5) * 0.35,
+                        vy: (Math.random() - 0.5) * 0.35,
+                        r: Math.random() * 1.5 + 0.7
+                    });
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+
+                for (const p of particles) {
+                    // gentle drift
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    // wrap around edges
+                    if (p.x < -20) p.x = w + 20;
+                    if (p.x > w + 20) p.x = -20;
+                    if (p.y < -20) p.y = h + 20;
+                    if (p.y > h + 20) p.y = -20;
+
+                    // cursor parts the field gently, then it flows back on its own
+                    if (mouse.x !== null) {
+                        const dx = p.x - mouse.x;
+                        const dy = p.y - mouse.y;
+                        const d = Math.hypot(dx, dy);
+                        if (d < 120 && d > 0.001) {
+                            const f = (1 - d / 120) * 0.5;
+                            p.x += (dx / d) * f;
+                            p.y += (dy / d) * f;
+                        }
+                    }
+                }
+
+                // connecting lines between particles
+                for (let i = 0; i < particles.length; i++) {
+                    const a = particles[i];
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const b = particles[j];
+                        const d = Math.hypot(a.x - b.x, a.y - b.y);
+                        if (d < 110) {
+                            ctx.strokeStyle = 'rgba(94, 234, 212, ' + (0.14 * (1 - d / 110)).toFixed(3) + ')';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(b.x, b.y);
+                            ctx.stroke();
+                        }
+                    }
+                    // lines to the cursor
+                    if (mouse.x !== null) {
+                        const d = Math.hypot(a.x - mouse.x, a.y - mouse.y);
+                        if (d < 140) {
+                            ctx.strokeStyle = 'rgba(124, 140, 248, ' + (0.18 * (1 - d / 140)).toFixed(3) + ')';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(mouse.x, mouse.y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                // dots
+                for (const p of particles) {
+                    ctx.fillStyle = 'rgba(232, 237, 242, 0.5)';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            function loop() {
+                if (!document.hidden) draw();
+                requestAnimationFrame(loop);
+            }
+
+            window.addEventListener('resize', resize);
+            window.addEventListener('mousemove', function (e) {
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+            });
+            window.addEventListener('mouseleave', function () {
+                mouse.x = null;
+                mouse.y = null;
+            });
+
+            resize();
+            if (reduced) {
+                draw(); // one static frame
+            } else {
+                requestAnimationFrame(loop);
+            }
+        })();
+
+        // ---------- Reveal on scroll ----------
+        (function () {
+            const els = document.querySelectorAll('.reveal');
+            if (!('IntersectionObserver' in window)) {
+                els.forEach(function (el) { el.classList.add('in'); });
+                return;
+            }
+            const io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('in');
+                        io.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15 });
+            els.forEach(function (el) { io.observe(el); });
+        })();
+    </script>
+</body>
+</html>

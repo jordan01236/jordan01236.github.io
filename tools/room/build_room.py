@@ -1,5 +1,5 @@
 """
-Builds and renders the desk scene used by terminal.html.
+Builds and renders the desk scene used by the home page (index.html).
 
     python3 build_room.py --out <dir> [--scale 1.0] [--samples 256] [--only wide|close]
 

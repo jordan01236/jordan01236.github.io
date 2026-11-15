@@ -247,8 +247,7 @@
         });
         print(commandListText());
         print("\nAlso works:\n" + more.sort().join("  ") +
-            "\n\nTab completes, ↑/↓ walks history, Esc stands up from the desk." +
-            (api.desktop ? "\nType 'startx' for the desktop." : ""), "dim");
+            "\n\nTab completes, ↑/↓ walks history, Esc stands up from the desk.", "dim");
     });
 
     def("clear cls", "clear the screen", function () {
@@ -288,7 +287,6 @@
 
     def("exit logout", "leave the root shell / stand up", function () {
         if (state.isRoot) { dropRoot(); print("logout"); return; }
-        if (desktopOpen()) { print("logout"); api.desktop.close(); return; }
         if (!emit("stand")) print("There's nowhere to go. Try 'about' or 'blog'.");
     });
 
@@ -571,18 +569,152 @@
     function desktopOpen() { return !!(api.desktop && api.desktop.isOpen()); }
     function launch(app, arg) {
         if (!api.desktop) { print("cannot open display: no X server on this machine"); return; }
-        if (!desktopOpen()) { print("cannot open display: run 'startx' first"); return; }
+        if (!desktopOpen()) { print("cannot open display"); return; }
         api.desktop.open(app, arg);
     }
-    def("startx startxfce4 desktop gui xfce", "start the desktop", function () {
-        if (!api.desktop) { print("startx: no X server on this machine"); return; }
-        if (desktopOpen()) { print("The desktop is already running."); return; }
-        print("Starting X …");
-        api.desktop.start();
-    });
     def("thunar files nautilus", "file manager (desktop)", function (args) { launch("files", args[0] ? normalize(args[0]) : state.cwd); });
     def("mousepad gedit editor", "text editor (desktop)", function (args) { launch("editor", args[0] ? normalize(args[0]) : null); });
     def("browser chromium", "web browser (desktop)", function (args) { launch("browser", args[0] || null); });
+
+    // --- Kali tools (GUI ones live in assets/js/kali-tools.js) -------------
+    def("zenmap", "nmap with a GUI (desktop)", function (args) { launch("zenmap", args[0] || null); });
+    def("burpsuite burp", "intercepting web proxy (desktop)", function () { launch("burp"); });
+    def("wireshark", "packet analyser (desktop)", function () { launch("wireshark"); });
+    def("john", "password cracker (desktop)", function () { launch("john"); });
+    def("cyberchef", "encode / decode / hash (desktop)", function () { launch("cyberchef"); });
+
+    var LAB = "10.10.11.42";
+    def("gobuster", "directory brute forcing", function (args) {
+        var u = (args[args.indexOf("-u") + 1] || "").replace(/\/$/, "");
+        if (args[0] !== "dir" || args.indexOf("-u") === -1) {
+            print("Usage: gobuster dir -u <url> -w <wordlist>\n\nexample: gobuster dir -u http://" + LAB + " -w /usr/share/wordlists/dirb/common.txt");
+            return;
+        }
+        if (!/10\.10\.11\.42|target\.htb|localhost|127\.0\.0\.1/.test(u)) {
+            print("Error: error on running gobuster: unable to connect to " + u + ": no route to host (this box is airgapped — try http://" + LAB + ")");
+            return;
+        }
+        printSlow([
+            "===============================================================",
+            "Gobuster v3.6",
+            "===============================================================",
+            "[+] Url:            " + u,
+            "[+] Wordlist:       /usr/share/wordlists/dirb/common.txt",
+            "[+] Threads:        10",
+            "===============================================================",
+            "/.git/HEAD           (Status: 200) [Size: 23]",
+            "/admin               (Status: 302) [Size: 0] [--> /login]",
+            "/api                 (Status: 301) [Size: 178] [--> /api/]",
+            "/backup              (Status: 403) [Size: 153]",
+            "/index.php           (Status: 200) [Size: 4218]",
+            "/login               (Status: 200) [Size: 1873]",
+            "/uploads             (Status: 301) [Size: 178] [--> /uploads/]",
+            "Progress: 4614 / 4615 (99.98%)",
+            "===============================================================",
+            "Finished — an exposed .git is always worth a look (git-dumper)."
+        ], function (i) { return i < 8 ? 60 : 260; });
+        return "async";
+    });
+    var EXPLOITS = [
+        ["Apache 2.4.49 - Path Traversal & Remote Code Execution (RCE)", "multiple/webapps/50383.sh"],
+        ["vsftpd 2.3.4 - Backdoor Command Execution", "unix/remote/49757.py"],
+        ["Samba 3.0.20 < 3.0.25rc3 - 'Username' map script Command Execution", "unix/remote/16320.rb"],
+        ["OpenSSH < 7.7 - User Enumeration (2)", "linux/remote/45939.py"],
+        ["Microsoft Windows - 'MS17-010' EternalBlue SMB Remote Code Execution", "windows/remote/42315.py"],
+        ["Joomla! v4.2.8 - Unauthenticated information disclosure", "php/webapps/51334.py"],
+        ["Grafana 8.3.0 - Directory Traversal and Arbitrary File Read", "multiple/webapps/50581.py"],
+        ["Jenkins 2.441 - Local File Inclusion", "java/webapps/51993.py"],
+        ["Sudo 1.8.27 - Security Bypass", "linux/local/47502.py"],
+        ["Linux Kernel 2.6.22 < 3.9 - 'Dirty COW' Race Condition Privilege Escalation", "linux/local/40839.c"],
+        ["PwnKit - pkexec Local Privilege Escalation (CVE-2021-4034)", "linux/local/50689.txt"],
+        ["Cacti 1.2.22 - Unauthenticated Command Injection", "php/webapps/51166.py"]
+    ];
+    def("searchsploit", "search the exploit database", function (args) {
+        var q = args.filter(function (a) { return a[0] !== "-"; }).join(" ").toLowerCase();
+        if (!q) { print("Usage: searchsploit [options] term1 [term2] ... [termN]\n\nexample: searchsploit vsftpd 2.3.4"); return; }
+        var terms = q.split(/\s+/);
+        var hits = EXPLOITS.filter(function (e) { return terms.every(function (t) { return e[0].toLowerCase().indexOf(t) !== -1; }); });
+        var bar = new Array(58).join("-");
+        if (!hits.length) { print(bar + "\n Exploits: No Results\n" + bar + "\n(this is a small offline excerpt — try: searchsploit samba, vsftpd, sudo, apache)"); return; }
+        print(bar + "\n Exploit Title\n   └ Path (/usr/share/exploitdb/exploits/)\n" + bar + "\n" +
+            hits.map(function (e) { return " " + e[0] + "\n   └ " + e[1]; }).join("\n") + "\n" + bar +
+            "\nCopy one locally with: searchsploit -m " + hits[0][1].split("/").pop().split(".")[0]);
+    });
+    def("hydra", "online login brute forcing", function (args) {
+        var raw = args.join(" ");
+        if (!/ssh|ftp|http/.test(raw)) {
+            print("Hydra v9.5 (c) 2023 by van Hauser/THC\n\nSyntax: hydra -l <user> -P <wordlist> <service>://<target>\n\nexample: hydra -l jordan -P /usr/share/wordlists/rockyou.txt ssh://" + LAB);
+            return;
+        }
+        var user = args[args.indexOf("-l") + 1] || "jordan";
+        var svc = (raw.match(/(ssh|ftp|http[-\w]*):\/\/([\w.]+)/) || [0, "ssh", LAB]);
+        if (!/10\.10\.11\.42|target\.htb|localhost|127\.0\.0\.1/.test(svc[2])) { print("[ERROR] could not connect to " + svc[2] + ": no route to host (airgapped — try " + LAB + ")"); return; }
+        var ok = user === "jordan";
+        printSlow([
+            "Hydra v9.5 (c) 2023 by van Hauser/THC - for legal purposes only",
+            "[DATA] max 16 tasks per 1 server, overall 16 tasks, 14344399 login tries (l:1/p:14344399)",
+            "[DATA] attacking " + svc[1] + "://" + svc[2] + ":" + (svc[1] === "ftp" ? 21 : svc[1] === "ssh" ? 22 : 80) + "/",
+            "[STATUS] 256.00 tries/min, 256 tries in 00:01h, 14344143 to do",
+            ok ? "[" + (svc[1] === "ftp" ? 21 : svc[1] === "ssh" ? 22 : 80) + "][" + svc[1] + "] host: " + svc[2] + "   login: jordan   password: sunshine" : "[STATUS] 1024.00 tries/min, no valid password found yet …",
+            ok ? "1 of 1 target successfully completed, 1 valid password found" : "(only 'jordan' has a weak password on this lab box)"
+        ], 450);
+        return "async";
+    });
+    def("sqlmap", "automatic SQL injection", function (args) {
+        var u = args[args.indexOf("-u") + 1];
+        if (args.indexOf("-u") === -1 || !u) { print("Usage: sqlmap -u <url> [options]\n\nexample: sqlmap -u \"http://" + LAB + "/api/user?id=1\" --batch --dbs"); return; }
+        u = u.replace(/^["']|["']$/g, "");
+        if (!/10\.10\.11\.42|target\.htb/.test(u)) { print("[CRITICAL] unable to connect to the target URL (airgapped — try http://" + LAB + "/api/user?id=1)"); return; }
+        var dump = args.indexOf("--dump") !== -1;
+        var lines = [
+            "        ___",
+            "       __H__",
+            " ___ ___[']_____ ___ ___  {1.8.2#stable}",
+            "|_ -| . [(]     | .'| . |",
+            "|___|_  [)]_|_|_|__,|  _|",
+            "      |_|V...       |_|   https://sqlmap.org",
+            "",
+            "[*] starting",
+            "[INFO] testing connection to the target URL",
+            "[INFO] testing if GET parameter 'id' is dynamic",
+            "[INFO] GET parameter 'id' appears to be 'AND boolean-based blind - WHERE or HAVING clause' injectable",
+            "[INFO] GET parameter 'id' is 'MySQL >= 5.0.12 AND time-based blind (query SLEEP)' injectable",
+            "[INFO] the back-end DBMS is MySQL",
+            "GET parameter 'id' is vulnerable."
+        ];
+        if (dump) lines = lines.concat(["", "Database: webapp", "Table: users", "+----+----------+----------------------------------+",
+            "| id | username | password                         |", "+----+----------+----------------------------------+",
+            "| 1  | admin    | 9cc2ae8a1ba7a93da39b46fc1019c481 |", "| 2  | jordan   | 0d107d09f5bbe40cade3de5c71e9e9b7 |",
+            "+----+----------+----------------------------------+", "", "Those are MD5 — try cracking them in John the Ripper (Applications → 05 - Password Attacks)."]);
+        else lines = lines.concat(["available databases [2]:", "[*] information_schema", "[*] webapp", "", "next: add  -D webapp -T users --dump"]);
+        printSlow(lines, function (i) { return i < 8 ? 40 : 230; });
+        return "async";
+    });
+    def("msfconsole", "Metasploit console (demo)", function () {
+        printSlow([
+            "",
+            "      .:okOOOkdc'           'cdkOOOko:.",
+            "    .xOOOOOOOOOOOOc       cOOOOOOOOOOOOx.",
+            "   :OOOOOOOOOOOOOOOk,   ,kOOOOOOOOOOOOOOO:",
+            "  'OOOOOOOOOkkkkOOOOO: :OOOOOOOOOOOOOOOOOO'",
+            "  oOOOOOOOO.    .oOOOOoOOOOl.    ,OOOOOOOOo",
+            "  dOOOOOOOO.      .cOOOOOc.      ,OOOOOOOOx",
+            "  lOOOOOOOO.         ;d;         ,OOOOOOOOl",
+            "  .OOOOOOOO.   .;           ;    ,OOOOOOOO.",
+            "   cOOOOOOO.   .OOc.     'oOO.   ,OOOOOOOc",
+            "    oOOOOOO.   .OOOO.   :OOOO.   ,OOOOOOo",
+            "     lOOOOO.   .OOOO.   :OOOO.   ,OOOOOl",
+            "      ;OOOO'   .OOOO.   :OOOO.   ;OOOO;",
+            "",
+            "       =[ metasploit v6.4 (demo)                         ]",
+            "+ -- --=[ 2400 exploits - 1240 auxiliary - 430 post       ]",
+            "",
+            "This is a static site, so there's no real framework behind it.",
+            "The real thing: msfconsole → search vsftpd → use 0 → set RHOSTS → run.",
+            "Try 'searchsploit vsftpd' for the offline exploit search."
+        ], 35);
+        return "async";
+    });
 
     // --- the room -------------------------------------------------------
     def("lamp light", "desk lamp: lamp [on|off]", function (args) {
@@ -757,6 +889,21 @@
         autoFocus: true,
         on: function (name, fn) { (listeners[name] = listeners[name] || []).push(fn); },
         print: print,
+        exec: function (cmd) {
+            var line = container.querySelector(".prompt-line");
+            var input = line && line.querySelector(".command-input");
+            if (state.busy) return;
+            var d = document.createElement("div");
+            d.className = "command-display";
+            d.textContent = promptText() + cmd;
+            d.style.color = color();
+            if (line) { container.insertBefore(d, line); line.remove(); } else container.appendChild(d);
+            if (state.history[state.history.length - 1] !== cmd) state.history.push(cmd);
+            var r = execute(cmd);
+            if (r !== "navigate" && r !== "async") createPrompt();
+            if (input) api.focus();
+        },
+        printSlow: printSlow,
         run: function (cmd) {
             var r = execute(cmd);
             if (r !== "navigate" && r !== "async") createPrompt();

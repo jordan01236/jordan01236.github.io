@@ -1,7 +1,7 @@
 /*
  * A small Kali-style desktop that runs on the monitor in terminal.html.
  *
- * Started from the shell with `startx`. It lives inside #screen, so the room
+ * Boots with the page. It lives inside #screen, so the room
  * (assets/js/room.js) keeps positioning and scaling it like the terminal.
  * The existing shell is reused as the Terminal app: its DOM nodes are moved
  * into a window and moved back on logout. See _plans/kali-desktop.md.
@@ -42,7 +42,17 @@
         back: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
         fwd: '<path d="M5 12h14M13 6l6 6-6 6"/>',
         reload: '<path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6"/>',
-        ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/>'
+        ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/>',
+        radar: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 12l6-6"/><circle cx="12" cy="12" r="1"/>',
+        fin: '<path d="M3 15c3-1 5-6 7-11 2 5 5 9 11 11-4 2-12 3-18 0z"/><path d="M8 19h8"/>',
+        key: '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M15 8l2 2"/>',
+        proxy: '<path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="1.5"/><circle cx="16" cy="12" r="1.5"/><circle cx="10" cy="18" r="1.5"/>',
+        chef: '<path d="M7 14a4 4 0 1 1 2-7.5 4 4 0 0 1 6 0A4 4 0 1 1 17 14v5H7z"/><path d="M7 17h10"/>',
+        bug: '<rect x="8" y="7" width="8" height="12" rx="4"/><path d="M12 7V4M8 11H4M20 11h-4M8 15H5M19 15h-3M9 5l1 2M15 5l-1 2"/>',
+        dir: '<path d="M3 6h6l2 2h10v11H3z"/><path d="M14 13h4M16 11v4"/>',
+        db: '<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/>',
+        skull: '<path d="M5 11a7 7 0 1 1 14 0v3l-2 1v4H7v-4l-2-1z"/><circle cx="9.5" cy="11.5" r="1.5"/><circle cx="14.5" cy="11.5" r="1.5"/><path d="M11 19v-2M13 19v-2"/>',
+        search: '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>'
     };
     function icon(name, cls) {
         return '<svg class="ico' + (cls ? " " + cls : "") + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICON[name] || ICON.file) + "</svg>";
@@ -301,11 +311,11 @@
 
     // --- Terminal: the real shell, moved in -------------------------------
     app({
-        id: "terminal", title: "jordan@kali: ~", icon: "terminal", group: "Accessories", single: true, wf: 0.64, hf: 0.68,
+        id: "terminal", title: "jordan@kali: ~", menu: "Terminal", icon: "terminal", cat: "Accessories", single: true, wf: 0.64, hf: 0.68,
         open: function (w) {
             w.el.classList.add("win-term");
             w.body.appendChild(termBox);
-            w.onfocus = function () { setTimeout(function () { term.focus(); }, 0); };
+            w.onfocus = function () { setTimeout(function () { if (term.autoFocus) term.focus(); }, 0); };
             w.onclose = function () { parking.appendChild(termBox); };
             w.onfocus();
         }
@@ -314,7 +324,7 @@
     // --- Files -------------------------------------------------------------
     var PLACES = [["Home", "/home/jordan", "home"], ["Writeups", "/home/jordan/writeups", "book"], ["File system", "/", "folder"], ["etc", "/etc", "folder"], ["root", "/root", "lock"]];
     app({
-        id: "files", title: "Files", icon: "folder", group: "Accessories", wf: 0.6, hf: 0.62,
+        id: "files", title: "Files", icon: "folder", cat: "Accessories", wf: 0.6, hf: 0.62,
         open: function (w, path) {
             var hist = [], fwd = [];
             w.body.classList.add("app-files");
@@ -407,7 +417,7 @@
         "  - sudo su in the terminal, then come back and look again.\n\n" +
         "More tools are on the way.";
     app({
-        id: "editor", title: "Mousepad", icon: "editor", group: "Accessories", wf: 0.56, hf: 0.62,
+        id: "editor", title: "Mousepad", menu: "Text editor", icon: "editor", cat: "Accessories", wf: 0.56, hf: 0.62,
         open: function (w, arg) {
             w.body.classList.add("app-editor");
             var name, text, err;
@@ -436,7 +446,7 @@
     // --- Browser (same-origin pages in an iframe) ----------------------------
     var HOME_URL = "blog.html";
     app({
-        id: "browser", title: "Browser", icon: "web", group: "Internet", wf: 0.72, hf: 0.78,
+        id: "browser", title: "Browser", menu: "Writeups (browser)", icon: "web", cat: "Accessories", wf: 0.72, hf: 0.78,
         open: function (w, url) {
             w.body.classList.add("app-browser");
             w.body.innerHTML =
@@ -516,20 +526,30 @@
     // ------------------------------------------------------------------
     // Menus, icons, toasts
     // ------------------------------------------------------------------
-    var MENU = [
-        ["terminal", "Terminal"], ["files", "Files"], ["browser", "Writeups (browser)"], ["editor", "Text editor"]
-    ];
-    function buildMenus() {
+    var CATS = ["Accessories", "01 - Information Gathering", "02 - Vulnerability Analysis", "03 - Web Application Analysis",
+        "05 - Password Attacks", "08 - Exploitation Tools", "09 - Sniffing & Spoofing", "Utilities"];
+    function buildAppMenu() {
         menuEl.innerHTML = '<div class="dt-menu-head">jordan@kali</div>';
-        MENU.forEach(function (m) {
-            var b = el("button", "", icon(APPS[m[0]].icon) + "<span>" + esc(m[1]) + "</span>");
-            b.type = "button";
-            b.setAttribute("role", "menuitem");
-            b.addEventListener("click", function () { open(m[0]); });
-            menuEl.appendChild(b);
+        CATS.forEach(function (cat) {
+            var items = ORDER.map(function (id) { return APPS[id]; }).filter(function (a) { return a.cat === cat; });
+            if (!items.length) return;
+            menuEl.appendChild(el("div", "dt-menu-cat", esc(cat)));
+            items.forEach(function (a) {
+                var b = el("button", "", icon(a.icon) + "<span>" + esc(a.menu || a.title) + "</span>" + (a.kind ? '<em>' + esc(a.kind) + '</em>' : ""));
+                b.type = "button";
+                b.setAttribute("role", "menuitem");
+                b.addEventListener("click", function () { closeMenus(); if (a.run) runInTerminal(a.run); else open(a.id); });
+                menuEl.appendChild(b);
+            });
         });
+    }
+    function runInTerminal(cmd) {
+        open("terminal");
+        setTimeout(function () { term.exec(cmd); }, 60);
+    }
+    function buildMenus() {
         powerEl.innerHTML = "";
-        [["Log out", function () { close(); }], ["Reboot", function () { close(); term.run("reboot"); }], ["Stand up", function () { closeMenus(); term.emit("stand"); }]].forEach(function (m) {
+        [["Restart session", function () { close(); start(); }], ["Reboot", function () { close(); term.run("reboot"); }], ["Stand up", function () { closeMenus(); term.emit("stand"); }]].forEach(function (m) {
             var b = el("button", "", "<span>" + m[0] + "</span>");
             b.type = "button";
             b.setAttribute("role", "menuitem");
@@ -578,7 +598,7 @@
         root.querySelectorAll("[aria-expanded]").forEach(function (b) { b.setAttribute("aria-expanded", "false"); });
         return was;
     }
-    root.querySelector(".dt-menu-btn").addEventListener("click", function (e) { e.stopPropagation(); toggleMenu(menuEl, this); });
+    root.querySelector(".dt-menu-btn").addEventListener("click", function (e) { e.stopPropagation(); if (menuEl.hidden) buildAppMenu(); toggleMenu(menuEl, this); });
     root.querySelector(".dt-power").addEventListener("click", function (e) { e.stopPropagation(); toggleMenu(powerEl, this); });
     root.addEventListener("pointerdown", function (e) { if (!e.target.closest(".dt-menu, .dt-menu-btn, .dt-power")) closeMenus(); });
     [menuEl, powerEl].forEach(function (m) {
@@ -635,7 +655,7 @@
     // Session
     // ------------------------------------------------------------------
     var clockT = 0;
-    function start() {
+    function start(quiet) {
         if (isOpen) return;
         isOpen = true;
         root.hidden = false;
@@ -643,7 +663,7 @@
         tick();
         clockT = setInterval(tick, 15000);
         termBar.hidden = true;
-        if (!reduced) {
+        if (!reduced && !quiet) {
             bootEl.hidden = false;
             setTimeout(function () { bootEl.hidden = true; }, 650);
         }
@@ -675,11 +695,32 @@
     });
     term.on("stand", function () { if (isFull) setFull(false); });
 
+    function fit() {
+        var c = compact();
+        wins.forEach(function (w) {
+            if (c && !w.max) { w.max = true; w.place(); }
+            else if (!w.max) clampWin(w);
+        });
+    }
+    function bootWhenSized() {
+        // the room sizes #screen once its textures' metadata loads; wait for a real size
+        if (area.clientWidth > 200 && area.clientHeight > 120) { start(true); return; }
+        requestAnimationFrame(bootWhenSized);
+    }
+    if (window.ResizeObserver) new ResizeObserver(function () { if (isOpen) fit(); }).observe(area);
+
     buildMenus();
     term.desktop = {
+        app: app,
+        ui: { icon: icon, el: el, esc: esc, toast: toast, ICON: ICON, compact: compact },
+        run: runInTerminal,
         start: start,
         close: close,
         isOpen: function () { return isOpen; },
         open: function (id, arg) { if (!isOpen) start(); return open(id, arg); }
     };
+    root.hidden = false;           // takes layout space so its size can be measured
+    root.style.visibility = "hidden";
+    term.on("desktop", function (on) { if (on) root.style.visibility = ""; });
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bootWhenSized); else bootWhenSized();
 })();

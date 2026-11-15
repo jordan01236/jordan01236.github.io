@@ -29,7 +29,7 @@ inline = (
     "<script>window.__POSTS__ = " + read("posts.json") + ";\n"
     "window.__ROOM__ = " + json.dumps({"meta": json.loads(read("assets/room/room.json")), "images": images}) + ";</script>\n"
 )
-for src in ("assets/js/terminal.js", "assets/js/desktop.js", "assets/js/room.js"):
+for src in ("assets/js/terminal.js", "assets/js/desktop.js", "assets/js/kali-tools.js", "assets/js/room.js"):
     js = read(src)
     if src.endswith("terminal.js"):
         # page links should go to the live site when the file is opened from disk

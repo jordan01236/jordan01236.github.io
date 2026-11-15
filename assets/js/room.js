@@ -133,7 +133,7 @@
     // ------------------------------------------------------------------
     var inline = window.__ROOM__ || null;
     var BASE = "assets/room/";
-    var VERSION = "4";   // bump when the textures are re-rendered, so browsers refetch them
+    var VERSION = "5";   // bump when the textures are re-rendered, so browsers refetch them
     var meta = null;
     var loaded = { wide: false, close: false };
     var maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE);

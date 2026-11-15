@@ -1,0 +1,51 @@
+diff --git a/Controllers/CorsairVengeanceProController/CorsairVengeanceProControllerDetect.cpp b/Controllers/CorsairVengeanceProController/CorsairVengeanceProControllerDetect.cpp
+index b7a37ef..eee5a30 100644
+--- a/Controllers/CorsairVengeanceProController/CorsairVengeanceProControllerDetect.cpp
++++ b/Controllers/CorsairVengeanceProController/CorsairVengeanceProControllerDetect.cpp
+@@ -19,6 +19,28 @@ using namespace std::chrono_literals;
+ *                                                                                          *
+ \******************************************************************************************/
+ 
++/*---------------------------------------------------------*\
++| Read-retry shim: some sticks answer intermittently on     |
++| SMBus, so retry identification reads before giving up.    |
++\*---------------------------------------------------------*/
++static int ReadByteRetry(i2c_smbus_interface* bus, unsigned char address, unsigned char reg, bool (*ok)(int))
++{
++    int res = -1;
++    for(int attempt = 0; attempt < 10; attempt++)
++    {
++        res = bus->i2c_smbus_read_byte_data(address, reg);
++        if(ok(res))
++        {
++            break;
++        }
++        std::this_thread::sleep_for(20ms);
++    }
++    return res;
++}
++
++static bool IsId43(int res) { return res == 0x1C; }
++static bool IsId44(int res) { return (res == 0x03) || (res == 0x04); }
++
+ bool TestForCorsairVengeanceProController(i2c_smbus_interface* bus, unsigned char address)
+ {
+     bool pass = false;
+@@ -31,7 +53,7 @@ bool TestForCorsairVengeanceProController(i2c_smbus_interface* bus, unsigned cha
+     {
+         pass = true;
+ 
+-        res = bus->i2c_smbus_read_byte_data(address, 0x43);
++        res = ReadByteRetry(bus, address, 0x43, IsId43);
+ 
+         if (res != 0x1C)
+         {
+@@ -39,7 +61,7 @@ bool TestForCorsairVengeanceProController(i2c_smbus_interface* bus, unsigned cha
+             LOG_DEBUG("[%s] Failed: was expecting 0x1C got %02X", CORSAIR_VENGEANCE_RGB_PRO_NAME, res);
+         }
+ 
+-        res = bus->i2c_smbus_read_byte_data(address, 0x44);
++        res = ReadByteRetry(bus, address, 0x44, IsId44);
+ 
+         if(!((res == 0x03) || (res == 0x04)))
+         {

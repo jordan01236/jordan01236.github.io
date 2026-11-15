@@ -247,7 +247,8 @@
         });
         print(commandListText());
         print("\nAlso works:\n" + more.sort().join("  ") +
-            "\n\nTab completes, ↑/↓ walks history, Esc stands up from the desk.", "dim");
+            "\n\nTab completes, ↑/↓ walks history, Esc stands up from the desk." +
+            (api.desktop ? "\nType 'startx' for the desktop." : ""), "dim");
     });
 
     def("clear cls", "clear the screen", function () {
@@ -287,6 +288,7 @@
 
     def("exit logout", "leave the root shell / stand up", function () {
         if (state.isRoot) { dropRoot(); print("logout"); return; }
+        if (desktopOpen()) { print("logout"); api.desktop.close(); return; }
         if (!emit("stand")) print("There's nowhere to go. Try 'about' or 'blog'.");
     });
 
@@ -395,6 +397,7 @@
         if (/^linkedin$/.test(q)) return commands.linkedin.fn();
         var p = findPost(q);
         if (!p) { print("open: nothing matches '" + q + "'. Try 'writeups'."); return; }
+        if (desktopOpen()) { print("Opening " + p.title + " in the browser …"); api.desktop.open("browser", p.filename); return; }
         go(p.filename.split("/").map(encodeURIComponent).join("/"), "Opening " + p.title + " …");
     });
 
@@ -563,6 +566,23 @@
         ];
         print(info.map(function (l, i) { return (art[i] || art[8]) + l; }).join("\n"));
     });
+
+    // --- the desktop (assets/js/desktop.js) ---------------------------------
+    function desktopOpen() { return !!(api.desktop && api.desktop.isOpen()); }
+    function launch(app, arg) {
+        if (!api.desktop) { print("cannot open display: no X server on this machine"); return; }
+        if (!desktopOpen()) { print("cannot open display: run 'startx' first"); return; }
+        api.desktop.open(app, arg);
+    }
+    def("startx startxfce4 desktop gui xfce", "start the desktop", function () {
+        if (!api.desktop) { print("startx: no X server on this machine"); return; }
+        if (desktopOpen()) { print("The desktop is already running."); return; }
+        print("Starting X …");
+        api.desktop.start();
+    });
+    def("thunar files nautilus", "file manager (desktop)", function (args) { launch("files", args[0] ? normalize(args[0]) : state.cwd); });
+    def("mousepad gedit editor", "text editor (desktop)", function (args) { launch("editor", args[0] ? normalize(args[0]) : null); });
+    def("browser chromium", "web browser (desktop)", function (args) { launch("browser", args[0] || null); });
 
     // --- the room -------------------------------------------------------
     def("lamp light", "desk lamp: lamp [on|off]", function (args) {
@@ -749,7 +769,35 @@
             var input = container.querySelector(".command-input");
             if (input) input.blur();
         },
-        isRoot: function () { return state.isRoot; }
+        isRoot: function () { return state.isRoot; },
+        cwd: function () { return state.cwd; },
+        open: go,
+        emit: emit,
+        desktop: null,          // set by desktop.js
+        fs: {
+            normalize: normalize,
+            list: function (path) {
+                var r = lookup(path);
+                if (r.error) return { error: ERR[r.error] };
+                if (r.node.type !== "dir") return { error: ERR.ENOTDIR };
+                if (r.node.rootOnly && !state.isRoot) return { error: ERR.EACCES, locked: true };
+                return {
+                    path: r.path,
+                    entries: Object.keys(r.node.children).sort().map(function (k) {
+                        var n = r.node.children[k];
+                        return { name: k, path: (r.path === "/" ? "" : r.path) + "/" + k, type: n.type,
+                            locked: !!n.rootOnly && !state.isRoot, post: n.post || null, special: n.special || null };
+                    })
+                };
+            },
+            read: function (path) {
+                var r = lookup(path);
+                if (r.error) return { error: ERR[r.error] };
+                if (r.node.type === "dir") return { error: "Is a directory" };
+                if (r.node.rootOnly && !state.isRoot) return { error: ERR.EACCES };
+                return { path: r.path, content: r.node.content, post: r.node.post || null, special: r.node.special || null };
+            }
+        }
     };
 
     function start() {

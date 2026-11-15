@@ -546,7 +546,7 @@
     standBtn.addEventListener("click", function () { stand(); });
     document.addEventListener("keydown", function (e) {
         if (!meta) return;
-        if (e.key === "Escape" && S.seatTarget) { e.preventDefault(); stand(); return; }
+        if (e.key === "Escape" && S.seatTarget) { if (!e.defaultPrevented) { e.preventDefault(); stand(); } return; }
         if (!S.seatTarget && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key === "Enter" || e.key.length === 1)) {
             var tag = (document.activeElement && document.activeElement.tagName) || "";
             if (tag === "A" || tag === "BUTTON") return;
@@ -580,6 +580,11 @@
         });
         term.on("output", function () { S.screenKick = 1; });
         term.on("glitch", function () { S.glitch = 1; });
+        term.on("fullscreen", function (on) {
+            document.body.classList.toggle("desk-full", on);
+            if (!on) { resize(); dirty = true; }
+        });
+        term.on("desktop", function () { dirty = true; });
         term.on("reboot", function () {
             S.power = 0; dirty = true;
             setTimeout(function () { S.power = 1; S.glitch = 0.6; setLamp(true); dirty = true; }, 1500);

@@ -29,7 +29,7 @@ inline = (
     "<script>window.__POSTS__ = " + read("posts.json") + ";\n"
     "window.__ROOM__ = " + json.dumps({"meta": json.loads(read("assets/room/room.json")), "images": images}) + ";</script>\n"
 )
-for src in ("assets/js/terminal.js", "assets/js/room.js"):
+for src in ("assets/js/terminal.js", "assets/js/desktop.js", "assets/js/room.js"):
     js = read(src)
     if src.endswith("terminal.js"):
         # page links should go to the live site when the file is opened from disk
@@ -39,6 +39,8 @@ for src in ("assets/js/terminal.js", "assets/js/room.js"):
     assert m, src
     html = html.replace(m.group(0), (inline if src.endswith("terminal.js") else "") + "<script>\n" + js.replace("</script>", "<\\/script>") + "\n</script>")
 html = re.sub(r'\s*<link rel="preload"[^>]*>', "", html)
+css = read("assets/css/desktop.css")
+html = re.sub(r'<link rel="stylesheet" href="assets/css/desktop\.css(\?v=\w+)?">', lambda m: "<style>\n" + css + "\n</style>", html)
 html = re.sub(r'href="(index|blog|terminal)\.html"', lambda m: f'href="{SITE}{m.group(1)}.html"', html)
 # no analytics from a local preview
 html = re.sub(r"\s*<script async src=\"https://www\.googletagmanager[^<]*</script>\s*<script>.*?</script>", "", html, count=1, flags=re.S)

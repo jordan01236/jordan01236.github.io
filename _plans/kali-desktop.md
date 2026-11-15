@@ -278,12 +278,24 @@ the Network panel / Playwright request log).
 ## Progress
 
 - [x] Plan written (this file).
-- [ ] Stage 1: JTerm fs export + `startx` hook
-- [ ] Stage 1: desktop shell (panel, wallpaper, icons) + window manager
-- [ ] Stage 1: Terminal / Files / Editor / Browser apps
-- [ ] Stage 1: fullscreen + Esc contract with room.js
-- [ ] Stage 1: tool look-alikes (Zenmap, Burp, Wireshark, John, CyberChef-lite), Settings
-- [ ] Stage 1: tests (section 7) + preview bundler update
+- [x] Stage 1: JTerm fs export + `startx` hook (`JTerm.fs.list/read`, `JTerm.desktop`, `JTerm.open`, `JTerm.emit`)
+- [x] Stage 1: desktop shell (panel, wallpaper, icons) + window manager (`assets/js/desktop.js`, `assets/css/desktop.css`)
+- [x] Stage 1: Terminal / Files / Editor / Browser apps
+- [x] Stage 1: fullscreen + Esc contract with room.js (room only stands up when Esc wasn't `defaultPrevented`)
+- [ ] Stage 1: tool look-alikes (Zenmap, Burp, Wireshark, John, CyberChef-lite), Settings app
+- [x] Stage 1: tests run for what exists (desktop 1440×810, iPhone 13, no-WebGL, command sweep, new-tab check); bundler updated
 - [ ] Stage 2 research + image build script
 - [ ] Stage 2 VM app
 - [ ] Stage 3 target
+
+### Notes from the first build session
+- The intro line was kept exactly as the user asked ("Type 'help' for available commands."); the
+  `startx` hint lives in `help` output instead of the intro (deviation from section 3).
+- Shell commands added: `startx` (+ `startxfce4 desktop gui xfce`), `thunar|files|nautilus [path]`,
+  `mousepad|gedit|editor [file]`, `browser|chromium [url]`. `open <writeup>` uses the desktop
+  browser when the desktop is up; `blog`/`about` still open real new tabs (original commands unchanged).
+  `exit`/`logout` at user level close the desktop before standing up.
+- On narrow screens (<520 px desktop area) windows open maximised; minimise via the panel task button.
+- Browser app iframes same-origin pages only; external links show an "airgapped" page with a
+  button that opens a real tab. In the file:// preview the iframe can't load site pages (shows offline page).
+- Not pushed to `main` yet: waiting for the user.

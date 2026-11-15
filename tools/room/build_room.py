@@ -620,9 +620,9 @@ if os.path.exists(PAINTING):
     # big ~$ poster on the left, the recoloured canvas (make_painting.py) beside it
     poster("poster_a", "poster_a.png", 0.42, 0.594, -1.5, 1.6)
     PW_, PX_P, PZ_P = 0.46, -1.0, 1.6
-    box("painting_frame", (PW_ + 0.03, 0.035, PW_ + 0.03), (PX_P, BACK_Y - 0.018, PZ_P), M_SHELF, bevel=0.004)
+    box("painting_frame", (PW_ + 0.03, 0.024, PW_ + 0.03), (PX_P, BACK_Y - 0.012, PZ_P), M_SHELF, bevel=0.004)
     box("painting_canvas", (PW_, 0.03, PW_), (PX_P, BACK_Y - 0.02, PZ_P), mat("canvas_edge", (0.05, 0.07, 0.11), 0.85), bevel=0.002)
-    plane("painting", PW_ - 0.004, PW_ - 0.004, (PX_P, BACK_Y - 0.0352, PZ_P), image_mat("painting", PAINTING, 0.62), rot=FACE_CAM)
+    plane("painting", PW_ - 0.004, PW_ - 0.004, (PX_P, BACK_Y - 0.0358, PZ_P), image_mat("painting", PAINTING, 0.62), rot=FACE_CAM)
 else:
     poster("poster_a", "poster_a.png", 0.42, 0.594, -1.4, 1.6)
     poster("poster_b", "poster_b.png", 0.3, 0.3, -0.94, 1.745)

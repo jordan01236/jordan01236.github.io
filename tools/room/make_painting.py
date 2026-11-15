@@ -17,7 +17,8 @@ src = Image.open(sys.argv[1]).convert("L")
 # square crop around the centre, 1024 px
 w, h = src.size
 s = min(w, h)
-src = src.crop(((w - s) // 2, (h - s) // 2, (w + s) // 2, (h + s) // 2)).resize((1024, 1024), Image.LANCZOS)
+m = int(s * 0.035)   # trim the source's light outer border
+src = src.crop(((w - s) // 2 + m, (h - s) // 2 + m, (w + s) // 2 - m, (h + s) // 2 - m)).resize((1024, 1024), Image.LANCZOS)
 L = np.asarray(src, dtype=np.float32) / 255.0
 lo, hi = np.percentile(L, 2), np.percentile(L, 98)
 t = np.clip((L - lo) / max(hi - lo, 1e-3), 0, 1)

@@ -566,12 +566,16 @@
         term.blur();
         term.on("sit", function () { if (!sit()) term.print("You're already sitting down."); });
         term.on("stand", function () { if (!stand()) term.print("You're already standing."); });
+        // the desktop's Settings app passes { value, quiet: true } so nothing is printed in the shell
+        term.lampOn = function () { return !!S.lampTarget; };
         term.on("lamp", function (arg) {
+            var q = arg && arg.quiet; if (q) arg = arg.value;
             if (arg === "on") setLamp(true); else if (arg === "off") setLamp(false); else toggleLamp();
-            term.print("lamp: " + (S.lampTarget ? "on" : "off"));
+            if (!q) term.print("lamp: " + (S.lampTarget ? "on" : "off"));
         });
         term.on("rgb", function (arg) {
-            if (setAccent(arg)) term.print("rgb: " + arg);
+            var q = arg && arg.quiet; if (q) arg = arg.value;
+            if (setAccent(arg)) { if (!q) term.print("rgb: " + arg); }
             else term.print("rgb: unknown colour '" + arg + "'. Try teal, violet, amber, pink, green, blue, white, off or #rrggbb.");
         });
         term.on("root", function (on) {

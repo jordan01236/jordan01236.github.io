@@ -391,4 +391,85 @@
             draw();
         }
     });
+
+    // ------------------------------------------------------------------
+    // Settings
+    // ------------------------------------------------------------------
+    var store = {
+        get: function (k, d) { try { var v = localStorage.getItem("hwj." + k); return v === null ? d : v; } catch (e) { return d; } },
+        set: function (k, v) { try { localStorage.setItem("hwj." + k, v); } catch (e) { } }
+    };
+    var desk = document.getElementById("desktop");
+    var tbox = document.getElementById("terminal-container");
+    var WALLS = { grid: "Grid", aurora: "Aurora", plain: "Plain" };
+    var SIZES = { small: 0.9, normal: 1, large: 1.15 };
+    function applyWall(k) { Object.keys(WALLS).forEach(function (w) { desk.classList.toggle("wp-" + w, w === k); }); }
+    function applySize(k) { tbox.style.fontSize = (SIZES[k] || 1) + "em"; }
+    applyWall(store.get("wall", "grid"));
+    applySize(store.get("tsize", "normal"));
+
+    var SWATCH = { teal: "#5eead4", violet: "#7c8cf8", pink: "#ff5ca8", amber: "#ffb040", green: "#50fa7b", blue: "#4696ff", white: "#ebf0ff" };
+    D.app({
+        id: "settings", title: "Settings", menu: "Settings", icon: "gear", cat: "Accessories", single: true, wf: 0.5, hf: 0.66,
+        open: function (w) {
+            w.body.classList.add("kt", "kt-settings");
+            var hasRoom = typeof term.lampOn === "function";
+            w.body.innerHTML =
+                '<section><h4>Accent colour</h4><div class="kt-row sw"></div>' +
+                '<p class="kt-hint">Drives the LEDs, the neon sign and this desktop. Same as <code>rgb &lt;colour&gt;</code> in the terminal.</p></section>' +
+                (hasRoom ? '<section><h4>Desk lamp</h4><div class="kt-row"><label class="tg"><input type="checkbox" class="lamp"> Lamp on</label></div></section>' : '') +
+                '<section><h4>Wallpaper</h4><div class="kt-row wp"></div></section>' +
+                '<section><h4>Terminal text size</h4><div class="kt-row ts"></div></section>' +
+                '<section><h4>About this machine</h4><dl class="kt-dl">' +
+                '<dt>Host</dt><dd>jordan@kali (a Kali-style desktop, not the real thing)</dd>' +
+                '<dt>Runs</dt><dd>entirely in your browser — no network, nothing leaves this tab</dd>' +
+                '<dt>Room</dt><dd>modelled and rendered in Blender, relit live in WebGL</dd>' +
+                '<dt>Source</dt><dd>github.com/jordan01236/jordan01236.github.io</dd></dl></section>';
+            var sw = w.body.querySelector(".sw");
+            Object.keys(SWATCH).forEach(function (k) {
+                var b = el("button", "kt-swatch");
+                b.type = "button";
+                b.title = k;
+                b.setAttribute("aria-label", k);
+                b.style.background = SWATCH[k];
+                b.addEventListener("click", function () { setColour(k); });
+                sw.appendChild(b);
+            });
+            var pick = el("input");
+            pick.type = "color";
+            pick.value = "#5eead4";
+            pick.setAttribute("aria-label", "Custom colour");
+            pick.addEventListener("input", function () { setColour(pick.value); });
+            sw.appendChild(pick);
+            function setColour(c) {
+                if (term.isRoot()) { toast("root likes it red — type exit in the terminal first"); return; }
+                if (!term.emit("rgb", { value: c, quiet: true })) {
+                    // no room (flat layout): tint the desktop directly
+                    desk.style.setProperty("--room-accent", SWATCH[c] || c);
+                }
+            }
+            if (hasRoom) {
+                var lamp = w.body.querySelector(".lamp");
+                lamp.checked = term.lampOn();
+                lamp.addEventListener("change", function () { term.emit("lamp", { value: lamp.checked ? "on" : "off", quiet: true }); });
+                term.on("lamp", function () { setTimeout(function () { lamp.checked = term.lampOn(); }, 0); });
+            }
+            function choices(sel, map, key, apply) {
+                var box = w.body.querySelector(sel), cur = store.get(key, Object.keys(map)[sel === ".ts" ? 1 : 0]);
+                Object.keys(map).forEach(function (k) {
+                    var b = el("button", "kt-chip" + (k === cur ? " on" : ""), esc(typeof map[k] === "string" ? map[k] : k[0].toUpperCase() + k.slice(1)));
+                    b.type = "button";
+                    b.addEventListener("click", function () {
+                        box.querySelectorAll(".on").forEach(function (x) { x.classList.remove("on"); });
+                        b.classList.add("on");
+                        store.set(key, k);
+                        apply(k);
+                    });
+                    box.appendChild(b);
+                });
+            }
+            choices(".wp", WALLS, "wall", applyWall);
+            choices(".ts", SIZES, "tsize", applySize);
+        }
+    });
 })();

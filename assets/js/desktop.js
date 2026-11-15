@@ -52,7 +52,8 @@
         dir: '<path d="M3 6h6l2 2h10v11H3z"/><path d="M14 13h4M16 11v4"/>',
         db: '<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/>',
         skull: '<path d="M5 11a7 7 0 1 1 14 0v3l-2 1v4H7v-4l-2-1z"/><circle cx="9.5" cy="11.5" r="1.5"/><circle cx="14.5" cy="11.5" r="1.5"/><path d="M11 19v-2M13 19v-2"/>',
-        search: '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>'
+        search: '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>',
+        gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>'
     };
     function icon(name, cls) {
         return '<svg class="ico' + (cls ? " " + cls : "") + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICON[name] || ICON.file) + "</svg>";
@@ -549,7 +550,11 @@
     }
     function buildMenus() {
         powerEl.innerHTML = "";
-        [["Restart session", function () { close(); start(); }], ["Reboot", function () { close(); term.run("reboot"); }], ["Stand up", function () { closeMenus(); term.emit("stand"); }]].forEach(function (m) {
+        [["Restart session", function () { close(); start(); }], ["Reboot", function () { close(); term.run("reboot"); }], ["Stand up", function () {
+            closeMenus();
+            // let this click finish first: it bubbles to #screen, which sits you down when standing
+            setTimeout(function () { term.emit("stand"); }, 0);
+        }]].forEach(function (m) {
             var b = el("button", "", "<span>" + m[0] + "</span>");
             b.type = "button";
             b.setAttribute("role", "menuitem");

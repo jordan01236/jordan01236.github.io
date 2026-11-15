@@ -1,6 +1,6 @@
 # Plan: a working "Kali-style" computer on the terminal page
 
-Status: **planned, stage 1 started** (see "Progress" at the bottom; update it as you go).
+Status: **stage 1 done; stages 2 and 3 dropped by the user** ("we don't need an actual virtual machine in the browser").
 Repo: `jordan01236/jordan01236.github.io` (GitHub Pages, Jekyll on, custom domain hackwithjordan.com)
 Working branch: `claude/admiring-brahmagupta-ep59ts`. Push to `main` only when the user says so.
 
@@ -283,11 +283,24 @@ the Network panel / Playwright request log).
 - [x] Stage 1: Terminal / Files / Editor / Browser apps
 - [x] Stage 1: fullscreen + Esc contract with room.js (room only stands up when Esc wasn't `defaultPrevented`)
 - [x] Stage 1: tool look-alikes (Zenmap, Burp, Wireshark, John, CyberChef-lite) in `assets/js/kali-tools.js`, plus gobuster/sqlmap/hydra/searchsploit/msfconsole demos in the shell
-- [ ] Stage 1: Settings app
+- [x] Stage 1: Settings app (accent, lamp, wallpaper, terminal text size, about; wallpaper/size saved in localStorage)
 - [x] Stage 1: tests run for what exists (desktop 1440×810, iPhone 13, no-WebGL, command sweep, new-tab check); bundler updated
-- [ ] Stage 2 research + image build script
-- [ ] Stage 2 VM app
-- [ ] Stage 3 target
+- [~] DROPPED: Stage 2 research + image build script
+- [~] DROPPED: Stage 2 VM app
+- [~] DROPPED: Stage 3 target
+
+### Dropped
+- Stages 2 and 3 (real VM + hackable target) were dropped by the user. Research notes in case it comes
+  back: v86 0.5.x is on npm (BSD-2-Clause); Alpine's CDN and kernel.org were blocked from the build
+  sandbox, but archive.ubuntu.com was reachable and Ubuntu 18.04 still ships i386 kernels/packages.
+
+### Chrome compositor gotcha (cost hours, read this)
+- A fully opaque, composited layer inside the scaled `#screen` can make Chrome cull part of the WebGL
+  canvas *below* the monitor (shows as a black/white band under the screen). Fixes in desktop.css:
+  windows get `will-change: transform`, and desktop wallpapers end in an `rgba(..., 0.99)` colour so
+  the layer is never "contents opaque". Keep both when adding new full-screen backgrounds.
+- The panel's "Stand up" defers its emit with setTimeout: the click otherwise bubbles to #screen,
+  whose click handler sits you straight back down.
 
 ### Site change (user request)
 - The desk page is now the **home page**: `terminal.html` was moved to `index.html`, the old home page

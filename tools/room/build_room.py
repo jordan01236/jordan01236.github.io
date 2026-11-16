@@ -800,25 +800,6 @@ torus("spk_ring", 0.047, 0.0025, (SPX, BACK_Y - 0.183, z2 + 0.075), E_ACCENT_SOF
 # a second plant on the window sill and one on the floor by the wall
 snake_plant(LEFT_X + 0.07, WY1 - 0.3, WZ0 + 0.005, n=7, hmin=0.14, hmax=0.26)
 
-# --------------------------------------------------------------------------
-# chair (foreground)
-# --------------------------------------------------------------------------
-ch = []
-ch.append(box("seat", (0.5, 0.5, 0.09), (0, 0, 0.5), M_FABRIC, bevel=0.035, segments=5))
-ch.append(box("backrest", (0.47, 0.085, 0.6), (0, -0.25, 0.9), M_FABRIC, bevel=0.04, segments=5, rot=(math.radians(-8), 0, 0)))
-ch.append(box("back_stripe", (0.06, 0.09, 0.56), (0, -0.2505, 0.9), M_FABRIC_ACC, bevel=0.02, rot=(math.radians(-8), 0, 0)))
-ch.append(box("headrest", (0.3, 0.075, 0.15), (0, -0.31, 1.3), M_FABRIC, bevel=0.035, segments=5, rot=(math.radians(-8), 0, 0)))
-ch.append(box("head_post", (0.05, 0.02, 0.14), (0, -0.3, 1.2), M_BLACK, bevel=0.004, rot=(math.radians(-8), 0, 0)))
-for sx in (-1, 1):
-    ch.append(box(f"arm{sx}", (0.07, 0.26, 0.03), (sx * 0.3, 0.0, 0.7), M_PLASTIC_SOFT, bevel=0.012))
-    ch.append(box(f"arm_post{sx}", (0.03, 0.04, 0.2), (sx * 0.3, -0.02, 0.59), M_BLACK, bevel=0.004))
-ch.append(cyl("gas", 0.028, 0.34, (0, 0, 0.28), M_BLACK))
-for i in range(5):
-    a = i * 2 * math.pi / 5 + 0.3
-    ch.append(box(f"spoke{i}", (0.3, 0.04, 0.03), (math.cos(a) * 0.15, math.sin(a) * 0.15, 0.1), M_BLACK, bevel=0.006, rot=(0, 0, a)))
-    ch.append(cyl(f"wheel{i}", 0.03, 0.045, (math.cos(a) * 0.3, math.sin(a) * 0.3, 0.03), M_PLASTIC, rot=(R90, 0, a)))
-parent(ch, "chair", (-0.78, 0.5, 0.0), (0, 0, math.radians(-28)))
-
 # backpack-ish box and bin on the floor, mostly for silhouette
 cyl("bin", 0.14, 0.32, (DX - DW / 2 - 0.3, BACK_Y - 0.25, 0.16), M_BLACK, r2=0.16)
 

@@ -454,13 +454,14 @@ parent(side, "side_monitor", (MON_X + 0.535, MON_Y - 0.075, DZ + 0.346), (0, 0, 
 # keyboard
 # --------------------------------------------------------------------------
 KB_X, KB_Y = MON_X - 0.02, DY - 0.2
-kb = [box("kb_base", (0.325, 0.115, 0.018), (0, 0, 0.011), M_ALU, bevel=0.004),
-      box("kb_glow", (0.31, 0.1, 0.002), (0, 0, 0.0205), E_ACCENT_SOFT, group="accent")]
-rows = [14, 14, 13, 13, 9]
 u = 0.0215
+# every row is 15u wide; the case leaves a small margin around the key block
+kb = [box("kb_base", (15 * u + 0.012, 5 * u + 0.012, 0.018), (0, 0, 0.011), M_ALU, bevel=0.004),
+      box("kb_glow", (15 * u + 0.002, 5 * u + 0.002, 0.002), (0, 0, 0.0205), E_ACCENT_SOFT, group="accent")]
+rows = [14, 14, 13, 13, 9]
 for r, n in enumerate(rows):
-    y = 0.043 - r * u
-    x = -0.151
+    y = 2 * u - r * u
+    x = -15 * u / 2
     widths = [1.0] * n
     if r == 0:
         widths[-1] = 2.0; widths = widths[:13] + [2.0]
@@ -481,7 +482,7 @@ for r, n in enumerate(rows):
             m = M_KEY_LIGHT
         elif k == 0 or k == len(widths) - 1 or r == 4:
             m = M_PLASTIC_SOFT
-        kb.append(box(f"key{r}_{k}", (kw - 0.003, u - 0.003, 0.009), (x + kw / 2, y, 0.026), m, bevel=0.0018, segments=2))
+        kb.append(box(f"key{r}_{k}", (kw - 0.003, u - 0.003, 0.009), (x + kw / 2, y, 0.0255), m, bevel=0.0018, segments=2))
         x += kw
 parent(kb, "keyboard", (KB_X, KB_Y, DZ + 0.004), (math.radians(4), 0, math.radians(1.5)))
 

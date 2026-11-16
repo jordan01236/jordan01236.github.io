@@ -3,6 +3,18 @@
 <head>
     <meta charset="utf-8">
     <title>VulnLab: Sweep | HackWithJordan</title>
+    <!-- site-meta -->
+    <meta name="description" content="Sweep is a medium rated machine which teaches the importance of strong passwords as our initial access involves password bruteforcing.">
+    <link rel="canonical" href="https://hackwithjordan.com/posts/2025-03-17-Sweep(VulnLab).html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="HackWithJordan">
+    <meta property="og:title" content="VulnLab: Sweep">
+    <meta property="og:description" content="Sweep is a medium rated machine which teaches the importance of strong passwords as our initial access involves password bruteforcing.">
+    <meta property="og:url" content="https://hackwithjordan.com/posts/2025-03-17-Sweep(VulnLab).html">
+    <meta property="og:image" content="https://hackwithjordan.com/assets/room/poster.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="article:published_time" content="2025-03-17">
+    <!-- /site-meta -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="../assets/css/syntax.css">
     <style>
@@ -308,49 +320,49 @@
 
         <p>Guest access gives us access to one share but it has nothing interesting</p>
 
-        <img alt="Screenshot 2" height="289" src="../img/posts/2025-03-17-Sweep(VulnLab)/02-358e3f0f6d.png" style="aspect-ratio:1213/289;" width="1213"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 2" height="289" src="../img/posts/2025-03-17-Sweep(VulnLab)/02-358e3f0f6d.png" style="aspect-ratio:1213/289;" width="1213"/>
 
         <p>Username bruteforce</p>
 
-        <img alt="Screenshot 3" height="381" src="../img/posts/2025-03-17-Sweep(VulnLab)/03-37b1b68187.png" style="aspect-ratio:1019/381;" width="1019"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 3" height="381" src="../img/posts/2025-03-17-Sweep(VulnLab)/03-37b1b68187.png" style="aspect-ratio:1019/381;" width="1019"/>
 
         <p>Randomly guessing the password is intern, initially this login did not work for the web page. After restarting the machine it works now.</p>
 
         <p>intern:intern</p>
 
-        <img alt="Screenshot 4" height="326" src="../img/posts/2025-03-17-Sweep(VulnLab)/04-471100f730.png" style="aspect-ratio:1209/326;" width="1209"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 4" height="326" src="../img/posts/2025-03-17-Sweep(VulnLab)/04-471100f730.png" style="aspect-ratio:1209/326;" width="1209"/>
 
         <p>Logging into the webpage</p>
 
-        <img alt="Screenshot 5" height="1015" src="../img/posts/2025-03-17-Sweep(VulnLab)/05-dbd86d0d39.png" style="aspect-ratio:2445/1015;" width="2445"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 5" height="1015" src="../img/posts/2025-03-17-Sweep(VulnLab)/05-dbd86d0d39.png" style="aspect-ratio:2445/1015;" width="2445"/>
 
         <p>I managed to steal the machine hash by creating a fake server. Sadly we are unable to crack this.</p>
 
-        <img alt="Screenshot 6" height="468" src="../img/posts/2025-03-17-Sweep(VulnLab)/06-3d35449c77.png" style="aspect-ratio:996/468;" width="996"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 6" height="468" src="../img/posts/2025-03-17-Sweep(VulnLab)/06-3d35449c77.png" style="aspect-ratio:996/468;" width="996"/>
 
-        <img alt="Screenshot 7" height="154" src="../img/posts/2025-03-17-Sweep(VulnLab)/07-5c7bf0cd1b.png" style="aspect-ratio:1196/154;" width="1196"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 7" height="154" src="../img/posts/2025-03-17-Sweep(VulnLab)/07-5c7bf0cd1b.png" style="aspect-ratio:1196/154;" width="1196"/>
 
         <h1 style="color:#5eead4;">Access as svc_inventory_lnx</h1>
 
         <p>Under scanning targets we can setup our ip for the ip range</p>
 
-        <img alt="Screenshot 8" height="306" src="../img/posts/2025-03-17-Sweep(VulnLab)/08-f404dabf86.png" style="aspect-ratio:1257/306;" width="1257"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 8" height="306" src="../img/posts/2025-03-17-Sweep(VulnLab)/08-f404dabf86.png" style="aspect-ratio:1257/306;" width="1257"/>
 
         <p>Under scanning credentials we add our ip range again and select credentials to use to scan our ip. We then setup a fake ssh server to capture creds.</p>
 
-        <img alt="Screenshot 9" height="687" src="../img/posts/2025-03-17-Sweep(VulnLab)/09-ae83ff29c2.png" style="aspect-ratio:1074/687;" width="1074"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 9" height="687" src="../img/posts/2025-03-17-Sweep(VulnLab)/09-ae83ff29c2.png" style="aspect-ratio:1074/687;" width="1074"/>
 
         <p>Fake ssh server tool can be downloaded here</p>
 
         <p><a href="https://github.com/fffaraz/fakessh">https://github.com/fffaraz/fakessh</a></p>
 
-        <img alt="Screenshot 10" height="149" src="../img/posts/2025-03-17-Sweep(VulnLab)/10-eed21cddf6.png" style="aspect-ratio:891/149;" width="891"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 10" height="149" src="../img/posts/2025-03-17-Sweep(VulnLab)/10-eed21cddf6.png" style="aspect-ratio:891/149;" width="891"/>
 
         <p>svc_inventory_lnx:0|5m-U6?/uAX</p>
 
         <p>This new user has generic all over lansweeper admins</p>
 
-        <img alt="Screenshot 11" height="171" src="../img/posts/2025-03-17-Sweep(VulnLab)/11-ae77679ecd.png" style="aspect-ratio:876/171;" width="876"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 11" height="171" src="../img/posts/2025-03-17-Sweep(VulnLab)/11-ae77679ecd.png" style="aspect-ratio:876/171;" width="876"/>
 
         <p>Add our user to the group</p>
 
@@ -358,7 +370,7 @@
 
         <p>Verify it worked with this command</p>
 
-        <img alt="Screenshot 12" height="90" src="../img/posts/2025-03-17-Sweep(VulnLab)/12-886e476123.png" style="aspect-ratio:961/90;" width="961"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 12" height="90" src="../img/posts/2025-03-17-Sweep(VulnLab)/12-886e476123.png" style="aspect-ratio:961/90;" width="961"/>
 
         <pre class="terminal"><code>net rpc group members "LANSWEEPER ADMINS" -U "sweep.vl"/"svc_inventory_lnx"%"0|5m-U6?/uAX" -S "inventory.sweep.vl"</code></pre>
 
@@ -372,23 +384,23 @@
 
         <p>We can map a credential for the domain controller</p>
 
-        <img alt="Screenshot 13" height="204" src="../img/posts/2025-03-17-Sweep(VulnLab)/13-998568172e.png" style="aspect-ratio:839/204;" width="839"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 13" height="204" src="../img/posts/2025-03-17-Sweep(VulnLab)/13-998568172e.png" style="aspect-ratio:839/204;" width="839"/>
 
         <p>We can now create a new package and deploy it to the machine.</p>
 
-        <img alt="Screenshot 14" height="650" src="../img/posts/2025-03-17-Sweep(VulnLab)/14-2adb9745ec.png" style="aspect-ratio:1193/650;" width="1193"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 14" height="650" src="../img/posts/2025-03-17-Sweep(VulnLab)/14-2adb9745ec.png" style="aspect-ratio:1193/650;" width="1193"/>
 
-        <img alt="Screenshot 15" height="476" src="../img/posts/2025-03-17-Sweep(VulnLab)/15-ec27b8e310.png" style="aspect-ratio:574/476;" width="574"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 15" height="476" src="../img/posts/2025-03-17-Sweep(VulnLab)/15-ec27b8e310.png" style="aspect-ratio:574/476;" width="574"/>
 
         <p>Start our listener and click deploy now and deploy to all</p>
 
-        <img alt="Screenshot 16" height="440" src="../img/posts/2025-03-17-Sweep(VulnLab)/16-b463f5e0ca.png" style="aspect-ratio:601/440;" width="601"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 16" height="440" src="../img/posts/2025-03-17-Sweep(VulnLab)/16-b463f5e0ca.png" style="aspect-ratio:601/440;" width="601"/>
 
         <p>We get a call back and finish the machine</p>
 
-        <img alt="Screenshot 17" height="198" src="../img/posts/2025-03-17-Sweep(VulnLab)/17-b6eaa55d27.png" style="aspect-ratio:535/198;" width="535"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 17" height="198" src="../img/posts/2025-03-17-Sweep(VulnLab)/17-b6eaa55d27.png" style="aspect-ratio:535/198;" width="535"/>
 
-        <img alt="Screenshot 18" height="615" src="../img/posts/2025-03-17-Sweep(VulnLab)/18-381ec8bf1a.png" style="aspect-ratio:548/615;" width="548"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 18" height="615" src="../img/posts/2025-03-17-Sweep(VulnLab)/18-381ec8bf1a.png" style="aspect-ratio:548/615;" width="548"/>
     </article>
 
 <script>

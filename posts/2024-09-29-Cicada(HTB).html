@@ -3,6 +3,18 @@
 <head>
     <meta charset="utf-8">
     <title>HTB: Cicada | HackWithJordan</title>
+    <!-- site-meta -->
+    <meta name="description" content="Cicada is an easy Windows Active Directory box. I’ll start enumerating SMB shares to find a new hire welcome note with a default password. I’ll RID-cycle to get a list of usernames, and spray that password to find a user still using it.">
+    <link rel="canonical" href="https://hackwithjordan.com/posts/2024-09-29-Cicada(HTB).html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="HackWithJordan">
+    <meta property="og:title" content="HTB: Cicada">
+    <meta property="og:description" content="Cicada is an easy Windows Active Directory box. I’ll start enumerating SMB shares to find a new hire welcome note with a default password. I’ll RID-cycle to get a list of usernames, and spray that password to find a user still using it.">
+    <meta property="og:url" content="https://hackwithjordan.com/posts/2024-09-29-Cicada(HTB).html">
+    <meta property="og:image" content="https://hackwithjordan.com/assets/room/poster.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="article:published_time" content="2025-03-15">
+    <!-- /site-meta -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="../assets/css/syntax.css">
     <style>
@@ -302,7 +314,7 @@
 
         <p>No webserver so just AD enumeration</p>
 
-        <img alt="Screenshot 2" height="517" src="../img/posts/2024-09-29-Cicada(HTB)/02-2759f2296f.png" style="aspect-ratio:892/517;" width="892"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 2" height="517" src="../img/posts/2024-09-29-Cicada(HTB)/02-2759f2296f.png" style="aspect-ratio:892/517;" width="892"/>
 
         <p>THe HR drive contains a welcome letter which has a default password</p>
 
@@ -310,13 +322,13 @@
 
         <p>We can get usernames with rpcclient and the domain SID provided by enum4linux</p>
 
-        <img alt="Screenshot 3" height="126" src="../img/posts/2024-09-29-Cicada(HTB)/03-1c93ebc9af.png" style="aspect-ratio:520/126;" width="520"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 3" height="126" src="../img/posts/2024-09-29-Cicada(HTB)/03-1c93ebc9af.png" style="aspect-ratio:520/126;" width="520"/>
 
-        <img alt="Screenshot 4" height="413" src="../img/posts/2024-09-29-Cicada(HTB)/04-335e7a82ec.png" style="aspect-ratio:657/413;" width="657"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 4" height="413" src="../img/posts/2024-09-29-Cicada(HTB)/04-335e7a82ec.png" style="aspect-ratio:657/413;" width="657"/>
 
         <p><br/> lookupsids &lt;sid&gt;</p>
 
-        <img alt="Screenshot 5" height="87" src="../img/posts/2024-09-29-Cicada(HTB)/05-ba682e45da.png" style="aspect-ratio:581/87;" width="581"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 5" height="87" src="../img/posts/2024-09-29-Cicada(HTB)/05-ba682e45da.png" style="aspect-ratio:581/87;" width="581"/>
 
         <p>valid user is emily.oscars but the password doesnt work</p>
 
@@ -330,11 +342,11 @@
 
         <p>Michael.wrightson:Cicada$M6Corpb*@Lp#nZp!8</p>
 
-        <img alt="Screenshot 6" height="260" src="../img/posts/2024-09-29-Cicada(HTB)/06-2892550eb0.png" style="aspect-ratio:1105/260;" width="1105"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 6" height="260" src="../img/posts/2024-09-29-Cicada(HTB)/06-2892550eb0.png" style="aspect-ratio:1105/260;" width="1105"/>
 
         <p>Cant remote in just yet so I was seeing if there is any other users and we find another one with a password.</p>
 
-        <img alt="Screenshot 7" height="332" src="../img/posts/2024-09-29-Cicada(HTB)/07-177b1fb04e.png" style="aspect-ratio:1268/332;" width="1268"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 7" height="332" src="../img/posts/2024-09-29-Cicada(HTB)/07-177b1fb04e.png" style="aspect-ratio:1268/332;" width="1268"/>
 
         <p>david.orelious:aRt$Lp#7t*VQ!3</p>
 
@@ -342,7 +354,7 @@
 
         <p>Contains a file with a new password Q!3@Lp#M6b*7t*Vt</p>
 
-        <img alt="Screenshot 8" height="555" src="../img/posts/2024-09-29-Cicada(HTB)/08-e68e17c310.png" style="aspect-ratio:826/555;" width="826"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 8" height="555" src="../img/posts/2024-09-29-Cicada(HTB)/08-e68e17c310.png" style="aspect-ratio:826/555;" width="826"/>
 
         <p>This is the password for emily.oscars, we can remote in and get user flag.</p>
 
@@ -354,19 +366,19 @@
 
         <p>Need to upload/import both of these files then we can exploit our privileges</p>
 
-        <img alt="Screenshot 9" height="46" src="../img/posts/2024-09-29-Cicada(HTB)/09-b0b09cdae9.png" style="aspect-ratio:236/46;" width="236"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 9" height="46" src="../img/posts/2024-09-29-Cicada(HTB)/09-b0b09cdae9.png" style="aspect-ratio:236/46;" width="236"/>
 
-        <img alt="Screenshot 10" height="91" src="../img/posts/2024-09-29-Cicada(HTB)/10-97ee83d991.png" style="aspect-ratio:1182/91;" width="1182"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 10" height="91" src="../img/posts/2024-09-29-Cicada(HTB)/10-97ee83d991.png" style="aspect-ratio:1182/91;" width="1182"/>
 
         <p>We could have stopped there but I wanted to compromise the domain/admin account so I dumped the sam/system hashes.</p>
 
-        <img alt="Screenshot 11" height="210" src="../img/posts/2024-09-29-Cicada(HTB)/11-415db7de5c.png" style="aspect-ratio:903/210;" width="903"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 11" height="210" src="../img/posts/2024-09-29-Cicada(HTB)/11-415db7de5c.png" style="aspect-ratio:903/210;" width="903"/>
 
         <p>administrator:2b87e7c93a3e8a0ea4a581937016f341</p>
 
         <pre class="terminal"><code>evil-winrm -i 10.10.11.35 -u administrator -H 2b87e7c93a3e8a0ea4a581937016f341</code></pre>
 
-        <img alt="Screenshot 12" height="254" src="../img/posts/2024-09-29-Cicada(HTB)/12-227da2677c.png" style="aspect-ratio:687/254;" width="687"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 12" height="254" src="../img/posts/2024-09-29-Cicada(HTB)/12-227da2677c.png" style="aspect-ratio:687/254;" width="687"/>
 
         <p>Pretty easy machine but I did learn something new about enumerating users in RPC client.</p>
     </article>

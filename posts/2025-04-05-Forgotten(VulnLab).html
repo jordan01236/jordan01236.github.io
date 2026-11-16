@@ -3,6 +3,18 @@
 <head>
     <meta charset="utf-8">
     <title>VulnLab: Forgotten | HackWithJordan</title>
+    <!-- site-meta -->
+    <meta name="description" content="Forgotten is a very realistic machine that starts off by exploiting LimeSurvey for inital access and privilege escalation is done through a docker misconfiguration">
+    <link rel="canonical" href="https://hackwithjordan.com/posts/2025-04-05-Forgotten(VulnLab).html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="HackWithJordan">
+    <meta property="og:title" content="Vulnlab: Forgotten">
+    <meta property="og:description" content="Forgotten is a very realistic machine that starts off by exploiting LimeSurvey for inital access and privilege escalation is done through a docker misconfiguration">
+    <meta property="og:url" content="https://hackwithjordan.com/posts/2025-04-05-Forgotten(VulnLab).html">
+    <meta property="og:image" content="https://hackwithjordan.com/assets/room/poster.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="article:published_time" content="2025-04-05">
+    <!-- /site-meta -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="../assets/css/syntax.css">
     <style>
@@ -437,7 +449,7 @@
             <br />
 
             We will point it at our database on our machine
-            <img src="../img/Forgotten/2.png" alt="2"
+            <img loading="lazy" decoding="async" src="../img/Forgotten/2.png" alt="2"
 
 
 
@@ -448,7 +460,7 @@
             <br />
             <br />
             It should find our database and recognize that it exists.
-            <img src="../img/Forgotten/3.png" alt="3"
+            <img loading="lazy" decoding="async" src="../img/Forgotten/3.png" alt="3"
 
 
 
@@ -459,7 +471,7 @@
             <br />
             <br />
             Once done we should be given credentials to login to the website.
-            <img src="../img/Forgotten/4.png" alt="4"
+            <img loading="lazy" decoding="async" src="../img/Forgotten/4.png" alt="4"
             <br />
             <br />
             <br />
@@ -566,7 +578,7 @@
             <br />
             <br />
             Click upload and install at the top and upload our zipped folder
-            <img src="../img/Forgotten/upload.png" alt="upload"
+            <img loading="lazy" decoding="async" src="../img/Forgotten/upload.png" alt="upload"
 
             <br />
             <br />
@@ -578,7 +590,7 @@
             <br />
             <br />
             <br />
-            <img src="../img/Forgotten/5.png" alt="5"
+            <img loading="lazy" decoding="async" src="../img/Forgotten/5.png" alt="5"
             <br />
             <br />
             <br />
@@ -590,7 +602,7 @@
             Once we navigate to the shell file we will get a callback to our machine.
             <br />
             <br />
-            <img src="../img/Forgotten/6.png" alt="6"
+            <img loading="lazy" decoding="async" src="../img/Forgotten/6.png" alt="6"
             <br />
             <br />
             <br />
@@ -600,7 +612,7 @@
 
             Looking at the hostname of efaa6f5097ed its safe to assume we are probably in a docker container and linpeas will confirm that.
 
-            <img src="../img/Forgotten/7.png" alt="7"
+            <img loading="lazy" decoding="async" src="../img/Forgotten/7.png" alt="7"
 
 
 
@@ -611,7 +623,7 @@
             <br />
 
             Our user is in the sudo group but we need to find a password to be able to exploit this.
-            <img src="../img/Forgotten/8.png" alt="8"
+            <img loading="lazy" decoding="async" src="../img/Forgotten/8.png" alt="8"
 
 
 
@@ -626,7 +638,7 @@
             <br />
             limesvc:5W5HN4K4GCXf9E
 
-            <img src="../img/Forgotten/9.png" alt="9"
+            <img loading="lazy" decoding="async" src="../img/Forgotten/9.png" alt="9"
 
             <br />
             <br />
@@ -647,7 +659,7 @@
             <br />
             <br />
             <br />
-            <img src="../img/Forgotten/10.png" alt="10"
+            <img loading="lazy" decoding="async" src="../img/Forgotten/10.png" alt="10"
 
             <br />
             <br />
@@ -759,7 +771,7 @@ limesvc@ip-10-10-200-233:/opt/limesurvey/pwn$ ls
             <br />
             <br />
 
-            <img src="../img/Forgotten/11.png" alt="11"
+            <img loading="lazy" decoding="async" src="../img/Forgotten/11.png" alt="11"
             <br />
             <br />
             <br />
@@ -779,7 +791,7 @@ limesvc@ip-10-10-200-233:/opt/limesurvey/pwn$ ls
             <br />
             <br />
             <br />
-            <img src="../img/Forgotten/done.png" alt="done"
+            <img loading="lazy" decoding="async" src="../img/Forgotten/done.png" alt="done"
 
         </p>
 

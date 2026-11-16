@@ -186,6 +186,9 @@
 .win[hidden] { display: none; }
 .win.active { border-color: color-mix(in srgb, var(--acc) 40%, rgba(255, 255, 255, 0.1)); }
 .win.max { transform: none !important; inset: 0; width: auto; height: auto; border-radius: 0; box-shadow: none; border-width: 0; }
+/* A maximised window fills the monitor and can't be dragged, so it needs no layer of its own. Keeping one
+   left a see-through hole above the monitor (and a strip below it once seated) at phone widths. */
+.win.max { will-change: auto; }
 .win.opening { animation: win-in 0.18s ease-out; }
 @keyframes win-in { from { opacity: 0; scale: 0.97; } }
 .win-bar {

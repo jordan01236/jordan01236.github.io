@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>404 — HackWithJordan</title>
+    <meta name="robots" content="noindex">
+    <style>
+        :root { --bg: #0b0e14; --text: #e8edf2; --muted: #8b97a6; --accent: #5eead4; --border: rgba(255, 255, 255, 0.09);
+            --mono: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, 'SF Mono', Menlo, monospace; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: var(--mono); min-height: 100vh; display: flex;
+            align-items: center; justify-content: center; padding: 24px; line-height: 1.7; }
+        main { width: min(560px, 100%); border: 1px solid var(--border); border-radius: 14px; padding: 28px;
+            background: rgba(255, 255, 255, 0.03); }
+        .prompt { color: var(--accent); }
+        .muted { color: var(--muted); }
+        h1 { font-size: 1rem; font-weight: 400; margin: 6px 0 18px; }
+        nav { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+        a { color: var(--accent); text-decoration: none; border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; }
+        a:hover, a:focus-visible { border-color: var(--accent); }
+    </style>
+</head>
+<body>
+    <main>
+        <p><span class="prompt">~$</span> cat <span id="path">./this-page</span></p>
+        <h1 class="muted">cat: No such file or directory</h1>
+        <p>That page isn't here. It may have moved, or the link was mistyped.</p>
+        <nav>
+            <a href="/">cd ~</a>
+            <a href="/blog.html">ls ./writeups</a>
+            <a href="/about.html">whoami</a>
+        </nav>
+    </main>
+    <script>
+        document.getElementById('path').textContent = '.' + decodeURIComponent(location.pathname).slice(0, 80);
+    </script>
+</body>
+</html>

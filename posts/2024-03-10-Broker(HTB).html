@@ -1,7 +1,19 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>HTB: Broker | HackWithJordan</title><style>
+    <title>HTB: Broker | HackWithJordan</title>
+    <!-- site-meta -->
+    <meta name="description" content="Walkthrough of the Hack The Box machine Broker, from first foothold to full compromise.">
+    <link rel="canonical" href="https://hackwithjordan.com/posts/2024-03-10-Broker(HTB).html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="HackWithJordan">
+    <meta property="og:title" content="HTB: Broker">
+    <meta property="og:description" content="Walkthrough of the Hack The Box machine Broker, from first foothold to full compromise.">
+    <meta property="og:url" content="https://hackwithjordan.com/posts/2024-03-10-Broker(HTB).html">
+    <meta property="og:image" content="https://hackwithjordan.com/assets/room/poster.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="article:published_time" content="2024-03-10">
+    <!-- /site-meta --><style>
         :root {
             --bg: #0b0e14;
             --accent: #5eead4;
@@ -301,7 +313,7 @@ http {
         root /;
         autoindex on;
     }
-}</code></pre><p>&nbsp;</p><p>sudo /usr/sbin/nginx -c /tmp/test.conf</p><p>After running this command we can see the rouge web page on 1337</p><p><img src="../img/posts/2024-03-10-Broker(HTB)/02-9165af3dc0.jpg"></p><p>&nbsp;</p><p>This web page will allow us to read files on the machine.</p><p>We can then use curl to read any files on the machine</p><p>curl localhost:1337/root/root.txt</p><p><img src="../img/posts/2024-03-10-Broker(HTB)/03-8cbf91b1d1.jpg"></p>
+}</code></pre><p>&nbsp;</p><p>sudo /usr/sbin/nginx -c /tmp/test.conf</p><p>After running this command we can see the rouge web page on 1337</p><p><img loading="lazy" decoding="async" src="../img/posts/2024-03-10-Broker(HTB)/02-9165af3dc0.jpg"></p><p>&nbsp;</p><p>This web page will allow us to read files on the machine.</p><p>We can then use curl to read any files on the machine</p><p>curl localhost:1337/root/root.txt</p><p><img loading="lazy" decoding="async" src="../img/posts/2024-03-10-Broker(HTB)/03-8cbf91b1d1.jpg"></p>
     </article>
 
 <script>

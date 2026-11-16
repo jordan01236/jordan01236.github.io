@@ -4,6 +4,18 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>HTB: Buff | HackWithJordan</title>
+    <!-- site-meta -->
+    <meta name="description" content="Walkthrough of the Hack The Box machine Buff, from first foothold to full compromise.">
+    <link rel="canonical" href="https://hackwithjordan.com/posts/2023-05-01-Buff(HTB).html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="HackWithJordan">
+    <meta property="og:title" content="HTB: Buff">
+    <meta property="og:description" content="Walkthrough of the Hack The Box machine Buff, from first foothold to full compromise.">
+    <meta property="og:url" content="https://hackwithjordan.com/posts/2023-05-01-Buff(HTB).html">
+    <meta property="og:image" content="https://hackwithjordan.com/assets/room/poster.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="article:published_time" content="2023-05-01">
+    <!-- /site-meta -->
   <style>
         :root {
             --bg: #0b0e14;
@@ -313,17 +325,17 @@
     <p>The shell is very buggy so we cannot leave this directory but we can use
       dir to read through different directories</p>
     <p>
-      <img src="https://www.evernote.com/shard/s560/res/b2786fa8-0c87-8926-1c89-e3812faf992b/image.png"
+      <img loading="lazy" decoding="async" src="https://www.evernote.com/shard/s560/res/b2786fa8-0c87-8926-1c89-e3812faf992b/image.png"
       alt="">
     </p>
     <p>I later found out we can upload nc.exe to the box to get an actual shell</p>
     <p>
-      <img src="https://www.evernote.com/shard/s560/res/d976ca2e-14c4-4873-82ce-5d32f663bf78/image.png"
+      <img loading="lazy" decoding="async" src="https://www.evernote.com/shard/s560/res/d976ca2e-14c4-4873-82ce-5d32f663bf78/image.png"
       alt="">
     </p>
     <p>we fine this interesting file named passwords.txt(this was nothing)</p>
     <p>
-      <img src="https://www.evernote.com/shard/s560/res/3e81ece0-10ef-2474-9f25-59efbe7e2739/image.png"
+      <img loading="lazy" decoding="async" src="https://www.evernote.com/shard/s560/res/3e81ece0-10ef-2474-9f25-59efbe7e2739/image.png"
       alt="">
     </p>
     <p>We want to setup an smb share to transfer files to the target</p>
@@ -375,12 +387,12 @@
     <p>We also have to add right below the payload</p>
     <p>payload = buf</p>
     <p>
-      <img src="https://www.evernote.com/shard/s560/res/b5c0ceeb-3c17-1163-1356-63eaa51e3514/image.png"
+      <img loading="lazy" decoding="async" src="https://www.evernote.com/shard/s560/res/b5c0ceeb-3c17-1163-1356-63eaa51e3514/image.png"
       alt="">
     </p>
     <p>Once we run this we will get a shell as admin</p>
     <p>
-      <img src="https://www.evernote.com/shard/s560/res/fe173101-545b-6f23-be9a-f25fe82fc994/image.png"
+      <img loading="lazy" decoding="async" src="https://www.evernote.com/shard/s560/res/fe173101-545b-6f23-be9a-f25fe82fc994/image.png"
       alt="">
     </p>
     </article>

